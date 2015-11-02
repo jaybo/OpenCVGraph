@@ -3,6 +3,9 @@
 #include "FrameProcessor.h"
 #include <iomanip>
 
+//#include <boost/filesystem.hpp>
+//using namespace boost::filesystem;
+
 using namespace cv;
 
 namespace openCVGui
@@ -14,9 +17,11 @@ namespace openCVGui
 		std::string config("config");
 		std::wstring widestr(L"config");
 		// create the config directory
+		//create_directory("foobar");
 		_wmkdir((const wchar_t *) widestr.c_str());
 		persistFile = config  + "/" + name + ".yml";
 		//std::cout << persistFile << std::endl;
+
 
 	}
 
