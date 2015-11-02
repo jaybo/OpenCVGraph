@@ -7,7 +7,7 @@
 #include "Property.h"
 #include "GraphData.h"
 #include "Config.h"
-#include "FrameProcessor.h"
+//#include "FrameProcessor.h"
 #include "OpenCvZoomView.h"
 
 namespace openCVGui
@@ -21,9 +21,9 @@ namespace openCVGui
 
 		long frameToStop;
 
-		virtual void init(GraphData& data);
+		virtual bool init(GraphData& data);
 		virtual bool process(GraphData& data);
-		virtual void fini(GraphData& data);
+		virtual bool fini(GraphData& data);
 
         virtual void tic();
         virtual void toc();

@@ -2,6 +2,10 @@
 //
 
 #include "stdafx.h"
+
+// Boost
+#include <boost/thread.hpp>
+
 #include "..\OpenCVGui\FrameProcessor.h"
 #include "..\OpenCVGui\LoopProcessor.h"
 #include "..\OpenCVGui\OpenCvZoomView.h"
@@ -30,8 +34,9 @@ int main()
 
 	lp.Processors.push_back(fpImage1);
 	lp.Processors.push_back(fpAverage);
+	//lp.Processors.push_back(fpImage2);
 
-
+	lp.StartThread();
     lp.GotoState(LoopProcessor::GraphState::Run);
 
 

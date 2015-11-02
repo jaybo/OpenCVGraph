@@ -3,8 +3,8 @@
 #include "FrameProcessor.h"
 #include <iomanip>
 
-//#include <boost/filesystem.hpp>
-//using namespace boost::filesystem;
+#include <boost/filesystem.hpp>
+using namespace boost::filesystem;
 
 using namespace cv;
 
@@ -15,14 +15,16 @@ namespace openCVGui
 	{
 		std::cout << "FrameProcessor()" << std::endl;
 		std::string config("config");
-		std::wstring widestr(L"config");
+		create_directory(config);
+
+		// Windows only
+		// std::wstring widestr(L"config");
 		// create the config directory
-		//create_directory("foobar");
-		_wmkdir((const wchar_t *) widestr.c_str());
-		persistFile = config  + "/" + name + ".yml";
-		//std::cout << persistFile << std::endl;
+		// _wmkdir((const wchar_t *)widestr.c_str());
 
-
+		// The settings file name combines both the GraphName and the FrameProcessor together
+		persistFile = config  + "/" + data.GraphName + "-" + name + ".yml";
+		std::cout << persistFile << std::endl;
 	}
 
 	FrameProcessor::~FrameProcessor()
@@ -32,32 +34,28 @@ namespace openCVGui
 
     // Graph is starting up
 	// Allocate resources if needed
-	void FrameProcessor::init(GraphData& data)
+	bool FrameProcessor::init(GraphData& data)
 	{
         loadConfig();
         saveConfig();
+		return true;
 	}
 
-
+	// All of the work is done here
 	bool FrameProcessor::process(GraphData& data)
 	{
 		firstTime = false;
 
-		// called at start of processing
-		// tic();	
-
 		// do all the work here
 
-		// called at the end of processing
-		// toc();	
         return true;
 	}
 
     // Graph is stopping
 	// Deallocate resources
-	void FrameProcessor::fini(GraphData& data)
+	bool FrameProcessor::fini(GraphData& data)
 	{
-
+		return true;
 	}
 
 

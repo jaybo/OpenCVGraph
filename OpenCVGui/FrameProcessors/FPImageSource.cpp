@@ -25,7 +25,7 @@ namespace openCVGui
     }
 
     //Allocate resources if needed
-    void FPImageSource::init(GraphData& data)
+    bool FPImageSource::init(GraphData& data)
     {
 		// call the base to read/write configs
 		FrameProcessor::init(data);
@@ -80,7 +80,7 @@ namespace openCVGui
                 fOK = true;
             }
         }
-
+		return fOK;
     }
 
 
@@ -92,9 +92,9 @@ namespace openCVGui
     }
 
     // deallocate resources
-    void FPImageSource::fini(GraphData& data)
+    bool FPImageSource::fini(GraphData& data)
     {
-
+		return true;
     }
 
 
@@ -102,11 +102,11 @@ namespace openCVGui
     void  FPImageSource::saveConfig() 
     {
         FileStorage fs(persistFile, FileStorage::WRITE);
-        fs << "tictoc" << tictoc.c_str();
-        fs << "camera_index" << image_name.c_str();
-        fs << "image_name" << image_name.c_str();
-        fs << "movie_name" << image_name.c_str();
-        fs << "image_dir" << image_dir.c_str();
+        fs << "tictoc" << tictoc;
+        fs << "camera_index" << camera_index;
+        fs << "image_name" << image_name;
+        fs << "movie_name" << movie_name;
+        fs << "image_dir" << image_dir;
 
         fs.release();
     }

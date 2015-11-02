@@ -15,18 +15,24 @@ namespace openCVGui
             Run
         };
         
-        LoopProcessor(std::string name);
+        LoopProcessor(std::string name, bool abortOnESC = true);
 		GraphData gd;
 		std::vector<std::shared_ptr<FrameProcessor>> Processors;
+
+		void StartThread();
+		void JoinThread();
 
         bool GotoState(GraphState newState);
         bool Step();
 
 	private:
+		boost::thread thread;
         GraphState state;
         bool isInitialized;
+		bool stepping;
 		std::string Name;
     
         bool ProcessLoop();
+		bool ProcessOne();
     };
 }

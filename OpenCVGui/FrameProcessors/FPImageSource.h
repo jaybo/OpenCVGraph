@@ -24,9 +24,9 @@ namespace openCVGui
 	public:
 		FPImageSource(std::string name, GraphData& data, bool showView = false);
 
-		virtual void init(GraphData& data) override;
+		virtual bool init(GraphData& data) override;
 		virtual bool process(GraphData& data) override;
-		virtual void fini(GraphData& data) override;
+		virtual bool fini(GraphData& data) override;
 
 		virtual void saveConfig() override;
 		virtual void loadConfig() override;

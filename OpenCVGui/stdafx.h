@@ -12,12 +12,17 @@
 #include <windows.h>
 
 // TODO: reference additional headers your program requires here
-#include <opencv2/opencv.hpp>
+
 #include <cstring>
 #include <sstream>
 #include <iostream>
 #include <memory>
 #include "util.h"
+
+// OpenCV
+#include <opencv2/opencv.hpp>
+
+
 
 
 //#define OPENCVGUI_DLL 1
