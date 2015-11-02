@@ -18,4 +18,3 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 
-//class __declspec(dllexport) foo {};

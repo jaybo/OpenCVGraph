@@ -3,7 +3,6 @@
 #include "FrameProcessor.h"
 #include <iomanip>
 
-using namespace openCVGui;
 using namespace cv;
 
 namespace openCVGui
