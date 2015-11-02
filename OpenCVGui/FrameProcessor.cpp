@@ -11,20 +11,18 @@ using namespace cv;
 namespace openCVGui
 {
 	FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView)
-		: Name(name), firstTime(true), duration(0), tictoc(""), frameToStop(0)
+		: Name(name), showView(showView), firstTime(true), duration(0), tictoc(""), frameToStop(0)
 	{
 		std::cout << "FrameProcessor()" << std::endl;
 		std::string config("config");
 		create_directory(config);
-
-		// Windows only
-		// std::wstring widestr(L"config");
-		// create the config directory
-		// _wmkdir((const wchar_t *)widestr.c_str());
-
+		CombinedName = data.GraphName + "-" + name;
+ 
 		// The settings file name combines both the GraphName and the FrameProcessor together
-		persistFile = config  + "/" + data.GraphName + "-" + name + ".yml";
+		persistFile = config  + "/" + CombinedName + ".yml";
 		std::cout << persistFile << std::endl;
+
+		imView = Mat::eye(10, 10, CV_16U);
 	}
 
 	FrameProcessor::~FrameProcessor()
@@ -36,6 +34,9 @@ namespace openCVGui
 	// Allocate resources if needed
 	bool FrameProcessor::init(GraphData& data)
 	{
+		if (showView) {
+			view = OpenCvZoomView(CombinedName, imView, 1024, 1024, 100, 100);
+		}
         loadConfig();
         saveConfig();
 		return true;

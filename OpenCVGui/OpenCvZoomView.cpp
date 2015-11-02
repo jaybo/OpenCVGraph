@@ -65,6 +65,9 @@ namespace openCVGui
 		}
 	}
 
+	OpenCvZoomView::OpenCvZoomView() {
+
+	}
 
 	OpenCvZoomView::OpenCvZoomView(const string &name, cv::Mat &mat, int width, int height, int posX, int posY)
 	{

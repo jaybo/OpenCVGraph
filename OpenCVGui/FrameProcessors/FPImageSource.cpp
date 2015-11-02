@@ -80,6 +80,10 @@ namespace openCVGui
                 fOK = true;
             }
         }
+		if (fOK && showView) {
+
+		}
+
 		return fOK;
     }
 
@@ -87,13 +91,36 @@ namespace openCVGui
     bool FPImageSource::process(GraphData& data)
     {
         firstTime = false;
-        // data.imCapture =
-        return true;
+		bool fOK = true;
+
+		switch (source) {
+		case Camera:
+			fOK = cap.read (data.imCapture);
+			break;
+		case SingleImage:
+			// nothing to do, already loaded
+			break;
+		case Movie:
+			fOK = cap.read(data.imCapture);
+			break;
+		case Directory:
+
+			break;
+		}
+
+		if (showView && fOK) {
+			imView = data.imCapture;
+			cv::imshow(CombinedName, imView);
+		}
+        return fOK;
     }
 
     // deallocate resources
     bool FPImageSource::fini(GraphData& data)
     {
+		if (cap.isOpened()) {
+			cap.release();
+		}
 		return true;
     }
 

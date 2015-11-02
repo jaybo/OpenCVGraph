@@ -32,6 +32,7 @@ namespace openCVGui
         virtual void loadConfig();
         
         std::string Name;
+		std::string CombinedName; // Graph-FrameProcessor name
 
 	protected:
 		std::string persistFile;
@@ -42,7 +43,7 @@ namespace openCVGui
 
 		cv::Mat imView;
 
-
+		OpenCvZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
 	};
 
 

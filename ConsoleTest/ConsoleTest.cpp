@@ -28,12 +28,12 @@ int main()
 
 
 
-	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp.gd, false));
-	std::shared_ptr<FrameProcessor> fpAverage(new FPImageSource("average", lp.gd, false));
-	std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp.gd, false));
+	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp.gd, true));
+	// std::shared_ptr<FrameProcessor> fpAverage(new FPImageSource("average", lp.gd, false));
+	// std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp.gd, false));
 
 	lp.Processors.push_back(fpImage1);
-	lp.Processors.push_back(fpAverage);
+	// lp.Processors.push_back(fpAverage);
 	//lp.Processors.push_back(fpImage2);
 
 	lp.StartThread();

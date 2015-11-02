@@ -7,6 +7,7 @@ namespace openCVGui
 	{
 
 	public:
+		OpenCvZoomView();
 		OpenCvZoomView(const std::string &name, cv::Mat &mat, int width, int height, int posX, int posY);
 
 		~OpenCvZoomView();

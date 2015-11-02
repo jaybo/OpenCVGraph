@@ -56,7 +56,7 @@ namespace openCVGui
 		for (int i = 0; i < Processors.size(); i++) {
 			fOK &= Processors[i]->init(gd);
 			if (!fOK) {
-				cout << "ERROR: " + Processors[i]->Name << " failed init()" << endl;
+				cout << "ERROR: " + Processors[i]->CombinedName << " failed init()" << endl;
 			}
 		}
 
@@ -79,6 +79,7 @@ namespace openCVGui
 				fOK &= ProcessOne();
 				break;
 			}
+			cv::waitKey(1);
         }
 
 		// clean up
