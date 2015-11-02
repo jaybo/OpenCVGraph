@@ -11,9 +11,20 @@
 // Windows Header Files:
 #include <windows.h>
 
-
-
 // TODO: reference additional headers your program requires here
 #include <opencv2/opencv.hpp>
 #include <cstring>
+#include <sstream>
+#include <iostream>
+#include "util.h"
 
+
+//#define OPENCVGUI_DLL 1
+//
+//#ifdef OPENCVGUI_DLL // abc.dll source code will define this macro before including this header 
+//#define OPENCVGUI_API __declspec( dllexport ) 
+//#else 
+//#define OPENCVGUI_API __declspec( dllimport ) 
+//#endif 
+//
+//#define OPENCVGUI_DLL

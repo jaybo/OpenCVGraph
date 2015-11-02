@@ -1,8 +1,9 @@
 #pragma once
 
+
 namespace openCVGui
 {
-	class OpenCvZoomView
+	class  OpenCvZoomView
 	{
 
 	public:

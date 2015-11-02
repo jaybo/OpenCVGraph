@@ -2,6 +2,8 @@
 #pragma once
 #pragma warning(disable : 4482)
 
+#include "stdafx.h"
+
 #include "Property.h"
 #include "GraphData.h"
 #include "Config.h"
@@ -14,15 +16,27 @@ namespace openCVGui
 	class FrameProcessor
 	{
 	public:
-		FrameProcessor(std::string name, GraphData &gd, bool showView = false);
+		FrameProcessor(std::string name, GraphData& data, bool showView = false);
 		~FrameProcessor();
 
 		long frameToStop;
 
-		virtual void process(GraphData& data);
+		virtual void init(GraphData& data);
+		virtual bool process(GraphData& data);
+		virtual void fini(GraphData& data);
+
+        virtual void tic();
+        virtual void toc();
+
+        virtual void saveConfig();
+        virtual void loadConfig();
+        
+        std::string Name;
 
 	private:
-		std::string Name;
+
+	protected:
+		std::string persistFile;
 		bool firstTime = true;
 		bool showView = false;
 		double duration;
@@ -30,11 +44,7 @@ namespace openCVGui
 
 		cv::Mat imView;
 
-		void tic();
-		void toc();
 
-		void saveConfig();
-		void loadConfig();
 	};
 
 
