@@ -24,23 +24,23 @@ int main()
 	randu(a, Scalar::all(0), Scalar::all(64000));
 
 
-	LoopProcessor lp ("Loop1");
+	LoopProcessor lp1 ("Loop1");
 
 
 
-	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp.gd, true));
+	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp1.gd, true));
 	// std::shared_ptr<FrameProcessor> fpAverage(new FPImageSource("average", lp.gd, false));
-	// std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp.gd, false));
+	std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp1.gd, true));
 
-	lp.Processors.push_back(fpImage1);
+	lp1.Processors.push_back(fpImage1);
 	// lp.Processors.push_back(fpAverage);
-	//lp.Processors.push_back(fpImage2);
+	lp1.Processors.push_back(fpImage2);
 
-	lp.StartThread();
-    lp.GotoState(LoopProcessor::GraphState::Run);
+	lp1.StartThread();
+    lp1.GotoState(LoopProcessor::GraphState::Run);
 
 
-	OpenCvZoomView view1("viewA", a, 1024, 1024, 100, 100);
+	/*OpenCvZoomView view1("viewA", a, 1024, 1024, 100, 100);
 	OpenCvZoomView view2("viewB", b, 300, 300, 400,400);
 
 	bool fOK = true;
@@ -48,7 +48,9 @@ int main()
 		randu(a, Scalar::all(0), Scalar::all(64000));
 		view1.ProcessEvents();
 		view2.ProcessEvents();
-	}
+	}*/
+
+	lp1.JoinThread();
 	return 0;
 }
 

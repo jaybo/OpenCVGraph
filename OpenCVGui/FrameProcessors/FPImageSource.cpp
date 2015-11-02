@@ -17,18 +17,18 @@ namespace openCVGui
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    FPImageSource::FPImageSource(std::string name, GraphData& data, bool showView)
-        : FrameProcessor(name, data, showView)
+    FPImageSource::FPImageSource(std::string name, GraphData& graphData, bool showView)
+        : FrameProcessor(name, graphData, showView)
     {
         source = Noise;
         camera_index = -1;
     }
 
     //Allocate resources if needed
-    bool FPImageSource::init(GraphData& data)
+    bool FPImageSource::init(GraphData& graphData)
     {
 		// call the base to read/write configs
-		FrameProcessor::init(data);
+		FrameProcessor::init(graphData);
 
         bool fOK = false;
         
@@ -37,9 +37,9 @@ namespace openCVGui
 
             std::stringstream(camera_index) >> cameraIndex;
             fOK = cap.open(cameraIndex);
-            cap.read(data.imCapture);
+            cap.read(graphData.imCapture);
 
-            if (!data.imCapture.data)   // Check for invalid input
+            if (!graphData.imCapture.data)   // Check for invalid input
             {
                 fOK = false;
                 std::cout << "Could not open capture device #" << camera_index << std::endl;
@@ -52,14 +52,14 @@ namespace openCVGui
         
         // SingleImage SingleImage SingleImage SingleImage SingleImage SingleImage 
         if (!fOK && fileExists(image_name)) {
-            Mat image = imread(image_name, CV_LOAD_IMAGE_COLOR);   // Read the file
+            Mat image = imread(image_name, CV_LOAD_IMAGE_UNCHANGED);   // Read the file
 
             if (!image.data)                              // Check for invalid input
             {
                 std::cout << "Could not open or find the image" << std::endl;
             }
             else {
-                data.imCapture = image;
+                graphData.imCapture = image;
                 source = SingleImage;
                 fOK = true;
             }
@@ -80,43 +80,49 @@ namespace openCVGui
                 fOK = true;
             }
         }
-		if (fOK && showView) {
-
+		
+		// Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
+		if (!fOK) {
+			source = Noise;
+			graphData.imCapture = Mat::eye(1024, 1024, CV_16U);
+			fOK = true;
 		}
 
 		return fOK;
     }
 
 
-    bool FPImageSource::process(GraphData& data)
+    bool FPImageSource::process(GraphData& graphData)
     {
         firstTime = false;
 		bool fOK = true;
 
 		switch (source) {
 		case Camera:
-			fOK = cap.read (data.imCapture);
+			fOK = cap.read (graphData.imCapture);
 			break;
 		case SingleImage:
 			// nothing to do, already loaded
 			break;
 		case Movie:
-			fOK = cap.read(data.imCapture);
+			fOK = cap.read(graphData.imCapture);
 			break;
 		case Directory:
-
+			break;
+		case Noise:
+			cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(64000));
 			break;
 		}
 
 		if (showView && fOK) {
-			imView = data.imCapture;
+			imView = graphData.imCapture;
 			cv::imshow(CombinedName, imView);
 		}
         return fOK;
     }
 
     // deallocate resources
-    bool FPImageSource::fini(GraphData& data)
+    bool FPImageSource::fini(GraphData& graphData)
     {
 		if (cap.isOpened()) {
 			cap.release();

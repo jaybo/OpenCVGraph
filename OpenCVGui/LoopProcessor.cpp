@@ -7,8 +7,6 @@
 
 #include "LoopProcessor.h"
 
-//#include <boost/date_time.hpp>
-
 namespace openCVGui
 {
     // Keep a vector of FrameProcessors and call each in turn to crunch images
@@ -79,7 +77,10 @@ namespace openCVGui
 				fOK &= ProcessOne();
 				break;
 			}
-			cv::waitKey(1);
+			auto key = cv::waitKey(1);
+			if (gd.abortOnESC && (key == 27)) {
+				fOK = false;
+			}
         }
 
 		// clean up
