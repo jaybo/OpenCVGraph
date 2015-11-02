@@ -16,6 +16,7 @@
 #include <cstring>
 #include <sstream>
 #include <iostream>
+#include <memory>
 #include "util.h"
 
 

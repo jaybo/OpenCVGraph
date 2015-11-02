@@ -17,7 +17,7 @@ namespace openCVGui
         
         LoopProcessor(std::string name);
 		GraphData gd;
-		std::vector<FrameProcessor> Processors;
+		std::vector<std::shared_ptr<FrameProcessor>> Processors;
 
         bool GotoState(GraphState newState);
         bool Step();

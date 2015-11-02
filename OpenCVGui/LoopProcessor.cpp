@@ -21,11 +21,11 @@ namespace openCVGui
 
         if (fOK) {
             for (int i = 0; i < Processors.size(); i++) {
-                Processors[i].tic();
+                Processors[i]->tic();
                 // Q: Bail only at end of loop or partway through?
                 // Currently, complete the loop
-                fOK &= Processors[i].process(gd);
-                Processors[i].toc();
+                fOK &= Processors[i]->process(gd);
+                Processors[i]->toc();
             }
         }
         return fOK;
@@ -44,7 +44,7 @@ namespace openCVGui
     {
         if (!isInitialized) {
             for (int i = 0; i < Processors.size(); i++) {
-                Processors[i].init(gd);
+                Processors[i]->init(gd);
             }
         }
 
@@ -65,7 +65,7 @@ namespace openCVGui
 
         if (state == Stop && isInitialized) {
             for (int i = 0; i < Processors.size(); i++) {
-                Processors[i].fini(gd);
+                Processors[i]->fini(gd);
             }
             isInitialized = false;
         }

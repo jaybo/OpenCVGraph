@@ -4,6 +4,7 @@
 #include "FPImageSource.h"
 #include <iomanip>
 
+using namespace std;
 using namespace openCVGui;
 using namespace cv;
 
@@ -26,6 +27,9 @@ namespace openCVGui
     //Allocate resources if needed
     void FPImageSource::init(GraphData& data)
     {
+		// call the base to read/write configs
+		FrameProcessor::init(data);
+
         bool fOK = false;
         
         // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
@@ -110,6 +114,7 @@ namespace openCVGui
     void  FPImageSource::loadConfig()
     {
         FileStorage fs2(persistFile, FileStorage::READ);
+		cout << persistFile << endl;
 
         fs2["tictoc"] >> tictoc;
         fs2["camera_index"] >> camera_index;

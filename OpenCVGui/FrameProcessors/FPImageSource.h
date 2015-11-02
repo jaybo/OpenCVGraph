@@ -12,7 +12,6 @@
 
 namespace openCVGui
 {
-
 	// General image source:
     //   if   "camera_index" is set, use that camera
 	//   elif "image_name" is set, use just that image
@@ -29,8 +28,8 @@ namespace openCVGui
 		virtual bool process(GraphData& data) override;
 		virtual void fini(GraphData& data) override;
 
-        void saveConfig() override;
-        void loadConfig() override;
+		virtual void saveConfig() override;
+		virtual void loadConfig() override;
 
 	private:
         enum ImageSource {

@@ -22,11 +22,15 @@ int main()
 
 	LoopProcessor lp ("Loop1");
 
-    FPImageSource fpImage("Image1", lp.gd, false);
-    FrameProcessor fpAverage("average", lp.gd, false );
 
-	lp.Processors.push_back(fpImage);
+
+	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp.gd, false));
+	std::shared_ptr<FrameProcessor> fpAverage(new FPImageSource("average", lp.gd, false));
+	std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp.gd, false));
+
+	lp.Processors.push_back(fpImage1);
 	lp.Processors.push_back(fpAverage);
+
 
     lp.GotoState(LoopProcessor::GraphState::Run);
 

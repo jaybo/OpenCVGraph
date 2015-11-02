@@ -17,7 +17,7 @@ namespace openCVGui
 	{
 	public:
 		FrameProcessor(std::string name, GraphData& data, bool showView = false);
-		~FrameProcessor();
+		virtual ~FrameProcessor();
 
 		long frameToStop;
 
@@ -32,8 +32,6 @@ namespace openCVGui
         virtual void loadConfig();
         
         std::string Name;
-
-	private:
 
 	protected:
 		std::string persistFile;
