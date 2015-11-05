@@ -17,12 +17,16 @@
 #include <sstream>
 #include <iostream>
 #include <memory>
+#include <iomanip>
+#include <algorithm>
+
 #include "util.h"
 
 // OpenCV
 #include <opencv2/opencv.hpp>
 
-
+// Boost
+#include <boost/filesystem.hpp>
 
 
 //#define OPENCVGUI_DLL 1

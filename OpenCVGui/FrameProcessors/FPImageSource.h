@@ -4,6 +4,8 @@
 
 #include "..\stdafx.h"
 
+namespace fs = ::boost::filesystem;
+
 #include "..\Property.h"
 #include "..\GraphData.h"
 #include "..\Config.h"
@@ -50,6 +52,7 @@ namespace openCVGui
 
         int cameraIndex;
         cv::VideoCapture cap;
-
+        vector<fs::path> images;
+        int imageIndex = 0;
 	};
 }

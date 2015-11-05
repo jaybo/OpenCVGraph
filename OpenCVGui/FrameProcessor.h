@@ -7,7 +7,6 @@
 #include "Property.h"
 #include "GraphData.h"
 #include "Config.h"
-//#include "FrameProcessor.h"
 #include "OpenCvZoomView.h"
 
 namespace openCVGui
@@ -40,7 +39,6 @@ namespace openCVGui
 		bool showView = false;
 		double duration;
 		std::string tictoc;
-
 		cv::Mat imView;
 
 		OpenCvZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);

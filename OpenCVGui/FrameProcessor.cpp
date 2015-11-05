@@ -1,11 +1,9 @@
 
 #include "stdafx.h"
 #include "FrameProcessor.h"
-#include <iomanip>
 
-#include <boost/filesystem.hpp>
-using namespace boost::filesystem;
-
+using namespace std;
+namespace fs = ::boost::filesystem;
 using namespace cv;
 
 namespace openCVGui
@@ -15,7 +13,7 @@ namespace openCVGui
 	{
 		std::cout << "FrameProcessor()" << std::endl;
 		std::string config("config");
-		create_directory(config);
+		fs::create_directory(config);
 		CombinedName = data.GraphName + "-" + name;
  
 		// The settings file name combines both the GraphName and the FrameProcessor together

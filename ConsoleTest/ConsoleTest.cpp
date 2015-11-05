@@ -10,10 +10,12 @@
 #include "..\OpenCVGui\LoopProcessor.h"
 #include "..\OpenCVGui\OpenCvZoomView.h"
 #include "..\OpenCVGui\FrameProcessors\FPImageSource.h"
+#include <boost/filesystem.hpp>
 
 using namespace cv;
 using namespace std;
 using namespace openCVGui;
+namespace fs = ::boost::filesystem;
 
 
 int main()
@@ -25,6 +27,7 @@ int main()
 
 
 	LoopProcessor lp1 ("Loop1");
+    LoopProcessor lp2("Loop2");
 
 
 
@@ -34,11 +37,13 @@ int main()
 
 	lp1.Processors.push_back(fpImage1);
 	// lp.Processors.push_back(fpAverage);
-	lp1.Processors.push_back(fpImage2);
+	lp2.Processors.push_back(fpImage2);
 
 	lp1.StartThread();
     lp1.GotoState(LoopProcessor::GraphState::Run);
 
+    lp2.StartThread();
+    lp2.GotoState(LoopProcessor::GraphState::Run);
 
 	/*OpenCvZoomView view1("viewA", a, 1024, 1024, 100, 100);
 	OpenCvZoomView view2("viewB", b, 300, 300, 400,400);
@@ -51,6 +56,7 @@ int main()
 	}*/
 
 	lp1.JoinThread();
+    lp2.JoinThread();
 	return 0;
 }
 

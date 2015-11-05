@@ -1,12 +1,14 @@
 
 #include "..\stdafx.h"
-#include "..\FrameProcessor.h"
-#include "FPImageSource.h"
-#include <iomanip>
+
 
 using namespace std;
-using namespace openCVGui;
 using namespace cv;
+namespace fs = ::boost::filesystem;
+
+#include "..\FrameProcessor.h"
+#include "FPImageSource.h"
+
 
 namespace openCVGui
 {
@@ -74,8 +76,25 @@ namespace openCVGui
         }
 
         // Directory Directory Directory Directory Directory Directory Directory 
-        if (!fOK && dirExists(image_dir)) {
-            if (cap.open(movie_name)) {
+        if (!fOK) {
+            if (fs::exists(image_dir) && fs::is_directory(image_dir)) {
+
+                fs::recursive_directory_iterator it(image_dir);
+                fs::recursive_directory_iterator endit;
+                vector<string> extensions = { ".png", ".tif", ".tiff", ".jpg", ".jpeg" };
+                while (it != endit)
+                {
+                    string lower = it->path().extension().string();
+                    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+                    cout << it->path().extension() << endl;
+                    if (fs::is_regular_file(*it) &&
+                        std::find(extensions.begin(), extensions.end(), lower) != extensions.end())
+                    {
+                        images.push_back(it->path());
+                    }
+                    ++it;
+                }
                 source = Directory;
                 fOK = true;
             }
@@ -84,7 +103,7 @@ namespace openCVGui
 		// Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
 		if (!fOK) {
 			source = Noise;
-			graphData.imCapture = Mat::eye(1024, 1024, CV_16U);
+			graphData.imCapture = Mat::zeros(512, 512, CV_16U);
 			fOK = true;
 		}
 
@@ -108,10 +127,22 @@ namespace openCVGui
 			fOK = cap.read(graphData.imCapture);
 			break;
 		case Directory:
+            if (images.size() > 0) {
+                string fname = images[imageIndex].string();
+                // cout << fname << endl;
+                graphData.imCapture = imread(fname);
+                imageIndex++;
+                if (imageIndex >= images.size()) {
+                    imageIndex = 0;
+                }
+            }
 			break;
 		case Noise:
-			cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(64000));
-			break;
+			 //cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(65536));
+            //cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(255));
+            //graphData.imCapture = Mat::zeros(512, 512, CV_16U);
+            cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(65536));
+            break;
 		}
 
 		if (showView && fOK) {
