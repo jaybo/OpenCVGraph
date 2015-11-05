@@ -5,7 +5,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 
-#include "LoopProcessor.h"
+#include "GraphManager.h"
 
 namespace openCVGui
 {
@@ -13,7 +13,7 @@ namespace openCVGui
     // (or perform other work)
     // States: Stop, Pause (can only Step if Paused), and Run
 
-    LoopProcessor::LoopProcessor(const std::string name, bool abortOnESC)
+    GraphManager::GraphManager(const std::string name, bool abortOnESC)
     {
         Name = name;
 		gd.GraphName = Name;
@@ -22,17 +22,17 @@ namespace openCVGui
         isInitialized = false;
     }
 
-	void LoopProcessor::StartThread()
+	void GraphManager::StartThread()
 	{
-		thread = boost::thread(&LoopProcessor::ProcessLoop, this);
+		thread = boost::thread(&GraphManager::ProcessLoop, this);
 	}
 
-	void LoopProcessor::JoinThread()
+	void GraphManager::JoinThread()
 	{
 		thread.join();
 	}
 
-	bool LoopProcessor::ProcessOne()
+	bool GraphManager::ProcessOne()
 	{
 		bool fOK = true;
 		for (int i = 0; i < Processors.size(); i++) {
@@ -45,7 +45,7 @@ namespace openCVGui
 		return fOK;
 	}
 
-    bool LoopProcessor::ProcessLoop()
+    bool GraphManager::ProcessLoop()
     {
 		bool fOK = true;
 		stepping = false;
@@ -91,7 +91,7 @@ namespace openCVGui
 		return fOK;
 	}
 
-    bool LoopProcessor::Step()
+    bool GraphManager::Step()
     {
         if (state == GraphState::Pause)
         {
@@ -101,7 +101,7 @@ namespace openCVGui
         return false;
     }
 
-    bool LoopProcessor::GotoState(GraphState newState)
+    bool GraphManager::GotoState(GraphState newState)
     {
         state = newState;
 

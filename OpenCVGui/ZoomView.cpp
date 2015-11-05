@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "OpenCVZoomView.h"
+#include "ZoomView.h"
 
 using namespace std;
 using namespace cv;
@@ -7,11 +7,11 @@ using namespace cv;
 namespace openCVGui
 {
 
-	void OpenCvZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
+	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
 	{
 		int j = 42;
 
-		OpenCvZoomView* view = (OpenCvZoomView*)param;
+		ZoomView* view = (ZoomView*)param;
 		cout << view->Name << endl;
 		int d;
 
@@ -65,29 +65,33 @@ namespace openCVGui
 		}
 	}
 
-	OpenCvZoomView::OpenCvZoomView() {
+	ZoomView::ZoomView() {
 
 	}
 
-	OpenCvZoomView::OpenCvZoomView(const string &name, cv::Mat &mat, int width, int height, int posX, int posY)
+	ZoomView::ZoomView(const string &name, cv::Mat &mat)
 	{
 		Name = name;
 		cout << Name << endl;
 		MatView = mat;
-
-		cv::namedWindow(name, WINDOW_NORMAL);
-		cv::imshow(name, mat);
-		cv::resizeWindow(Name, width, height);
-		cv::setMouseCallback(name, (cv::MouseCallback) DefaultMouseProcessor, this);
-
+        
 	}
 
 
-	OpenCvZoomView::~OpenCvZoomView()
+
+	ZoomView::~ZoomView()
 	{
 	}
 
-	void OpenCvZoomView::DefaultKeyboardProcessor()
+    void ZoomView::Init(int width, int height, int posX, int posY)
+    {
+        cv::namedWindow(Name, WINDOW_NORMAL);
+        cv::imshow(Name, MatView);
+        cv::resizeWindow(Name, width, height);
+        cv::setMouseCallback(Name, (cv::MouseCallback) DefaultMouseProcessor, this);
+    }
+    
+    void ZoomView::DefaultKeyboardProcessor()
 	{
 		int c = waitKey(33);
 		if ((c & 255) == 27)
@@ -104,7 +108,7 @@ namespace openCVGui
 	}
 
 
-	void OpenCvZoomView::ProcessEvents()
+	void ZoomView::ProcessEvents()
 	{
 		DefaultKeyboardProcessor();
 		// randu(b, Scalar::all(0), Scalar::all(255));

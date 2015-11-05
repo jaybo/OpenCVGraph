@@ -7,8 +7,8 @@
 #include <boost/thread.hpp>
 
 #include "..\OpenCVGui\FrameProcessor.h"
-#include "..\OpenCVGui\LoopProcessor.h"
-#include "..\OpenCVGui\OpenCvZoomView.h"
+#include "..\OpenCVGui\GraphManager.h"
+#include "..\OpenCVGui\ZoomView.h"
 #include "..\OpenCVGui\FrameProcessors\FPImageSource.h"
 #include <boost/filesystem.hpp>
 
@@ -20,43 +20,41 @@ namespace fs = ::boost::filesystem;
 
 int main()
 {
-	Mat a(200, 200, CV_16U);
-	Mat b(200, 200, CV_8U);
-	randu(b, Scalar::all(0), Scalar::all(255));
-	randu(a, Scalar::all(0), Scalar::all(64000));
+    GraphManager graph1("Graph1");
+    std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", graph1.gd, true));
+    graph1.Processors.push_back(fpImage1);
+    graph1.StartThread();
+    graph1.GotoState(GraphManager::GraphState::Run);
 
 
-	LoopProcessor lp1 ("Loop1");
-    LoopProcessor lp2("Loop2");
+    GraphManager graph2("Graph2");
+    std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", graph2.gd, true));
+    graph2.Processors.push_back(fpImage2);
+    graph2.StartThread();
+    graph2.GotoState(GraphManager::GraphState::Run);
 
 
+    graph1.JoinThread();
+    graph2.JoinThread();
 
-	std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", lp1.gd, true));
-	// std::shared_ptr<FrameProcessor> fpAverage(new FPImageSource("average", lp.gd, false));
-	std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", lp1.gd, true));
+    /*
+    //Mat a(200, 200, CV_16U);
+    //Mat b(200, 200, CV_8U);
+    //randu(b, Scalar::all(0), Scalar::all(255));
+    //randu(a, Scalar::all(0), Scalar::all(64000));
 
-	lp1.Processors.push_back(fpImage1);
-	// lp.Processors.push_back(fpAverage);
-	lp2.Processors.push_back(fpImage2);
+    
+    ZoomView view1("viewA", a, 1024, 1024, 100, 100);
+    ZoomView view2("viewB", b, 300, 300, 400,400);
 
-	lp1.StartThread();
-    lp1.GotoState(LoopProcessor::GraphState::Run);
+    bool fOK = true;
+    while (fOK) {
+        randu(a, Scalar::all(0), Scalar::all(64000));
+        view1.ProcessEvents();
+        view2.ProcessEvents();
+    }*/
 
-    lp2.StartThread();
-    lp2.GotoState(LoopProcessor::GraphState::Run);
 
-	/*OpenCvZoomView view1("viewA", a, 1024, 1024, 100, 100);
-	OpenCvZoomView view2("viewB", b, 300, 300, 400,400);
-
-	bool fOK = true;
-	while (fOK) {
-		randu(a, Scalar::all(0), Scalar::all(64000));
-		view1.ProcessEvents();
-		view2.ProcessEvents();
-	}*/
-
-	lp1.JoinThread();
-    lp2.JoinThread();
-	return 0;
+    return 0;
 }
 

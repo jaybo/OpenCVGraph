@@ -33,7 +33,8 @@ namespace openCVGui
 	bool FrameProcessor::init(GraphData& data)
 	{
 		if (showView) {
-			view = OpenCvZoomView(CombinedName, imView, 1024, 1024, 100, 100);
+			view = ZoomView(CombinedName, imView );
+            view.Init(1024, 1024, 100, 100);
 		}
         loadConfig();
         saveConfig();

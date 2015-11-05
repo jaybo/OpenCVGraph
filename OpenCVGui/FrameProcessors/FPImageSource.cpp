@@ -8,6 +8,7 @@ namespace fs = ::boost::filesystem;
 
 #include "..\FrameProcessor.h"
 #include "FPImageSource.h"
+#include "xiapi.h"
 
 
 namespace openCVGui
@@ -39,16 +40,39 @@ namespace openCVGui
 
             std::stringstream(camera_index) >> cameraIndex;
             fOK = cap.open(cameraIndex);
-            cap.read(graphData.imCapture);
+            if (fOK) {
+                // set camera specific properties
+                if (camera_name == "Ximea16") {
 
-            if (!graphData.imCapture.data)   // Check for invalid input
-            {
-                fOK = false;
-                std::cout << "Could not open capture device #" << camera_index << std::endl;
-            }
-            else {
-                source = Camera;
-                fOK = true;
+                    // only capture 3840x3840@16bpp
+                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, XI_MONO16);
+                    fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
+                    fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
+
+                    // Autogain off
+                    fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);  
+
+                    // Enable aperature and focus
+                    cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
+                    focalDistance = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE);
+                    focalLength = cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH);
+                    aperatureValue = cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE);
+
+                    fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
+                    focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
+
+                }
+                fOK = cap.read(graphData.imCapture);
+
+                if (!graphData.imCapture.data)   // Check for invalid input
+                {
+                    fOK = false;
+                    std::cout << "Could not open capture device #" << camera_index << std::endl;
+                }
+                else {
+                    source = Camera;
+                    fOK = true;
+                }
             }
         }
         
@@ -85,9 +109,11 @@ namespace openCVGui
                 while (it != endit)
                 {
                     string lower = it->path().extension().string();
+                    // tolower and replace those pesky backslashes
                     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-
+                    std::replace(lower.begin(), lower.end(), '\\', '/');
                     cout << it->path().extension() << endl;
+
                     if (fs::is_regular_file(*it) &&
                         std::find(extensions.begin(), extensions.end(), lower) != extensions.end())
                     {
@@ -165,14 +191,15 @@ namespace openCVGui
 
     void  FPImageSource::saveConfig() 
     {
-        FileStorage fs(persistFile, FileStorage::WRITE);
-        fs << "tictoc" << tictoc;
-        fs << "camera_index" << camera_index;
-        fs << "image_name" << image_name;
-        fs << "movie_name" << movie_name;
-        fs << "image_dir" << image_dir;
+        FileStorage fs2(persistFile, FileStorage::WRITE);
+        fs2 << "tictoc" << tictoc;
+        fs2 << "camera_index" << camera_index;
+        fs2 << "camera_name" << camera_name;
+        fs2 << "image_name" << image_name;
+        fs2 << "movie_name" << movie_name;
+        fs2 << "image_dir" << image_dir;
 
-        fs.release();
+        fs2.release();
     }
 
     void  FPImageSource::loadConfig()
@@ -182,6 +209,7 @@ namespace openCVGui
 
         fs2["tictoc"] >> tictoc;
         fs2["camera_index"] >> camera_index;
+        fs2 ["camera_name"] >> camera_name;
         fs2["image_name"] >> image_name;
         fs2["movie_name"] >> movie_name;
         fs2["image_dir"] >> image_dir;

@@ -7,7 +7,7 @@
 #include "Property.h"
 #include "GraphData.h"
 #include "Config.h"
-#include "OpenCvZoomView.h"
+#include "ZoomView.h"
 
 namespace openCVGui
 {
@@ -41,7 +41,7 @@ namespace openCVGui
 		std::string tictoc;
 		cv::Mat imView;
 
-		OpenCvZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
+		ZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
 	};
 
 

@@ -6,7 +6,7 @@
 
 namespace openCVGui
 {
-	class  LoopProcessor {
+	class  GraphManager {
 
 	public:
         enum GraphState {
@@ -15,7 +15,7 @@ namespace openCVGui
             Run
         };
         
-        LoopProcessor(std::string name, bool abortOnESC = true);
+        GraphManager(std::string name, bool abortOnESC = true);
 		GraphData gd;
 		std::vector<std::shared_ptr<FrameProcessor>> Processors;
 
