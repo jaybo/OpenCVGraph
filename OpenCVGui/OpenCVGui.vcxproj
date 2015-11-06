@@ -160,6 +160,7 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="FrameProcessor.h" />
     <ClInclude Include="FrameProcessors\FPImageSource.h" />
+    <ClInclude Include="FrameProcessors\FPRunningStats.h" />
     <ClInclude Include="Property.h" />
     <ClInclude Include="GraphData.h" />
     <ClInclude Include="ZoomView.h" />
@@ -185,6 +186,7 @@
     </ClCompile>
     <ClCompile Include="FrameProcessor.cpp" />
     <ClCompile Include="FrameProcessors\FPImageSource.cpp" />
+    <ClCompile Include="FrameProcessors\FPRunningStats.cpp" />
     <ClCompile Include="OpenCVGui.cpp" />
     <ClCompile Include="ZoomView.cpp" />
     <ClCompile Include="GraphManager.cpp" />

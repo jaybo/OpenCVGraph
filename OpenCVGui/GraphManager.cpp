@@ -22,6 +22,12 @@ namespace openCVGui
         isInitialized = false;
     }
 
+    GraphManager::~GraphManager()
+    {
+        cv::destroyAllWindows();
+    }
+
+
 	void GraphManager::StartThread()
 	{
 		thread = boost::thread(&GraphManager::ProcessLoop, this);
@@ -40,7 +46,9 @@ namespace openCVGui
 			// Q: Bail only at end of loop or partway through?
 			// Currently, complete the loop
 			fOK &= Processors[i]->process(gd);
+            fOK &= Processors[i]->processKeyboard(gd);
 			Processors[i]->toc();
+            gd.frameCounter++;
 		}
 		return fOK;
 	}

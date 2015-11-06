@@ -58,6 +58,14 @@ namespace openCVGui
 		return true;
 	}
 
+    // keyWait required to make the UI activate
+    bool FrameProcessor::processKeyboard(GraphData& data)
+    {
+        if (showView) {
+            return view.KeyboardProcessor();
+        }
+        return true;
+    }
 
 	// Record time at start of processing
 	void FrameProcessor::tic()

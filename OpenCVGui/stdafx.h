@@ -19,6 +19,7 @@
 #include <memory>
 #include <iomanip>
 #include <algorithm>
+#include <numeric>
 
 #include "util.h"
 

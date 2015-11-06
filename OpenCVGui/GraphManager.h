@@ -16,6 +16,8 @@ namespace openCVGui
         };
         
         GraphManager(std::string name, bool abortOnESC = true);
+        ~GraphManager();
+
 		GraphData gd;
 		std::vector<std::shared_ptr<FrameProcessor>> Processors;
 

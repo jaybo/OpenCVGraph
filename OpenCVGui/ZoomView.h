@@ -14,8 +14,9 @@ namespace openCVGui
 
         void Init(int width, int height, int posX, int posY);
 		void ProcessEvents();
-		void DefaultKeyboardProcessor();
+		virtual bool KeyboardProcessor();
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
+
 		int ZoomFactor = 1;
 
 	private:

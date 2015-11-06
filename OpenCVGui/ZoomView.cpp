@@ -91,27 +91,20 @@ namespace openCVGui
         cv::setMouseCallback(Name, (cv::MouseCallback) DefaultMouseProcessor, this);
     }
     
-    void ZoomView::DefaultKeyboardProcessor()
+    bool ZoomView::KeyboardProcessor()
 	{
-		int c = waitKey(33);
+		int c = waitKey(1);
 		if ((c & 255) == 27)
 		{
 			cout << "Exiting ...\n";
-		}
-		switch ((char)c)
-		{
-		case 'c':
-			break;
-		case 'm':
-			break;
+            return false;
 		}
 	}
 
 
 	void ZoomView::ProcessEvents()
 	{
-		DefaultKeyboardProcessor();
-		// randu(b, Scalar::all(0), Scalar::all(255));
+		KeyboardProcessor();
 	}
 
 

@@ -23,6 +23,7 @@ namespace openCVGui
 		virtual bool init(GraphData& data);
 		virtual bool process(GraphData& data);
 		virtual bool fini(GraphData& data);
+        virtual bool processKeyboard(GraphData& data);
 
         virtual void tic();
         virtual void toc();

@@ -45,9 +45,13 @@ namespace openCVGui
                 if (camera_name == "Ximea16") {
 
                     // only capture 3840x3840@16bpp
-                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, XI_MONO16);
                     fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
                     fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
+                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, XI_MONO16);
+
+                    // Limit the number of buffers
+                    fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
+                    fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
 
                     // Autogain off
                     fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);  
@@ -60,6 +64,9 @@ namespace openCVGui
 
                     fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
                     focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
+
+                    fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, 2000);
+                    fOK = cap.set(CV_CAP_PROP_XI_GAIN, 1.0);
 
                 }
                 fOK = cap.read(graphData.imCapture);
@@ -172,7 +179,12 @@ namespace openCVGui
 		}
 
 		if (showView && fOK) {
-			imView = graphData.imCapture;
+            if (camera_name == "Ximea16") {
+                imView = 16 * graphData.imCapture;
+            }
+            else {
+                imView = graphData.imCapture;
+            }
 			cv::imshow(CombinedName, imView);
 		}
         return fOK;
