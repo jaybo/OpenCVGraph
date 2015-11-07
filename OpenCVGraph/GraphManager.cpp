@@ -3,7 +3,7 @@
 
 #include "GraphManager.h"
 
-namespace openCVGui
+namespace openCVGraph
 {
     // Keep a vector of FrameProcessors and call each in turn to crunch images
     // (or perform other work)

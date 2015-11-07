@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace openCVGui
+namespace openCVGraph
 {
   const int KEY_REPEAT = 'r';
   const int KEY_SPACE = 32;

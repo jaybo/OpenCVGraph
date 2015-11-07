@@ -4,7 +4,7 @@
 using namespace std;
 using namespace cv;
 
-namespace openCVGui
+namespace openCVGraph
 {
     // Calculate and display mean and standard deviation while streaming.  See:
     //

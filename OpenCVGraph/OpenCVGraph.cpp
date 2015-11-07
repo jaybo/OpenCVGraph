@@ -1,4 +1,4 @@
-// OpenCVGui.cpp : Defines the exported functions for the DLL application.
+// openCVGraph.cpp : Defines the exported functions for the DLL application.
 //
 
 #include "stdafx.h"

@@ -12,7 +12,7 @@ namespace fs = ::boost::filesystem;
 #include "..\FrameProcessor.h"
 #include "..\ZoomView.h"
 
-namespace openCVGui
+namespace openCVGraph
 {
 #ifdef XIMEA_DIR
     // General image source:

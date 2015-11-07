@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 namespace fs = ::boost::filesystem;
 
-namespace openCVGui
+namespace openCVGraph
 {
 #ifdef XIMEA_DIR
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)

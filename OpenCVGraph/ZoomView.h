@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace openCVGui
+namespace openCVGraph
 {
 
     typedef bool (*KeyboardCallback)(int key);

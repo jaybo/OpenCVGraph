@@ -2,20 +2,10 @@
 //
 
 #include "stdafx.h"
-
-
-
-//using namespace cv;
-using namespace std;
 #include "..\OpenCVGraph\OpenCVGraph.h"
 
-#include "..\OpenCVGraph\GraphManager.h"
-//#include "..\OpenCVGraph\Capture\CamDefault.h"
-//#include "..\OpenCVGraph\Capture\CamXimea.h"
-#include "..\OpenCVGraph\FrameProcessors\FPRunningStats.h"
-
-using namespace openCVGui;
-
+using namespace std;
+using namespace openCVGraph;
 
 int main()
 {

@@ -7,7 +7,7 @@
 using namespace cv;
 using namespace std;
 
-namespace openCVGui
+namespace openCVGraph
 {
 
 	class FrameProcessor

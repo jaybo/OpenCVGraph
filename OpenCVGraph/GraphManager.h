@@ -4,9 +4,11 @@
 
 using namespace std;
 
-namespace openCVGui
+namespace openCVGraph
 {
-	class  GraphManager {
+    typedef std::shared_ptr < FrameProcessor> Processor;
+    
+    class  GraphManager {
 
 	public:
         enum GraphState {
@@ -19,13 +21,30 @@ namespace openCVGui
         ~GraphManager();
 
 		GraphData gd;
-		std::vector<std::shared_ptr<FrameProcessor>> Processors;
+		std::vector<Processor> Processors;
 
 		void StartThread();
 		void JoinThread();
 
         bool GotoState(GraphState newState);
         bool Step();
+
+        bool AddFilter(Processor filter) {
+            if (state == GraphState::Stop) {
+                Processors.push_back(filter);
+                return true;
+            }
+            else return false;
+        }
+
+        bool RemoveFilter(Processor filter) {
+            if (state == GraphState::Stop) {
+                Processors.erase(std::remove(Processors.begin(), Processors.end(), filter), Processors.end());
+                Processors.push_back(filter);
+                return true;
+            }
+            else return false;
+        }
 
 	private:
 		boost::thread thread;

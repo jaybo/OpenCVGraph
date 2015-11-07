@@ -6,7 +6,7 @@ using namespace std;
 namespace fs = ::boost::filesystem;
 using namespace cv;
 
-namespace openCVGui
+namespace openCVGraph
 {
     FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView, int width, int height, int x, int y )
         : Name(name), m_showView(showView),

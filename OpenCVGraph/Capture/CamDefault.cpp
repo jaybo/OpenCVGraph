@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 namespace fs = ::boost::filesystem;
 
-namespace openCVGui
+namespace openCVGraph
 {
     // General image source:
     //   if   "camera_index" is set, use that camera

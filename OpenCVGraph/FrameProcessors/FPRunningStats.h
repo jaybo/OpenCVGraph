@@ -6,7 +6,7 @@
 
 using namespace cv;
 
-namespace openCVGui
+namespace openCVGraph
 {
     // http://www.johndcook.com/blog/standard_deviation/
 

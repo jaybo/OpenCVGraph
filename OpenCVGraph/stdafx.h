@@ -37,12 +37,12 @@
 #include "e:/Ximea/API/xiApi.h"
 #endif
 
-//#define OPENCVGUI_DLL 1
+//#define openCVGraph_DLL 1
 //
-//#ifdef OPENCVGUI_DLL // abc.dll source code will define this macro before including this header 
-//#define OPENCVGUI_API __declspec( dllexport ) 
+//#ifdef openCVGraph_DLL // abc.dll source code will define this macro before including this header 
+//#define openCVGraph_API __declspec( dllexport ) 
 //#else 
-//#define OPENCVGUI_API __declspec( dllimport ) 
+//#define openCVGraph_API __declspec( dllimport ) 
 //#endif 
 //
-//#define OPENCVGUI_DLL
+//#define openCVGraph_DLL

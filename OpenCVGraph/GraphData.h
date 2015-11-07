@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace openCVGui
+namespace openCVGraph
 {
 	class  GraphData {
 	public:

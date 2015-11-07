@@ -4,7 +4,7 @@
 using namespace std;
 using namespace cv;
 
-namespace openCVGui
+namespace openCVGraph
 {
 
 	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
