@@ -31,7 +31,7 @@ namespace openCVGui
                     // reset to zero (RESTART)
                     m_n = 0;
                 }
-                else if (c == 27)
+                else if (c == 27) // ESCAPE
                 {
                     fOK = false;
                 }

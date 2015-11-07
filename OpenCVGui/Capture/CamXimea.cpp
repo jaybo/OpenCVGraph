@@ -7,7 +7,7 @@ using namespace cv;
 namespace fs = ::boost::filesystem;
 
 #include "..\FrameProcessor.h"
-#include "FPImageSource.h"
+#include "CamDefault.h"
 #include "CamXimea.h"
 
 #define XIMEA_DIR
@@ -18,7 +18,7 @@ namespace fs = ::boost::filesystem;
 namespace openCVGui
 {
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
-        : FPImageSource(name, graphData, showView, width, height, x, y)
+        : CamDefault(name, graphData, showView, width, height, x, y)
     {
     }
 
@@ -54,12 +54,11 @@ namespace openCVGui
                 case ',':
                     Focus(false);
                     break;
+                case 27:    // ESC
+                    fOK = false;
+                    break;
                 }
 
-            }
-            else if (c == 27)
-            {
-                fOK = false;
             }
         }
         else {

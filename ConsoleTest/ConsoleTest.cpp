@@ -9,8 +9,8 @@
 #include "..\OpenCVGui\FrameProcessor.h"
 #include "..\OpenCVGui\GraphManager.h"
 #include "..\OpenCVGui\ZoomView.h"
-#include "..\OpenCVGui\FrameProcessors\FPImageSource.h"
-#include "..\OpenCVGui\FrameProcessors\CamXimea.h"
+#include "..\OpenCVGui\Capture\CamDefault.h"
+#include "..\OpenCVGui\Capture\CamXimea.h"
 #include "..\OpenCVGui\FrameProcessors\FPRunningStats.h"
 #include <boost/filesystem.hpp>
 

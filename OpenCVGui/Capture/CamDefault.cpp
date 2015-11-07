@@ -7,7 +7,7 @@ using namespace cv;
 namespace fs = ::boost::filesystem;
 
 #include "..\FrameProcessor.h"
-#include "FPImageSource.h"
+#include "CamDefault.h"
 
 namespace openCVGui
 {
@@ -18,7 +18,7 @@ namespace openCVGui
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    FPImageSource::FPImageSource(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
+    CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
         : FrameProcessor(name, graphData, showView, width, height, x, y)
     {
         source = Noise;
@@ -26,7 +26,7 @@ namespace openCVGui
     }
 
     // keyWait required to make the UI activate
-    bool FPImageSource::processKeyboard(GraphData& data)
+    bool CamDefault::processKeyboard(GraphData& data)
     {
         bool fOK = true;
         if (m_showView) {
@@ -45,7 +45,7 @@ namespace openCVGui
     }
 
     //Allocate resources if needed
-    bool FPImageSource::init(GraphData& graphData)
+    bool CamDefault::init(GraphData& graphData)
     {
 		// call the base to read/write configs
 		FrameProcessor::init(graphData);
@@ -134,7 +134,7 @@ namespace openCVGui
     }
 
 
-    bool FPImageSource::process(GraphData& graphData)
+    bool CamDefault::process(GraphData& graphData)
     {
         m_firstTime = false;
 		bool fOK = true;
@@ -181,7 +181,7 @@ namespace openCVGui
     }
 
     // deallocate resources
-    bool FPImageSource::fini(GraphData& graphData)
+    bool CamDefault::fini(GraphData& graphData)
     {
 		if (cap.isOpened()) {
 			cap.release();
@@ -191,7 +191,7 @@ namespace openCVGui
 
 
 
-    void  FPImageSource::saveConfig() 
+    void  CamDefault::saveConfig() 
     {
         FileStorage fs2(m_persistFile, FileStorage::WRITE);
         fs2 << "tictoc" << tictoc;
@@ -204,7 +204,7 @@ namespace openCVGui
         fs2.release();
     }
 
-    void  FPImageSource::loadConfig()
+    void  CamDefault::loadConfig()
     {
         FileStorage fs2(m_persistFile, FileStorage::READ);
 		cout << m_persistFile << endl;

@@ -25,7 +25,7 @@ namespace openCVGui
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    class CamXimea : public FPImageSource
+    class CamXimea : public CamDefault
     {
     public:
         CamXimea(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);

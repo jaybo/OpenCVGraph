@@ -21,10 +21,10 @@ namespace openCVGui
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    class FPImageSource : public FrameProcessor
+    class CamDefault : public FrameProcessor
     {
     public:
-        FPImageSource(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);
+        CamDefault(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;
