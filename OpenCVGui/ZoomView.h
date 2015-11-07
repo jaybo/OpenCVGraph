@@ -3,6 +3,9 @@
 
 namespace openCVGui
 {
+
+    typedef bool (*KeyboardCallback)(int key);
+
 	class  ZoomView
 	{
 
@@ -12,7 +15,8 @@ namespace openCVGui
 
 		~ZoomView();
 
-        void Init(int width, int height, int posX, int posY);
+        void Init(int width, int height, int posX, int posY, 
+            cv::MouseCallback mouseCallback);
 		void ProcessEvents();
 		virtual bool KeyboardProcessor();
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
@@ -23,6 +27,7 @@ namespace openCVGui
 		std::string Name;
 		int sx = 0, sy = 0;
 		cv::Mat MatView;
+        cv::MouseCallback m_mouseCallback = NULL;
 
 	};
 

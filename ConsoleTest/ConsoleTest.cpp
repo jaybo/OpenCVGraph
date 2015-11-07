@@ -10,6 +10,7 @@
 #include "..\OpenCVGui\GraphManager.h"
 #include "..\OpenCVGui\ZoomView.h"
 #include "..\OpenCVGui\FrameProcessors\FPImageSource.h"
+#include "..\OpenCVGui\FrameProcessors\CamXimea.h"
 #include "..\OpenCVGui\FrameProcessors\FPRunningStats.h"
 #include <boost/filesystem.hpp>
 
@@ -25,11 +26,12 @@ int main()
     GraphManager graph1("Graph1");
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", graph1.gd, true));
+//    std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", graph1.gd, true));
+    std::shared_ptr<CamXimea> fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.Processors.push_back(fpImage1);
     
     // Add processors
-    std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
+    std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true, 512, 512, 1000, 10));
     graph1.Processors.push_back(fpRunningStats);
 
     // Start the thread for that graph running

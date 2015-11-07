@@ -8,17 +8,19 @@ using namespace cv;
 
 namespace openCVGui
 {
-	FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView)
-		: Name(name), showView(showView), firstTime(true), duration(0), tictoc(""), frameToStop(0)
-	{
+    FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView, int width, int height, int x, int y )
+        : Name(name), m_showView(showView),
+        m_x(x), m_y(y), m_width(width), m_height(height),
+        m_firstTime(true), duration(0), tictoc(""), frameToStop(0)
+    {
 		std::cout << "FrameProcessor()" << std::endl;
 		std::string config("config");
 		fs::create_directory(config);
-		CombinedName = data.GraphName + "-" + name;
+		m_CombinedName = data.GraphName + "-" + name;
  
 		// The settings file name combines both the GraphName and the FrameProcessor together
-		persistFile = config  + "/" + CombinedName + ".yml";
-		std::cout << persistFile << std::endl;
+        m_persistFile = config  + "/" + m_CombinedName + ".yml";
+		std::cout << m_persistFile << std::endl;
 
 		imView = Mat::eye(10, 10, CV_16U);
 	}
@@ -32,9 +34,9 @@ namespace openCVGui
 	// Allocate resources if needed
 	bool FrameProcessor::init(GraphData& data)
 	{
-		if (showView) {
-			view = ZoomView(CombinedName, imView );
-            view.Init(1024, 1024, 100, 100);
+		if (m_showView) {
+			view = ZoomView(m_CombinedName, imView );
+            view.Init(m_width, m_height, m_x, m_y, m_MouseCallback);
 		}
         loadConfig();
         saveConfig();
@@ -44,7 +46,7 @@ namespace openCVGui
 	// All of the work is done here
 	bool FrameProcessor::process(GraphData& data)
 	{
-		firstTime = false;
+		m_firstTime = false;
 
 		// do all the work here
 
@@ -61,7 +63,7 @@ namespace openCVGui
     // keyWait required to make the UI activate
     bool FrameProcessor::processKeyboard(GraphData& data)
     {
-        if (showView) {
+        if (m_showView) {
             return view.KeyboardProcessor();
         }
         return true;
@@ -82,7 +84,7 @@ namespace openCVGui
 
 	void FrameProcessor::saveConfig()
 	{
-		FileStorage fs(persistFile, FileStorage::WRITE);
+		FileStorage fs(m_persistFile, FileStorage::WRITE);
 		fs << "tictoc" << tictoc.c_str();
 
 		fs.release();
@@ -90,7 +92,7 @@ namespace openCVGui
 
 	void FrameProcessor::loadConfig()
 	{
-		FileStorage fs2(persistFile, FileStorage::READ);
+		FileStorage fs2(m_persistFile, FileStorage::READ);
 
 		fs2["tictoc"] >> tictoc;
 

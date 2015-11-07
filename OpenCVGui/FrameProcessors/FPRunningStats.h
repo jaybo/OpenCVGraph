@@ -19,41 +19,17 @@ namespace openCVGui
     class FPRunningStats : public FrameProcessor
     {
     public:
-        FPRunningStats(std::string name, GraphData& data, bool showView = false);
+        FPRunningStats(std::string name, GraphData& data, bool showView, int width, int height, int x, int y);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;
         virtual bool fini(GraphData& graphData) override;
+        virtual bool processKeyboard(GraphData& data) override;
 
         virtual void saveConfig() override;
         virtual void loadConfig() override;
 
-        int NumDataValues() const
-        {
-            return m_n;
-        }
-
-        void Calc(GraphData& graphData)
-        {
-            cv::minMaxLoc(graphData.imCapture, &dCapMin, &dCapMax);
-
-            cv::Mat imVariance;
-            cv::Scalar imMean, imStdDev;
-            cv::meanStdDev(m_newM, imMean, imStdDev);   // stdDev here is across the mean image
-            dMean = imMean[0];
-            // Mean, and min and max of mean image
-            cv::minMaxLoc(m_newM, &dMeanMin, &dMeanMax);
-
-            // Variance
-            imVariance = m_newS / (m_n - 1);
-            cv::Scalar varMean, varStd;
-            cv::meanStdDev(imVariance, varMean, varStd);
-            cv::minMaxLoc(imVariance, &dVarMin, &dVarMax);
-            dStdDevMean = sqrt(varMean[0]);
-            dStdDevMin = sqrt(dVarMin);
-            dStdDevMax = sqrt(dVarMax);
-
-        }
+        void Calc(GraphData& graphData);
 
     private:
         int m_n;

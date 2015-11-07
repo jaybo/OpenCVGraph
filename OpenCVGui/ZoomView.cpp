@@ -13,6 +13,11 @@ namespace openCVGui
 
 		ZoomView* view = (ZoomView*)param;
 		cout << view->Name << endl;
+
+        if (view->m_mouseCallback) {
+            // call a user callback if supplied
+            (*view->m_mouseCallback)(event, x, y, flags, param);
+        }
 		int d;
 
 		switch (event)
@@ -83,22 +88,31 @@ namespace openCVGui
 	{
 	}
 
-    void ZoomView::Init(int width, int height, int posX, int posY)
+    void ZoomView::Init(int width = 512, int height = 512, int posX = 0, int posY = 0, 
+        cv::MouseCallback mouseCallback = NULL)
     {
         cv::namedWindow(Name, WINDOW_NORMAL);
         cv::imshow(Name, MatView);
         cv::resizeWindow(Name, width, height);
+        cv::moveWindow(Name, posX, posY);
+        if (mouseCallback) {
+            m_mouseCallback = mouseCallback;
+        }
         cv::setMouseCallback(Name, (cv::MouseCallback) DefaultMouseProcessor, this);
     }
     
     bool ZoomView::KeyboardProcessor()
 	{
-		int c = waitKey(1);
-		if ((c & 255) == 27)
-		{
-			cout << "Exiting ...\n";
-            return false;
-		}
+        bool fOK = true;
+        int c = waitKey(1);
+        if (c != -1) {
+            if ((c & 255) == 27)
+            {
+                cout << Name << " exit via ESC\n";
+                fOK = false;
+            }
+        }
+        return fOK;
 	}
 
 

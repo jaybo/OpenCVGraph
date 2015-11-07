@@ -8,8 +8,6 @@ namespace fs = ::boost::filesystem;
 
 #include "..\FrameProcessor.h"
 #include "FPImageSource.h"
-#include "xiapi.h"
-
 
 namespace openCVGui
 {
@@ -20,11 +18,30 @@ namespace openCVGui
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    FPImageSource::FPImageSource(std::string name, GraphData& graphData, bool showView)
-        : FrameProcessor(name, graphData, showView)
+    FPImageSource::FPImageSource(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
+        : FrameProcessor(name, graphData, showView, width, height, x, y)
     {
         source = Noise;
         camera_index = -1;
+    }
+
+    // keyWait required to make the UI activate
+    bool FPImageSource::processKeyboard(GraphData& data)
+    {
+        bool fOK = true;
+        if (m_showView) {
+            int c = waitKey(1);
+            if (c != -1) {
+                if (c == 27)
+                {
+                    fOK = false;
+                }
+            }
+            else {
+                return view.KeyboardProcessor();  // Hmm,  what to do here?
+            }
+        }
+        return fOK;
     }
 
     //Allocate resources if needed
@@ -42,33 +59,6 @@ namespace openCVGui
             fOK = cap.open(cameraIndex);
             if (fOK) {
                 // set camera specific properties
-                if (camera_name == "Ximea16") {
-
-                    // only capture 3840x3840@16bpp
-                    fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
-                    fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
-                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, XI_MONO16);
-
-                    // Limit the number of buffers
-                    fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
-                    fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
-
-                    // Autogain off
-                    fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);  
-
-                    // Enable aperature and focus
-                    cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
-                    focalDistance = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE);
-                    focalLength = cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH);
-                    aperatureValue = cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE);
-
-                    fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
-                    focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
-
-                    fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, 2000);
-                    fOK = cap.set(CV_CAP_PROP_XI_GAIN, 1.0);
-
-                }
                 fOK = cap.read(graphData.imCapture);
 
                 if (!graphData.imCapture.data)   // Check for invalid input
@@ -146,7 +136,7 @@ namespace openCVGui
 
     bool FPImageSource::process(GraphData& graphData)
     {
-        firstTime = false;
+        m_firstTime = false;
 		bool fOK = true;
 
 		switch (source) {
@@ -178,14 +168,14 @@ namespace openCVGui
             break;
 		}
 
-		if (showView && fOK) {
+		if (m_showView && fOK) {
             if (camera_name == "Ximea16") {
                 imView = 16 * graphData.imCapture;
             }
             else {
                 imView = graphData.imCapture;
             }
-			cv::imshow(CombinedName, imView);
+			cv::imshow(m_CombinedName, imView);
 		}
         return fOK;
     }
@@ -203,7 +193,7 @@ namespace openCVGui
 
     void  FPImageSource::saveConfig() 
     {
-        FileStorage fs2(persistFile, FileStorage::WRITE);
+        FileStorage fs2(m_persistFile, FileStorage::WRITE);
         fs2 << "tictoc" << tictoc;
         fs2 << "camera_index" << camera_index;
         fs2 << "camera_name" << camera_name;
@@ -216,8 +206,8 @@ namespace openCVGui
 
     void  FPImageSource::loadConfig()
     {
-        FileStorage fs2(persistFile, FileStorage::READ);
-		cout << persistFile << endl;
+        FileStorage fs2(m_persistFile, FileStorage::READ);
+		cout << m_persistFile << endl;
 
         fs2["tictoc"] >> tictoc;
         fs2["camera_index"] >> camera_index;

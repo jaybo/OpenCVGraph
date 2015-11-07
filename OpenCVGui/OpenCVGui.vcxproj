@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="Config.h" />
     <ClInclude Include="FrameProcessor.h" />
+    <ClInclude Include="FrameProcessors\CamXimea.h" />
     <ClInclude Include="FrameProcessors\FPImageSource.h" />
     <ClInclude Include="FrameProcessors\FPRunningStats.h" />
     <ClInclude Include="Property.h" />
@@ -185,6 +186,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="FrameProcessor.cpp" />
+    <ClCompile Include="FrameProcessors\CamXimea.cpp" />
     <ClCompile Include="FrameProcessors\FPImageSource.cpp" />
     <ClCompile Include="FrameProcessors\FPRunningStats.cpp" />
     <ClCompile Include="OpenCVGui.cpp" />

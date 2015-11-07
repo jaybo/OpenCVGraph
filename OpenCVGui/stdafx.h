@@ -21,13 +21,15 @@
 #include <algorithm>
 #include <numeric>
 
-#include "util.h"
 
 // OpenCV
 #include <opencv2/opencv.hpp>
 
 // Boost
 #include <boost/filesystem.hpp>
+
+#include "util.h"
+
 
 
 //#define OPENCVGUI_DLL 1

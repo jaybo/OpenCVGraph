@@ -24,16 +24,17 @@ namespace openCVGui
     class FPImageSource : public FrameProcessor
     {
     public:
-        FPImageSource(std::string name, GraphData& data, bool showView = false);
+        FPImageSource(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;
+        virtual bool processKeyboard(GraphData& data) override;
         virtual bool fini(GraphData& graphData) override;
 
         virtual void saveConfig() override;
         virtual void loadConfig() override;
 
-    private:
+    protected:
         enum ImageSource {
             Camera,
             SingleImage,
@@ -58,9 +59,7 @@ namespace openCVGui
         vector<fs::path> images;
         int imageIndex = 0;
 
-        double focalDistance;
-        double focalLength;
-        double aperatureValue;
-        double focusMovementValue;
+    private:
+
     };
 }

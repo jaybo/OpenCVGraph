@@ -14,27 +14,80 @@ namespace openCVGui
     //    http://www.johndcook.com/blog/standard_deviation/
     //
 
-    FPRunningStats::FPRunningStats(std::string name, GraphData& graphData, bool showView)
-        : FrameProcessor(name, graphData, showView)
+    FPRunningStats::FPRunningStats(std::string name, GraphData& graphData, 
+        bool showView, int width, int height, int x, int y)
+        : FrameProcessor(name, graphData, showView, width, height, x, y)
     {
     }
+
+    // keyWait required to make the UI activate
+    bool FPRunningStats::processKeyboard(GraphData& data)
+    {
+        bool fOK = true;
+        if (m_showView) {
+            int c = waitKey(1);
+            if (c != -1) {
+                if (c == ' ') {
+                    // reset to zero (RESTART)
+                    m_n = 0;
+                }
+                else if (c == 27)
+                {
+                    fOK = false;
+                }
+            }
+            else {
+                return view.KeyboardProcessor();  // Hmm,  what to do here?
+            }
+        }
+        return fOK;
+    }
+
 
     //Allocate resources if needed
     bool FPRunningStats::init(GraphData& graphData)
     {
-		// call the base to read/write configs
-		FrameProcessor::init(graphData);
+        // call the base to read/write configs
+        FrameProcessor::init(graphData);
         m_n = 0;
-		return true;
+        return true;
+    }
+
+    void FPRunningStats::Calc(GraphData& graphData)
+    {
+//#define GPU
+#ifdef GPU
+        cuda::GpuMat im_gpu1;
+        im_gpu1.upload(graphData.imCapture); //allocate memory and upload to GPU
+#else
+        cv::Point ptMin, ptMax;
+        cv::minMaxLoc(graphData.imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+
+        cv::Mat imVariance;
+        cv::Scalar imMean, imStdDev;
+        cv::meanStdDev(m_newM, imMean, imStdDev);   // stdDev here is across the mean image
+        dMean = imMean[0];
+        // Mean, and min and max of mean image
+        cv::minMaxLoc(m_newM, &dMeanMin, &dMeanMax);
+
+        // Variance
+        imVariance = m_newS / (m_n - 1);
+        cv::Scalar varMean, varStd;
+        cv::meanStdDev(imVariance, varMean, varStd);
+        cv::minMaxLoc(imVariance, &dVarMin, &dVarMax);
+        dStdDevMean = sqrt(varMean[0]);
+        dStdDevMin = sqrt(dVarMin);
+        dStdDevMax = sqrt(dVarMax);
+#endif
     }
 
     bool FPRunningStats::process(GraphData& graphData)
     {
-        firstTime = false;
-		bool fOK = true;
+        m_firstTime = false;
+        bool fOK = true;
 
         // let the camera stabilize
-        if (graphData.frameCounter < 10) return true;
+        if (graphData.frameCounter < 2) return true;
 
         m_n++;
 
@@ -65,35 +118,48 @@ namespace openCVGui
         graphData.imCapture.copyTo(imView);
         imView = imView * 16;
         cv::resize(imView, imView, cv::Size(512, 512));
-
+        
         std::ostringstream str;
-        str << "mean: " << dMean << " std: " << dStdDevMean;
-        cv::putText(imView, str.str(), Point(20, 50), CV_FONT_HERSHEY_DUPLEX, 0.8, CV_RGB(255, 255, 255));
 
         str.str("");
-        str << "minStd: " << dStdDevMin << " maxStd: " << dStdDevMax;
-        cv::putText(imView, str.str(), Point(20, 90), CV_FONT_HERSHEY_DUPLEX, 0.66, CV_RGB(255, 255, 255));
+        str << "SPACE to reset";
+        DrawShadowTextMono(imView, str.str(), Point(20, 20), 0.66);
 
         str.str("");
-        str << "capMin: " << (int) dCapMin << " capMax: " << (int) dCapMax;
-        cv::putText(imView, str.str(), Point(20, 120), CV_FONT_HERSHEY_DUPLEX, 0.66, CV_RGB(255, 255, 255));
+        str << "mean: " << setiosflags(ios::fixed) << setprecision(1) << dMean << " std: " << dStdDevMean;
+        DrawShadowTextMono(imView, str.str(), Point(20, 50), 0.8);
 
-        cv::imshow(CombinedName, imView);
+        str.str("");
+        str << "capMin: " << (int)dCapMin << " capMax: " << (int)dCapMax;
+        DrawShadowTextMono(imView, str.str(), Point(20, 100), 0.66);
+
+
+        str.str("");
+        str << "minStd: "<< dStdDevMin << " maxStd: " << dStdDevMax;
+        DrawShadowTextMono(imView, str.str(), Point(20, 120),0.66);
+
+        str.str("");
+        str << m_n << "/" << graphData.frameCounter;
+        DrawShadowTextMono(imView,str.str(), Point(20, 500), 0.66);
+
+
+
+        cv::imshow(m_CombinedName, imView);
         return fOK;
     }
 
     // deallocate resources
     bool FPRunningStats::fini(GraphData& graphData)
     {
-		return true;
+        return true;
     }
 
 
 
 
-    void  FPRunningStats::saveConfig() 
+    void  FPRunningStats::saveConfig()
     {
-        FileStorage fs2(persistFile, FileStorage::WRITE);
+        FileStorage fs2(m_persistFile, FileStorage::WRITE);
         fs2 << "tictoc" << tictoc;
 
         fs2.release();
@@ -101,8 +167,8 @@ namespace openCVGui
 
     void  FPRunningStats::loadConfig()
     {
-        FileStorage fs2(persistFile, FileStorage::READ);
-		cout << persistFile << endl;
+        FileStorage fs2(m_persistFile, FileStorage::READ);
+        cout << m_persistFile << endl;
 
         fs2["tictoc"] >> tictoc;
 

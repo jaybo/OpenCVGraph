@@ -15,7 +15,8 @@ namespace openCVGui
 	class FrameProcessor
 	{
 	public:
-		FrameProcessor(std::string name, GraphData& data, bool showView = false);
+		FrameProcessor(std::string name, GraphData& data, bool showView = false, 
+            int width=512, int height=512, int x = 0, int y = 0);
 		virtual ~FrameProcessor();
 
 		long frameToStop;
@@ -32,17 +33,19 @@ namespace openCVGui
         virtual void loadConfig();
         
         std::string Name;
-		std::string CombinedName; // Graph-FrameProcessor name
+		std::string m_CombinedName; // Graph-FrameProcessor name
 
 	protected:
-		std::string persistFile;
-		bool firstTime = true;
-		bool showView = false;
+		std::string m_persistFile;
+		bool m_firstTime = true;
+		bool m_showView = false;
 		double duration;
 		std::string tictoc;
 		cv::Mat imView;
+        int m_x, m_y, m_width, m_height;
 
 		ZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
+        cv::MouseCallback m_MouseCallback = NULL;
 	};
 
 
