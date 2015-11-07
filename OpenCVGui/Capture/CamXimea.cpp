@@ -10,13 +10,12 @@ namespace fs = ::boost::filesystem;
 #include "CamDefault.h"
 #include "CamXimea.h"
 
-#define XIMEA_DIR
-#ifdef XIMEA_DIR
-#include "xiapi.h"
-#endif
+
+
 
 namespace openCVGui
 {
+#ifdef XIMEA_DIR
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
         : CamDefault(name, graphData, showView, width, height, x, y)
     {
@@ -191,4 +190,5 @@ namespace openCVGui
         fs2["exposure"] >> m_exposure;
         fs2.release();
     }
+#endif
 }

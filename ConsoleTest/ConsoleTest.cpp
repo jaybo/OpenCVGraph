@@ -26,8 +26,8 @@ int main()
     GraphManager graph1("Graph1");
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-//    std::shared_ptr<FPImageSource> fpImage1(new FPImageSource("Image1", graph1.gd, true));
-    std::shared_ptr<CamXimea> fpImage1(new CamXimea("CamXimea", graph1.gd, true));
+   std::shared_ptr<CamDefault> fpImage1(new CamDefault("CamDefault", graph1.gd, true));
+ //   std::shared_ptr<CamXimea> fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.Processors.push_back(fpImage1);
     
     // Add processors

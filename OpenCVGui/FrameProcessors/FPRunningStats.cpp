@@ -61,7 +61,15 @@ namespace openCVGui
         im_gpu1.upload(graphData.imCapture); //allocate memory and upload to GPU
 #else
         cv::Point ptMin, ptMax;
-        cv::minMaxLoc(graphData.imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+		if (graphData.imCapture.channels() > 1) {
+			cv::Mat gray;
+			cvtColor(graphData.imCapture, gray, CV_BGR2GRAY);
+			cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
+
+		}
+		else {
+			cv::minMaxLoc(graphData.imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+		}
 
         cv::Mat imVariance;
         cv::Scalar imMean, imStdDev;

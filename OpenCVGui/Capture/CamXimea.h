@@ -11,13 +11,10 @@ namespace fs = ::boost::filesystem;
 #include "..\Config.h"
 #include "..\FrameProcessor.h"
 #include "..\ZoomView.h"
-#define XIMEA_DIR
-#ifdef XIMEA_DIR
-#include "xiapi.h"
-#endif
 
 namespace openCVGui
 {
+#ifdef XIMEA_DIR
     // General image source:
     //   if   "camera_index" is set, use that camera
     //   elif "image_name" is set, use just that image
@@ -191,4 +188,5 @@ namespace openCVGui
         double m_focusMovementValue;
         double m_exposure;
     };
+#endif
 }
