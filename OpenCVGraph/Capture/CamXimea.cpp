@@ -1,17 +1,10 @@
 
 #include "..\stdafx.h"
-
+#include "CamXimea.h"
 
 using namespace std;
 using namespace cv;
 namespace fs = ::boost::filesystem;
-
-#include "..\FrameProcessor.h"
-#include "CamDefault.h"
-#include "CamXimea.h"
-
-
-
 
 namespace openCVGui
 {

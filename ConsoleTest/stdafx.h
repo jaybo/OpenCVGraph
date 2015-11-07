@@ -7,13 +7,11 @@
 
 #include "targetver.h"
 
-#include <stdio.h>
-#include <tchar.h>
-#include <memory>
-
+// Boost
+#include <boost/thread.hpp>
+#include <boost/filesystem.hpp>
 
 // TODO: reference additional headers your program requires here
 #include <opencv2/opencv.hpp>
-#include <cstring>
-#include <iostream>
+
 

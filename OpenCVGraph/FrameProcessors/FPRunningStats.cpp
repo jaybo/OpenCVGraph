@@ -1,11 +1,8 @@
 #include "..\stdafx.h"
+#include "FPRunningStats.h"
 
 using namespace std;
 using namespace cv;
-namespace fs = ::boost::filesystem;
-
-#include "..\FrameProcessor.h"
-#include "FPRunningStats.h"
 
 namespace openCVGui
 {

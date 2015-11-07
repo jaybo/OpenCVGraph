@@ -4,13 +4,7 @@
 
 #include "..\stdafx.h"
 
-namespace fs = ::boost::filesystem;
-
-#include "..\Property.h"
-#include "..\GraphData.h"
-#include "..\Config.h"
-#include "..\FrameProcessor.h"
-#include "..\ZoomView.h"
+using namespace cv;
 
 namespace openCVGui
 {

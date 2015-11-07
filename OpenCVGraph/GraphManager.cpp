@@ -1,10 +1,6 @@
 
 #include "stdafx.h"
 
-// Boost
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread.hpp>
-
 #include "GraphManager.h"
 
 namespace openCVGui

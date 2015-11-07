@@ -27,8 +27,10 @@
 
 // Boost
 #include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread.hpp>
 
-#include "util.h"
+#include "OpenCVGraph.h"
 
 //#define XIMEA_DIR
 #ifdef XIMEA_DIR

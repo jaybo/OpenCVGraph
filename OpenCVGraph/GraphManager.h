@@ -1,8 +1,8 @@
 
 #pragma once
 #include "stdafx.h"
-#include "GraphData.h"
-#include "FrameProcessor.h"
+
+using namespace std;
 
 namespace openCVGui
 {

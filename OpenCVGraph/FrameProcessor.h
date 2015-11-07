@@ -1,13 +1,11 @@
 
 #pragma once
-#pragma warning(disable : 4482)
+// #pragma warning(disable : 4482)
 
 #include "stdafx.h"
 
-#include "Property.h"
-#include "GraphData.h"
-#include "Config.h"
-#include "ZoomView.h"
+using namespace cv;
+using namespace std;
 
 namespace openCVGui
 {

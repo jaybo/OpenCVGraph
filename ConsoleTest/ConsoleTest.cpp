@@ -3,25 +3,23 @@
 
 #include "stdafx.h"
 
-// Boost
-#include <boost/thread.hpp>
 
-#include "..\OpenCVGraph\FrameProcessor.h"
-#include "..\OpenCVGraph\GraphManager.h"
-#include "..\OpenCVGraph\ZoomView.h"
-#include "..\OpenCVGraph\Capture\CamDefault.h"
-#include "..\OpenCVGraph\Capture\CamXimea.h"
-#include "..\OpenCVGraph\FrameProcessors\FPRunningStats.h"
-#include <boost/filesystem.hpp>
 
-using namespace cv;
+//using namespace cv;
 using namespace std;
+#include "..\OpenCVGraph\OpenCVGraph.h"
+
+#include "..\OpenCVGraph\GraphManager.h"
+//#include "..\OpenCVGraph\Capture\CamDefault.h"
+//#include "..\OpenCVGraph\Capture\CamXimea.h"
+#include "..\OpenCVGraph\FrameProcessors\FPRunningStats.h"
+
 using namespace openCVGui;
-namespace fs = ::boost::filesystem;
 
 
 int main()
 {
+
     // Create a graph
     GraphManager graph1("Graph1");
 

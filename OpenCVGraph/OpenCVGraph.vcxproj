@@ -162,6 +162,7 @@
     <ClInclude Include="Capture\CamXimea.h" />
     <ClInclude Include="Capture\CamDefault.h" />
     <ClInclude Include="FrameProcessors\FPRunningStats.h" />
+    <ClInclude Include="OpenCVGraph.h" />
     <ClInclude Include="Property.h" />
     <ClInclude Include="GraphData.h" />
     <ClInclude Include="ZoomView.h" />
@@ -189,7 +190,7 @@
     <ClCompile Include="Capture\CamXimea.cpp" />
     <ClCompile Include="Capture\CamDefault.cpp" />
     <ClCompile Include="FrameProcessors\FPRunningStats.cpp" />
-    <ClCompile Include="OpenCVGui.cpp" />
+    <ClCompile Include="OpenCVGraph.cpp" />
     <ClCompile Include="ZoomView.cpp" />
     <ClCompile Include="GraphManager.cpp" />
     <ClCompile Include="stdafx.cpp" />

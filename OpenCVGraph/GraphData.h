@@ -2,8 +2,8 @@
 #pragma once
 
 #include "stdafx.h"
-using namespace std;
 
+using namespace std;
 
 namespace openCVGui
 {
