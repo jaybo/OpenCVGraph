@@ -30,9 +30,9 @@
 
 #include "util.h"
 
-// #define XIMEA_DIR
+//#define XIMEA_DIR
 #ifdef XIMEA_DIR
-#include "xiapi.h"
+#include "e:/Ximea/API/xiApi.h"
 #endif
 
 //#define OPENCVGUI_DLL 1

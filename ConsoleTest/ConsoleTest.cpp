@@ -6,12 +6,12 @@
 // Boost
 #include <boost/thread.hpp>
 
-#include "..\OpenCVGui\FrameProcessor.h"
-#include "..\OpenCVGui\GraphManager.h"
-#include "..\OpenCVGui\ZoomView.h"
-#include "..\OpenCVGui\Capture\CamDefault.h"
-#include "..\OpenCVGui\Capture\CamXimea.h"
-#include "..\OpenCVGui\FrameProcessors\FPRunningStats.h"
+#include "..\OpenCVGraph\FrameProcessor.h"
+#include "..\OpenCVGraph\GraphManager.h"
+#include "..\OpenCVGraph\ZoomView.h"
+#include "..\OpenCVGraph\Capture\CamDefault.h"
+#include "..\OpenCVGraph\Capture\CamXimea.h"
+#include "..\OpenCVGraph\FrameProcessors\FPRunningStats.h"
 #include <boost/filesystem.hpp>
 
 using namespace cv;
