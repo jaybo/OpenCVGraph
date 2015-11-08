@@ -9,7 +9,7 @@ namespace fs = ::boost::filesystem;
 #include "..\Property.h"
 #include "..\GraphData.h"
 #include "..\Config.h"
-#include "..\FrameProcessor.h"
+#include "..\Filter.h"
 #include "..\ZoomView.h"
 
 namespace openCVGraph

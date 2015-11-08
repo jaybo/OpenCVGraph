@@ -16,7 +16,7 @@ namespace openCVGraph
     //   else create a noise image
 
     CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height)
-        : FrameProcessor(name, graphData, showView, width, height)
+        : Filter(name, graphData, showView, width, height)
     {
         source = Noise;
         camera_index = -1;
@@ -36,7 +36,7 @@ namespace openCVGraph
     bool CamDefault::init(GraphData& graphData)
     {
 		// call the base to read/write configs
-		FrameProcessor::init(graphData);
+		Filter::init(graphData);
 
         bool fOK = false;
         
@@ -179,31 +179,28 @@ namespace openCVGraph
 
 
 
-    void  CamDefault::saveConfig() 
+    void  CamDefault::saveConfig(FileStorage fs, GraphData& data)
     {
-        FileStorage fs2(m_persistFile, FileStorage::WRITE);
-        fs2 << "tictoc" << tictoc;
-        fs2 << "camera_index" << camera_index;
-        fs2 << "camera_name" << camera_name;
-        fs2 << "image_name" << image_name;
-        fs2 << "movie_name" << movie_name;
-        fs2 << "image_dir" << image_dir;
+        //fs << "{"
+        //fs << "tictoc" << tictoc;
+        //fs << "camera_index" << camera_index;
+        //fs << "camera_name" << camera_name;
+        //fs << "image_name" << image_name;
+        //fs << "movie_name" << movie_name;
+        //fs << "image_dir" << image_dir;
 
-        fs2.release();
     }
 
-    void  CamDefault::loadConfig()
+    void  CamDefault::loadConfig(FileStorage fs, GraphData& data)
     {
-        FileStorage fs2(m_persistFile, FileStorage::READ);
-		cout << m_persistFile << endl;
+		// cout << m_persistFile << endl;
+        
+        //fs["tictoc"] >> tictoc;
+        //fs["camera_index"] >> camera_index;
+        //fs ["camera_name"] >> camera_name;
+        //fs["image_name"] >> image_name;
+        //fs["movie_name"] >> movie_name;
+        //fs["image_dir"] >> image_dir;
 
-        fs2["tictoc"] >> tictoc;
-        fs2["camera_index"] >> camera_index;
-        fs2 ["camera_name"] >> camera_name;
-        fs2["image_name"] >> image_name;
-        fs2["movie_name"] >> movie_name;
-        fs2["image_dir"] >> image_dir;
-
-        fs2.release();
     }
 }

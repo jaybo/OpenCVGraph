@@ -14,12 +14,12 @@ int main()
     GraphManager graph1("Graph1");
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-   std::shared_ptr<CamDefault> fpImage1(new CamDefault("CamDefault", graph1.gd, true));
- //   std::shared_ptr<CamXimea> fpImage1(new CamXimea("CamXimea", graph1.gd, true));
+   CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
+ //   CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
     
     // Add processors
-    std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
+    CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
     graph1.AddFilter(fpRunningStats);
 
     // Start the thread for that graph running

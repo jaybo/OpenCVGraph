@@ -13,7 +13,7 @@ namespace openCVGraph
 
     FPRunningStats::FPRunningStats(std::string name, GraphData& graphData, 
         bool showView, int width, int height)
-        : FrameProcessor(name, graphData, showView, width, height)
+        : Filter(name, graphData, showView, width, height)
     {
     }
 
@@ -32,7 +32,7 @@ namespace openCVGraph
     bool FPRunningStats::init(GraphData& graphData)
     {
         // call the base to read/write configs
-        FrameProcessor::init(graphData);
+        Filter::init(graphData);
         m_n = 0;
         return true;
     }
@@ -149,21 +149,21 @@ namespace openCVGraph
 
 
 
-    void  FPRunningStats::saveConfig()
+    void  FPRunningStats::saveConfig(FileStorage fs, GraphData& data)
     {
-        FileStorage fs2(m_persistFile, FileStorage::WRITE);
-        fs2 << "tictoc" << tictoc;
+        //FileStorage fs2(m_persistFile, FileStorage::WRITE);
+        //fs2 << "tictoc" << tictoc;
 
-        fs2.release();
+        //fs2.release();
     }
 
-    void  FPRunningStats::loadConfig()
+    void  FPRunningStats::loadConfig(FileStorage fs, GraphData& data)
     {
-        FileStorage fs2(m_persistFile, FileStorage::READ);
-        cout << m_persistFile << endl;
+        //FileStorage fs2(m_persistFile, FileStorage::READ);
+        //cout << m_persistFile << endl;
 
-        fs2["tictoc"] >> tictoc;
+        //fs2["tictoc"] >> tictoc;
 
-        fs2.release();
+        //fs2.release();
     }
 }

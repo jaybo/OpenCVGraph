@@ -9,7 +9,7 @@ namespace fs = ::boost::filesystem;
 #include "..\Property.h"
 #include "..\GraphData.h"
 #include "..\Config.h"
-#include "..\FrameProcessor.h"
+#include "..\Filter.h"
 #include "..\ZoomView.h"
 
 namespace openCVGraph
@@ -21,7 +21,7 @@ namespace openCVGraph
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    class CamDefault : public FrameProcessor
+    class CamDefault : public Filter
     {
     public:
         CamDefault(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512);
@@ -31,8 +31,8 @@ namespace openCVGraph
         virtual bool processKeyboard(GraphData& data, int key) override;
         virtual bool fini(GraphData& graphData) override;
 
-        virtual void saveConfig() override;
-        virtual void loadConfig() override;
+        virtual void saveConfig(FileStorage fs, GraphData& data) override;
+        virtual void loadConfig(FileStorage fs, GraphData& data) override;
 
     protected:
         enum ImageSource {

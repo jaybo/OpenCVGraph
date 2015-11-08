@@ -6,7 +6,7 @@ using namespace std;
 
 namespace openCVGraph
 {
-    typedef std::shared_ptr < FrameProcessor> Processor;
+    typedef std::shared_ptr < Filter> Processor;
     
     class  GraphManager {
 
@@ -51,8 +51,12 @@ namespace openCVGraph
         GraphState m_GraphState;
 		bool m_Stepping;
 		std::string m_Name;
-    
+        string m_persistFile;
+
         bool ProcessLoop();
 		bool ProcessOne();
+
+        void saveConfig();
+        void loadConfig();
     };
 }

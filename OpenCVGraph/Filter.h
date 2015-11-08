@@ -10,12 +10,12 @@ using namespace std;
 namespace openCVGraph
 {
 
-	class FrameProcessor
+	class Filter
 	{
 	public:
-		FrameProcessor(std::string name, GraphData& data, bool showView = false, 
+		Filter(std::string name, GraphData& data, bool showView = false, 
             int width=512, int height=512);
-		virtual ~FrameProcessor();
+		virtual ~Filter();
 
 		long frameToStop;
 
@@ -27,14 +27,13 @@ namespace openCVGraph
         virtual void tic();
         virtual void toc();
 
-        virtual void saveConfig();
-        virtual void loadConfig();
+        virtual void saveConfig(FileStorage fs, GraphData& data);
+        virtual void loadConfig(FileStorage fs, GraphData& data);
         
         std::string Name;
-		std::string m_CombinedName; // Graph-FrameProcessor name
+		std::string m_CombinedName; // Graph-Filter name
 
 	protected:
-		std::string m_persistFile;
 		bool m_firstTime = true;
 		bool m_showView = false;
 		double duration;
@@ -42,9 +41,10 @@ namespace openCVGraph
 		cv::Mat imView;
         int m_width, m_height;
 
-		ZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
+		ZoomView view; 
         cv::MouseCallback m_MouseCallback = NULL;
 	};
 
+    typedef std::shared_ptr<Filter> CvFilter;
 
 }

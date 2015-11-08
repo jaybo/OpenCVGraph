@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-#include "FrameProcessor.h"
+#include "Filter.h"
 
 using namespace std;
 namespace fs = ::boost::filesystem;
@@ -8,43 +8,37 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView, int width, int height)
+    Filter::Filter(std::string name, GraphData& data, bool showView, int width, int height)
         : Name(name), m_showView(showView),
         m_width(width), m_height(height),
         m_firstTime(true), duration(0), tictoc(""), frameToStop(0)
     {
-		std::cout << "FrameProcessor()" << std::endl;
-		std::string config("config");
-		fs::create_directory(config);
+		std::cout << "Filter()" << std::endl;
+
 		m_CombinedName = data.m_GraphName + "-" + name;
  
-		// The settings file name combines both the GraphName and the FrameProcessor together
-        m_persistFile = config  + "/" + m_CombinedName + ".yml";
-		std::cout << m_persistFile << std::endl;
-
 		imView = Mat::eye(10, 10, CV_16U);
 	}
 
-	FrameProcessor::~FrameProcessor()
+	Filter::~Filter()
 	{
-		std::cout << "~FrameProcessor()" << std::endl;
+		std::cout << "~Filter()" << std::endl;
 	}
 
     // Graph is starting up
 	// Allocate resources if needed
-	bool FrameProcessor::init(GraphData& data)
+	bool Filter::init(GraphData& data)
 	{
 		if (m_showView) {
 			view = ZoomView(m_CombinedName, imView );
             view.Init(m_width, m_height, m_MouseCallback);
 		}
-        loadConfig();
-        saveConfig();
+
 		return true;
 	}
 
 	// All of the work is done here
-	bool FrameProcessor::process(GraphData& data)
+	bool Filter::process(GraphData& data)
 	{
 		m_firstTime = false;
 
@@ -55,13 +49,13 @@ namespace openCVGraph
 
     // Graph is stopping
 	// Deallocate resources
-	bool FrameProcessor::fini(GraphData& data)
+	bool Filter::fini(GraphData& data)
 	{
 		return true;
 	}
 
     // keyWait required to make the UI activate
-    bool FrameProcessor::processKeyboard(GraphData& data, int key)
+    bool Filter::processKeyboard(GraphData& data, int key)
     {
         if (m_showView) {
             return view.KeyboardProcessor(key);
@@ -70,32 +64,25 @@ namespace openCVGraph
     }
 
 	// Record time at start of processing
-	void FrameProcessor::tic()
+	void Filter::tic()
 	{
 		duration = static_cast<double>(cv::getTickCount());
 	}
 
 	// Calc delta at end of processing
-	void FrameProcessor::toc()
+	void Filter::toc()
 	{
 		duration = (static_cast<double>(cv::getTickCount()) - duration) / cv::getTickFrequency();
 		std::cout << Name << "\ttime(sec):" << std::fixed << std::setprecision(6) << duration << std::endl;
 	}
 
-	void FrameProcessor::saveConfig()
+	void Filter::saveConfig(FileStorage fs, GraphData& data)
 	{
-		FileStorage fs(m_persistFile, FileStorage::WRITE);
 		fs << "tictoc" << tictoc.c_str();
-
-		fs.release();
 	}
 
-	void FrameProcessor::loadConfig()
+	void Filter::loadConfig(FileStorage fs, GraphData& data)
 	{
-		FileStorage fs2(m_persistFile, FileStorage::READ);
-
-		fs2["tictoc"] >> tictoc;
-
-		fs2.release();
+		fs["tictoc"] >> tictoc;
 	}
 }

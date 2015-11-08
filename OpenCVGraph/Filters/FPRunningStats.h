@@ -10,7 +10,7 @@ namespace openCVGraph
 {
     // http://www.johndcook.com/blog/standard_deviation/
 
-    class FPRunningStats : public FrameProcessor
+    class FPRunningStats : public Filter
     {
     public:
         FPRunningStats(std::string name, GraphData& data, bool showView, int width = 512, int height = 512);
@@ -20,8 +20,8 @@ namespace openCVGraph
         virtual bool fini(GraphData& graphData) override;
         virtual bool processKeyboard(GraphData& data, int key) override;
 
-        virtual void saveConfig() override;
-        virtual void loadConfig() override;
+        virtual void saveConfig(FileStorage fs, GraphData& data) override;
+        virtual void loadConfig(FileStorage fs, GraphData& data) override;
 
         void Calc(GraphData& graphData);
 

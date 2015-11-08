@@ -63,7 +63,7 @@ namespace openCVGraph
     bool CamXimea::init(GraphData& graphData)
     {
         // call the base to read/write configs
-        FrameProcessor::init(graphData);
+        Filter::init(graphData);
 
         bool fOK = false;
 
@@ -154,34 +154,34 @@ namespace openCVGraph
 
 
 
-    void  CamXimea::saveConfig()
-    {
-        FileStorage fs2(m_persistFile, FileStorage::WRITE);
-        fs2 << "tictoc" << tictoc;
-        fs2 << "camera_index" << camera_index;
-        fs2 << "camera_name" << camera_name;
-        fs2 << "focus" << m_focalDistance;
-        fs2 << "focalLength" << m_focalLength;
-        fs2 << "aperature" << m_aperatureValue;
-        fs2 << "focusMovementValue" << m_focusMovementValue;
-        fs2 << "exposure" << m_exposure;
-        fs2.release();
-    }
+    //void  CamXimea::saveConfig()
+    //{
+    //    FileStorage fs2(m_persistFile, FileStorage::WRITE);
+    //    fs2 << "tictoc" << tictoc;
+    //    fs2 << "camera_index" << camera_index;
+    //    fs2 << "camera_name" << camera_name;
+    //    fs2 << "focus" << m_focalDistance;
+    //    fs2 << "focalLength" << m_focalLength;
+    //    fs2 << "aperature" << m_aperatureValue;
+    //    fs2 << "focusMovementValue" << m_focusMovementValue;
+    //    fs2 << "exposure" << m_exposure;
+    //    fs2.release();
+    //}
 
-    void  CamXimea::loadConfig()
-    {
-        FileStorage fs2(m_persistFile, FileStorage::READ);
-        cout << m_persistFile << endl;
+    //void  CamXimea::loadConfig()
+    //{
+    //    FileStorage fs2(m_persistFile, FileStorage::READ);
+    //    cout << m_persistFile << endl;
 
-        fs2["tictoc"] >> tictoc;
-        fs2["camera_index"] >> camera_index;
-        fs2["camera_name"] >> camera_name;
-        fs2["focus"] >> m_focalDistance;
-        fs2["focalLength"] >> m_focalLength;
-        fs2["aperature"] >> m_aperatureValue;
-        fs2["focusMovementValue"] >> m_focusMovementValue;
-        fs2["exposure"] >> m_exposure;
-        fs2.release();
-    }
+    //    fs2["tictoc"] >> tictoc;
+    //    fs2["camera_index"] >> camera_index;
+    //    fs2["camera_name"] >> camera_name;
+    //    fs2["focus"] >> m_focalDistance;
+    //    fs2["focalLength"] >> m_focalLength;
+    //    fs2["aperature"] >> m_aperatureValue;
+    //    fs2["focusMovementValue"] >> m_focusMovementValue;
+    //    fs2["exposure"] >> m_exposure;
+    //    fs2.release();
+    //}
 #endif
 }

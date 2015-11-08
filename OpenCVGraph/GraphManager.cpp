@@ -5,7 +5,7 @@
 
 namespace openCVGraph
 {
-    // Keep a vector of FrameProcessors and call each in turn to crunch images
+    // Keep a vector of Filters and call each in turn to crunch images
     // (or perform other work)
     // States: Stop, Pause (can only Step if Paused), and Run
 
@@ -15,10 +15,19 @@ namespace openCVGraph
 		gd.m_GraphName = m_Name;
 		gd.abortOnESC = abortOnESC;
         m_GraphState = GraphState::Stop;
+
+        std::cout << "GraphManager()" << std::endl;
+        std::string config("config");
+        fs::create_directory(config);
+
+        // The settings file name combines both the GraphName and the Filter together
+        m_persistFile = config + "/" + m_Name + ".yml";
+        std::cout << m_persistFile << std::endl;
     }
 
     GraphManager::~GraphManager()
     {
+        std::cout << "~GraphManager()" << std::endl;
         cv::destroyAllWindows();
     }
 
@@ -64,6 +73,10 @@ namespace openCVGraph
     {
 		bool fOK = true;
 		m_Stepping = false;
+
+        saveConfig();
+        loadConfig();
+
 
 		// Init everybody
 		for (int i = 0; i < Processors.size(); i++) {
@@ -122,5 +135,40 @@ namespace openCVGraph
         m_GraphState = newState;
 
         return true;
+    }
+
+    void GraphManager::saveConfig()
+    {
+        FileStorage fs(m_persistFile, FileStorage::WRITE);
+        if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
+
+        fs << m_Name << "{";
+        fs << "baby" << 1;
+        fs << "}";
+        for (int i = 0; i < Processors.size(); i++) {
+            //fs << "tictoc" << tictoc.c_str();
+            Processors[i]->saveConfig(fs, gd);
+        }
+        fs.release();
+    }
+
+    void GraphManager::loadConfig()
+    {
+        FileStorage fs(m_persistFile, FileStorage::READ);
+        if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
+
+        string name;
+        int baby;
+        auto n = fs[m_Name];
+        n["baby"] >> baby;
+
+        cout << "name" << name;
+        cout << "baby" << baby;
+
+        for (int i = 0; i < Processors.size(); i++) {
+            //fs << "tictoc" << tictoc.c_str();
+            Processors[i]->loadConfig(fs, gd);
+        }
+        fs.release();
     }
 }
