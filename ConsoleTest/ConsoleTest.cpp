@@ -16,11 +16,11 @@ int main()
     // Add an image source (could be camera, single image, directory, noise, movie)
    std::shared_ptr<CamDefault> fpImage1(new CamDefault("CamDefault", graph1.gd, true));
  //   std::shared_ptr<CamXimea> fpImage1(new CamXimea("CamXimea", graph1.gd, true));
-    graph1.Processors.push_back(fpImage1);
+    graph1.AddFilter(fpImage1);
     
     // Add processors
     std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true, 512, 512, 1000, 10));
-    graph1.Processors.push_back(fpRunningStats);
+    graph1.AddFilter(fpRunningStats);
 
     // Start the thread for that graph running
     graph1.StartThread();
@@ -31,7 +31,7 @@ int main()
 
     //GraphManager graph2("Graph2");
     //std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", graph2.gd, true));
-    //graph2.Processors.push_back(fpImage2);
+    //graph2.AddFilter(fpImage2);
     //graph2.StartThread();
     //graph2.GotoState(GraphManager::GraphState::Run);
 
