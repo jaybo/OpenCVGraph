@@ -9,7 +9,7 @@ namespace fs = ::boost::filesystem;
 namespace openCVGraph
 {
 #ifdef XIMEA_DIR
-    CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
+    CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width)
         : CamDefault(name, graphData, showView, width, height, x, y)
     {
     }
@@ -101,9 +101,9 @@ namespace openCVGraph
                     fOK = cap.set(CV_CAP_PROP_XI_GAIN, 1.0);
 #endif
                 }
-                fOK = cap.read(graphData.imCapture);
+                fOK = cap.read(graphData.m_imCapture);
 
-                if (!graphData.imCapture.data)   // Check for invalid input
+                if (!graphData.m_imCapture.data)   // Check for invalid input
                 {
                     fOK = false;
                     std::cout << "Could not open capture device #" << camera_index << std::endl;
@@ -127,16 +127,16 @@ namespace openCVGraph
 
         switch (source) {
         case Camera:
-            fOK = cap.read(graphData.imCapture);
+            fOK = cap.read(graphData.m_imCapture);
             break;
         }
 
         if (m_showView && fOK) {
             if (camera_name == "Ximea16") {
-                imView = 16 * graphData.imCapture;
+                imView = 16 * graphData.m_imCapture;
             }
             else {
-                imView = graphData.imCapture;
+                imView = graphData.m_imCapture;
             }
             cv::imshow(m_CombinedName, imView);
         }

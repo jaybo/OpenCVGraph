@@ -12,30 +12,17 @@ namespace openCVGraph
     //
 
     FPRunningStats::FPRunningStats(std::string name, GraphData& graphData, 
-        bool showView, int width, int height, int x, int y)
-        : FrameProcessor(name, graphData, showView, width, height, x, y)
+        bool showView, int width, int height)
+        : FrameProcessor(name, graphData, showView, width, height)
     {
     }
 
     // keyWait required to make the UI activate
-    bool FPRunningStats::processKeyboard(GraphData& data)
+    bool FPRunningStats::processKeyboard(GraphData& data, int key)
     {
         bool fOK = true;
         if (m_showView) {
-            int c = waitKey(1);
-            if (c != -1) {
-                if (c == ' ') {
-                    // reset to zero (RESTART)
-                    m_n = 0;
-                }
-                else if (c == 27) // ESCAPE
-                {
-                    fOK = false;
-                }
-            }
-            else {
-                return view.KeyboardProcessor();  // Hmm,  what to do here?
-            }
+            return view.KeyboardProcessor(key);  
         }
         return fOK;
     }
@@ -55,17 +42,17 @@ namespace openCVGraph
 //#define GPU
 #ifdef GPU
         cuda::GpuMat im_gpu1;
-        im_gpu1.upload(graphData.imCapture); //allocate memory and upload to GPU
+        im_gpu1.upload(graphData.m_imCapture); //allocate memory and upload to GPU
 #else
         cv::Point ptMin, ptMax;
-		if (graphData.imCapture.channels() > 1) {
+		if (graphData.m_imCapture.channels() > 1) {
 			cv::Mat gray;
-			cvtColor(graphData.imCapture, gray, CV_BGR2GRAY);
+			cvtColor(graphData.m_imCapture, gray, CV_BGR2GRAY);
 			cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
 
 		}
 		else {
-			cv::minMaxLoc(graphData.imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+			cv::minMaxLoc(graphData.m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
 		}
 
         cv::Mat imVariance;
@@ -92,12 +79,12 @@ namespace openCVGraph
         bool fOK = true;
 
         // let the camera stabilize
-        if (graphData.frameCounter < 2) return true;
+        if (graphData.m_FrameNumber < 2) return true;
 
         m_n++;
 
         cv::Mat capF;
-        graphData.imCapture.convertTo(capF, CV_32F);
+        graphData.m_imCapture.convertTo(capF, CV_32F);
 
         // See Knuth TAOCP vol 2, 3rd edition, page 232
         if (m_n == 1)
@@ -120,7 +107,7 @@ namespace openCVGraph
 
         Calc(graphData);
 
-        graphData.imCapture.copyTo(imView);
+        graphData.m_imCapture.copyTo(imView);
         imView = imView * 16;
         cv::resize(imView, imView, cv::Size(512, 512));
         
@@ -144,7 +131,7 @@ namespace openCVGraph
         DrawShadowTextMono(imView, str.str(), Point(20, 120),0.66);
 
         str.str("");
-        str << m_n << "/" << graphData.frameCounter;
+        str << m_n << "/" << graphData.m_FrameNumber;
         DrawShadowTextMono(imView,str.str(), Point(20, 500), 0.66);
 
 

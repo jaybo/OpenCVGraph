@@ -9,12 +9,12 @@ namespace openCVGraph
 {
 	class  GraphData {
 	public:
-		std::string GraphName;			// Name of the loop processor running this graph
+		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool abortOnESC;
-		cv::Mat imCapture;
-		cv::Mat imResult;
-		std::vector<cv::Mat> imStack;
-		int frameCounter = 0;
-
+		cv::Mat m_imCapture;
+		cv::Mat m_imResult;
+		std::vector<cv::Mat> m_imStack;
+		int m_FrameNumber = 0;
+        bool m_SettingsHaveChanged;
 	};
 }

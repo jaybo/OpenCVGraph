@@ -14,7 +14,7 @@ namespace openCVGraph
 	{
 	public:
 		FrameProcessor(std::string name, GraphData& data, bool showView = false, 
-            int width=512, int height=512, int x = 0, int y = 0);
+            int width=512, int height=512);
 		virtual ~FrameProcessor();
 
 		long frameToStop;
@@ -22,7 +22,7 @@ namespace openCVGraph
 		virtual bool init(GraphData& data);
 		virtual bool process(GraphData& data);
 		virtual bool fini(GraphData& data);
-        virtual bool processKeyboard(GraphData& data);
+        virtual bool processKeyboard(GraphData& data, int key);
 
         virtual void tic();
         virtual void toc();
@@ -40,7 +40,7 @@ namespace openCVGraph
 		double duration;
 		std::string tictoc;
 		cv::Mat imView;
-        int m_x, m_y, m_width, m_height;
+        int m_width, m_height;
 
 		ZoomView view; // ("viewA", imView, 1024, 1024, 100, 100);
         cv::MouseCallback m_MouseCallback = NULL;

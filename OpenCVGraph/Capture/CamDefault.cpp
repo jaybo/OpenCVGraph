@@ -15,28 +15,19 @@ namespace openCVGraph
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height, int x, int y)
-        : FrameProcessor(name, graphData, showView, width, height, x, y)
+    CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height)
+        : FrameProcessor(name, graphData, showView, width, height)
     {
         source = Noise;
         camera_index = -1;
     }
 
     // keyWait required to make the UI activate
-    bool CamDefault::processKeyboard(GraphData& data)
+    bool CamDefault::processKeyboard(GraphData& data, int key)
     {
         bool fOK = true;
         if (m_showView) {
-            int c = waitKey(1);
-            if (c != -1) {
-                if (c == 27)
-                {
-                    fOK = false;
-                }
-            }
-            else {
-                return view.KeyboardProcessor();  // Hmm,  what to do here?
-            }
+            return view.KeyboardProcessor(key);  // Hmm,  what to do here?
         }
         return fOK;
     }
@@ -56,9 +47,9 @@ namespace openCVGraph
             fOK = cap.open(cameraIndex);
             if (fOK) {
                 // set camera specific properties
-                fOK = cap.read(graphData.imCapture);
+                fOK = cap.read(graphData.m_imCapture);
 
-                if (!graphData.imCapture.data)   // Check for invalid input
+                if (!graphData.m_imCapture.data)   // Check for invalid input
                 {
                     fOK = false;
                     std::cout << "Could not open capture device #" << camera_index << std::endl;
@@ -79,7 +70,7 @@ namespace openCVGraph
                 std::cout << "Could not open or find the image" << std::endl;
             }
             else {
-                graphData.imCapture = image;
+                graphData.m_imCapture = image;
                 source = SingleImage;
                 fOK = true;
             }
@@ -123,7 +114,7 @@ namespace openCVGraph
 		// Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
 		if (!fOK) {
 			source = Noise;
-			graphData.imCapture = Mat::zeros(512, 512, CV_16U);
+			graphData.m_imCapture = Mat::zeros(512, 512, CV_16U);
 			fOK = true;
 		}
 
@@ -138,19 +129,19 @@ namespace openCVGraph
 
 		switch (source) {
 		case Camera:
-			fOK = cap.read (graphData.imCapture);
+			fOK = cap.read (graphData.m_imCapture);
 			break;
 		case SingleImage:
 			// nothing to do, already loaded
 			break;
 		case Movie:
-			fOK = cap.read(graphData.imCapture);
+			fOK = cap.read(graphData.m_imCapture);
 			break;
 		case Directory:
             if (images.size() > 0) {
                 string fname = images[imageIndex].string();
                 // cout << fname << endl;
-                graphData.imCapture = imread(fname);
+                graphData.m_imCapture = imread(fname);
                 imageIndex++;
                 if (imageIndex >= images.size()) {
                     imageIndex = 0;
@@ -158,19 +149,19 @@ namespace openCVGraph
             }
 			break;
 		case Noise:
-			 //cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(65536));
-            //cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(255));
-            //graphData.imCapture = Mat::zeros(512, 512, CV_16U);
-            cv::randu(graphData.imCapture, Scalar::all(0), Scalar::all(65536));
+			 //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
+            //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(255));
+            //graphData.m_imCapture = Mat::zeros(512, 512, CV_16U);
+            cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
             break;
 		}
 
 		if (m_showView && fOK) {
             if (camera_name == "Ximea16") {
-                imView = 16 * graphData.imCapture;
+                imView = 16 * graphData.m_imCapture;
             }
             else {
-                imView = graphData.imCapture;
+                imView = graphData.m_imCapture;
             }
 			cv::imshow(m_CombinedName, imView);
 		}

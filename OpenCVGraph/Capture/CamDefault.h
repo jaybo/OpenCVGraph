@@ -24,11 +24,11 @@ namespace openCVGraph
     class CamDefault : public FrameProcessor
     {
     public:
-        CamDefault(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);
+        CamDefault(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;
-        virtual bool processKeyboard(GraphData& data) override;
+        virtual bool processKeyboard(GraphData& data, int key) override;
         virtual bool fini(GraphData& graphData) override;
 
         virtual void saveConfig() override;

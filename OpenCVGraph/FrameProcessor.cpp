@@ -8,15 +8,15 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView, int width, int height, int x, int y )
+    FrameProcessor::FrameProcessor(std::string name, GraphData& data, bool showView, int width, int height)
         : Name(name), m_showView(showView),
-        m_x(x), m_y(y), m_width(width), m_height(height),
+        m_width(width), m_height(height),
         m_firstTime(true), duration(0), tictoc(""), frameToStop(0)
     {
 		std::cout << "FrameProcessor()" << std::endl;
 		std::string config("config");
 		fs::create_directory(config);
-		m_CombinedName = data.GraphName + "-" + name;
+		m_CombinedName = data.m_GraphName + "-" + name;
  
 		// The settings file name combines both the GraphName and the FrameProcessor together
         m_persistFile = config  + "/" + m_CombinedName + ".yml";
@@ -36,7 +36,7 @@ namespace openCVGraph
 	{
 		if (m_showView) {
 			view = ZoomView(m_CombinedName, imView );
-            view.Init(m_width, m_height, m_x, m_y, m_MouseCallback);
+            view.Init(m_width, m_height, m_MouseCallback);
 		}
         loadConfig();
         saveConfig();
@@ -61,10 +61,10 @@ namespace openCVGraph
 	}
 
     // keyWait required to make the UI activate
-    bool FrameProcessor::processKeyboard(GraphData& data)
+    bool FrameProcessor::processKeyboard(GraphData& data, int key)
     {
         if (m_showView) {
-            return view.KeyboardProcessor();
+            return view.KeyboardProcessor(key);
         }
         return true;
     }

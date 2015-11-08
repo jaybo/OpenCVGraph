@@ -15,10 +15,10 @@ namespace openCVGraph
 
 		~ZoomView();
 
-        void Init(int width, int height, int posX, int posY, 
+        void Init(int width, int height, 
             cv::MouseCallback mouseCallback);
 		void ProcessEvents();
-		virtual bool KeyboardProcessor();
+		virtual bool KeyboardProcessor(int key);
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
 
 		int ZoomFactor = 1;

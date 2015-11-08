@@ -19,7 +19,7 @@ int main()
     graph1.AddFilter(fpImage1);
     
     // Add processors
-    std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true, 512, 512, 1000, 10));
+    std::shared_ptr<FPRunningStats> fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
     graph1.AddFilter(fpRunningStats);
 
     // Start the thread for that graph running

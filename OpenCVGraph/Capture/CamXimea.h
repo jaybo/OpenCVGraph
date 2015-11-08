@@ -25,7 +25,7 @@ namespace openCVGraph
     class CamXimea : public CamDefault
     {
     public:
-        CamXimea(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512, int x = 0, int y = 0);
+        CamXimea(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;

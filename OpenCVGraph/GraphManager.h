@@ -30,7 +30,7 @@ namespace openCVGraph
         bool Step();
 
         bool AddFilter(Processor filter) {
-            if (state == GraphState::Stop) {
+            if (m_GraphState == GraphState::Stop) {
                 Processors.push_back(filter);
                 return true;
             }
@@ -38,7 +38,7 @@ namespace openCVGraph
         }
 
         bool RemoveFilter(Processor filter) {
-            if (state == GraphState::Stop) {
+            if (m_GraphState == GraphState::Stop) {
                 Processors.erase(std::remove(Processors.begin(), Processors.end(), filter), Processors.end());
                 Processors.push_back(filter);
                 return true;
@@ -48,10 +48,9 @@ namespace openCVGraph
 
 	private:
 		boost::thread thread;
-        GraphState state;
-        bool isInitialized;
-		bool stepping;
-		std::string Name;
+        GraphState m_GraphState;
+		bool m_Stepping;
+		std::string m_Name;
     
         bool ProcessLoop();
 		bool ProcessOne();

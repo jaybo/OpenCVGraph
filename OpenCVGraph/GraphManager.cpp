@@ -11,11 +11,10 @@ namespace openCVGraph
 
     GraphManager::GraphManager(const std::string name, bool abortOnESC)
     {
-        Name = name;
-		gd.GraphName = Name;
+        m_Name = name;
+		gd.m_GraphName = m_Name;
 		gd.abortOnESC = abortOnESC;
-        state = Stop;
-        isInitialized = false;
+        m_GraphState = GraphState::Stop;
     }
 
     GraphManager::~GraphManager()
@@ -37,22 +36,34 @@ namespace openCVGraph
 	bool GraphManager::ProcessOne()
 	{
 		bool fOK = true;
+        
+        // first process keyhits, then the frame
+        int c = waitKey(1);
+        if (c != -1) {
+            for (int i = 0; i < Processors.size(); i++) {
+                fOK &= Processors[i]->processKeyboard(gd, c);
+            }
+        }
+
+        // MAKE ONE PASS THROUGH THE GRAPH
 		for (int i = 0; i < Processors.size(); i++) {
 			Processors[i]->tic();
 			// Q: Bail only at end of loop or partway through?
 			// Currently, complete the loop
 			fOK &= Processors[i]->process(gd);
-            fOK &= Processors[i]->processKeyboard(gd);
+
 			Processors[i]->toc();
-            gd.frameCounter++;
+            gd.m_FrameNumber++;
 		}
+
+        // If settings were modified 
 		return fOK;
 	}
 
     bool GraphManager::ProcessLoop()
     {
 		bool fOK = true;
-		stepping = false;
+		m_Stepping = false;
 
 		// Init everybody
 		for (int i = 0; i < Processors.size(); i++) {
@@ -64,20 +75,20 @@ namespace openCVGraph
 
 		// main processing loop
         while (fOK) {
-			switch (state) {
-			case Stop:
+			switch (m_GraphState) {
+			case GraphState::Stop:
 				// Snooze.  But this should be a mutex or awaitable object
 				boost::this_thread::sleep(boost::posix_time::milliseconds(33));
 				break;
-			case Pause:
-				if (stepping) {
+			case GraphState::Pause:
+				if (m_Stepping) {
 					fOK &= ProcessOne();
-					stepping = false;
+					m_Stepping = false;
 				}
 				// Snooze.  But this should be a mutex or awaitable object
 				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 				break;
-			case Run:
+			case GraphState::Run:
 				fOK &= ProcessOne();
 				break;
 			}
@@ -91,15 +102,16 @@ namespace openCVGraph
 		for (int i = 0; i < Processors.size(); i++) {
 			Processors[i]->fini(gd);
 		}
+        destroyAllWindows();
 
 		return fOK;
 	}
 
     bool GraphManager::Step()
     {
-        if (state == GraphState::Pause)
+        if (m_GraphState == GraphState::Pause)
         {
-            stepping = true;
+            m_Stepping = true;
 			return true;
         }
         return false;
@@ -107,7 +119,7 @@ namespace openCVGraph
 
     bool GraphManager::GotoState(GraphState newState)
     {
-        state = newState;
+        m_GraphState = newState;
 
         return true;
     }

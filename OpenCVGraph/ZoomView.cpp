@@ -88,37 +88,29 @@ namespace openCVGraph
 	{
 	}
 
-    void ZoomView::Init(int width = 512, int height = 512, int posX = 0, int posY = 0, 
+    void ZoomView::Init(int width = 512, int height = 512, 
         cv::MouseCallback mouseCallback = NULL)
     {
         cv::namedWindow(Name, WINDOW_NORMAL);
         cv::imshow(Name, MatView);
         cv::resizeWindow(Name, width, height);
-        cv::moveWindow(Name, posX, posY);
         if (mouseCallback) {
             m_mouseCallback = mouseCallback;
         }
         cv::setMouseCallback(Name, (cv::MouseCallback) DefaultMouseProcessor, this);
     }
     
-    bool ZoomView::KeyboardProcessor()
+    bool ZoomView::KeyboardProcessor(int key)
 	{
         bool fOK = true;
-        int c = waitKey(1);
-        if (c != -1) {
-            if ((c & 255) == 27)
-            {
-                cout << Name << " exit via ESC\n";
-                fOK = false;
-            }
-        }
+ 
         return fOK;
 	}
 
 
 	void ZoomView::ProcessEvents()
 	{
-		KeyboardProcessor();
+		//KeyboardProcessor();
 	}
 
 
