@@ -1,0 +1,10 @@
+%YAML:1.0
+CamDefault:
+   tictoc: ""
+   camera_index: "0"
+   camera_name: ""
+   image_name: ""
+   movie_name: ""
+   image_dir: ""
+RunningStats:
+   tictoc: ""

@@ -6,15 +6,10 @@
 
 namespace fs = ::boost::filesystem;
 
-#include "..\Property.h"
-#include "..\GraphData.h"
-#include "..\Config.h"
-#include "..\Filter.h"
-#include "..\ZoomView.h"
 
 namespace openCVGraph
 {
-//#define XIMEA_DIR
+
 #ifdef XIMEA_DIR
     // General image source:
     //   if   "camera_index" is set, use that camera

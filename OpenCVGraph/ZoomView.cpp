@@ -91,7 +91,7 @@ namespace openCVGraph
     void ZoomView::Init(int width = 512, int height = 512, 
         cv::MouseCallback mouseCallback = NULL)
     {
-        cv::namedWindow(Name, WINDOW_NORMAL);
+        cv::namedWindow(Name, WINDOW_AUTOSIZE);
         cv::imshow(Name, MatView);
         cv::resizeWindow(Name, width, height);
         if (mouseCallback) {
@@ -108,9 +108,9 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::ProcessEvents()
+	void ZoomView::UpdateView()
 	{
-		//KeyboardProcessor();
+		
 	}
 
 

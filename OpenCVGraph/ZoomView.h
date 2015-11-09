@@ -17,18 +17,20 @@ namespace openCVGraph
 
         void Init(int width, int height, 
             cv::MouseCallback mouseCallback);
-		void ProcessEvents();
 		virtual bool KeyboardProcessor(int key);
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
-
-		int ZoomFactor = 1;
+        void UpdateView();
+		
 
 	private:
 		std::string Name;
 		int sx = 0, sy = 0;
-		cv::Mat MatView;
+        int ZoomFactor = 0;     // 0 is 1:1 pixelwise
+        
+        cv::Mat MatView;        // original image to view
+        cv::Mat MatZoomed;      // then modified by pan and zoom
+        
         cv::MouseCallback m_mouseCallback = NULL;
-
 	};
 
 }

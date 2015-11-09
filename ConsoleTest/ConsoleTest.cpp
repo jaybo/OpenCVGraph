@@ -27,15 +27,15 @@ int main()
     graph1.GotoState(GraphManager::GraphState::Run);
 
 
-    //GraphManager graph2("Graph2");
-    //std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", graph2.gd, true));
-    //graph2.AddFilter(fpImage2);
-    //graph2.StartThread();
-    //graph2.GotoState(GraphManager::GraphState::Run);
+    GraphManager graph2("Graph2");
+    CvFilter fpImage2 (new CamDefault("CamDefault", graph2.gd, true));
+    graph2.AddFilter(fpImage2);
+    graph2.StartThread();
+    graph2.GotoState(GraphManager::GraphState::Run);
 
 
     graph1.JoinThread();
-    //graph2.JoinThread();
+    graph2.JoinThread();
 
     /*
     //Mat a(200, 200, CV_16U);
@@ -50,8 +50,8 @@ int main()
     bool fOK = true;
     while (fOK) {
         randu(a, Scalar::all(0), Scalar::all(64000));
-        view1.ProcessEvents();
-        view2.ProcessEvents();
+        view1.UpdateView();
+        view2.UpdateView();
     }*/
 
 

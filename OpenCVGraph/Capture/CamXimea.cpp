@@ -8,7 +8,7 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
-//#define XIMEA_DIR
+
 #ifdef XIMEA_DIR
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height)
         : CamDefault(name, graphData, showView, width, height)

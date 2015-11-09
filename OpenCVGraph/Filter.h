@@ -33,6 +33,12 @@ namespace openCVGraph
         std::string Name;
 		std::string m_CombinedName; // Graph-Filter name
 
+        void UpdateView() {
+            if (m_showView) {
+                view.UpdateView();
+            }
+        };
+
 	protected:
 		bool m_firstTime = true;
 		bool m_showView = false;

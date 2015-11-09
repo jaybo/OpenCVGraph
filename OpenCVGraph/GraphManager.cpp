@@ -59,10 +59,10 @@ namespace openCVGraph
 			// Q: Bail only at end of loop or partway through?
 			// Currently, complete the loop
 			fOK &= m_Filters[i]->process(gd);
-
 			m_Filters[i]->toc();
-            gd.m_FrameNumber++;
+            m_Filters[i]->UpdateView();
 		}
+        gd.m_FrameNumber++;
 
         // If settings were modified 
 		return fOK;
