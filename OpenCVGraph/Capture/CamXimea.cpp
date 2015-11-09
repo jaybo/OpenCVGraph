@@ -8,50 +8,48 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
+//#define XIMEA_DIR
 #ifdef XIMEA_DIR
-    CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width)
-        : CamDefault(name, graphData, showView, width, height, x, y)
+    CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height)
+        : CamDefault(name, graphData, showView, width, height)
     {
     }
 
     // keyWait required to make the UI activate
-    bool CamXimea::processKeyboard(GraphData& data)
+    bool CamXimea::processKeyboard(GraphData& data, int key)
     {
         bool fOK = true;
         if (m_showView) {
-            int c = waitKey(1);
-            if (c != -1) {
 
-                switch (c) {
-                    // EXPOSURE
-                case 0x00260000: // up arrow
-                    Exposure(true);
-                    break;
-                case 0x00280000: // down arrow
-                    Exposure(false);
-                    break;
+            switch (key) {
+                // EXPOSURE
+            case 0x00260000: // up arrow
+                Exposure(true);
+                break;
+            case 0x00280000: // down arrow
+                Exposure(false);
+                break;
 
-                    // GAIN
-                case 0x00270000: // RIGHT arrow
-                    Gain(true);
-                    break;
-                case 0x00250000: // LEFT arrow
-                    Gain(false);
-                    break;
+                // GAIN
+            case 0x00270000: // RIGHT arrow
+                Gain(true);
+                break;
+            case 0x00250000: // LEFT arrow
+                Gain(false);
+                break;
 
-                    // FOCUS
-                case '.':
-                    Focus(true);
-                    break;
-                case ',':
-                    Focus(false);
-                    break;
-                case 27:    // ESC
-                    fOK = false;
-                    break;
-                }
-
+                // FOCUS
+            case '.':
+                Focus(true);
+                break;
+            case ',':
+                Focus(false);
+                break;
+            case 27:    // ESC
+                fOK = false;
+                break;
             }
+
         }
         else {
             return view.KeyboardProcessor();  // Hmm,  what to do here?
@@ -133,12 +131,12 @@ namespace openCVGraph
 
         if (m_showView && fOK) {
             if (camera_name == "Ximea16") {
-                imView = 16 * graphData.m_imCapture;
+                m_imView = 16 * graphData.m_imCapture;
             }
             else {
-                imView = graphData.m_imCapture;
+                m_imView = graphData.m_imCapture;
             }
-            cv::imshow(m_CombinedName, imView);
+            cv::imshow(m_CombinedName, m_imView);
         }
         return fOK;
     }
@@ -154,34 +152,30 @@ namespace openCVGraph
 
 
 
-    //void  CamXimea::saveConfig()
-    //{
-    //    FileStorage fs2(m_persistFile, FileStorage::WRITE);
-    //    fs2 << "tictoc" << tictoc;
-    //    fs2 << "camera_index" << camera_index;
-    //    fs2 << "camera_name" << camera_name;
-    //    fs2 << "focus" << m_focalDistance;
-    //    fs2 << "focalLength" << m_focalLength;
-    //    fs2 << "aperature" << m_aperatureValue;
-    //    fs2 << "focusMovementValue" << m_focusMovementValue;
-    //    fs2 << "exposure" << m_exposure;
-    //    fs2.release();
-    //}
+    void  CamXimea::saveConfig(FileStorage& fs, GraphData& data)
+    {
+        fsf << "tictoc" << tictoc.c_str();
+        fsf << "camera_index" << camera_index.c_str();
+        fsf << "camera_name" << camera_name.c_str();
+        fsf << "focus" << m_focalDistance;
+        fsf << "focalLength" << m_focalLength;
+        fsf << "aperature" << m_aperatureValue;
+        fsf << "focusMovementValue" << m_focusMovementValue;
+        fsf << "exposure" << m_exposure;
+    }
 
-    //void  CamXimea::loadConfig()
-    //{
-    //    FileStorage fs2(m_persistFile, FileStorage::READ);
-    //    cout << m_persistFile << endl;
+    void  CamXimea::loadConfig(FileNode& fs, GraphData& data)
+    {
+        cout << m_persistFile << endl;
 
-    //    fs2["tictoc"] >> tictoc;
-    //    fs2["camera_index"] >> camera_index;
-    //    fs2["camera_name"] >> camera_name;
-    //    fs2["focus"] >> m_focalDistance;
-    //    fs2["focalLength"] >> m_focalLength;
-    //    fs2["aperature"] >> m_aperatureValue;
-    //    fs2["focusMovementValue"] >> m_focusMovementValue;
-    //    fs2["exposure"] >> m_exposure;
-    //    fs2.release();
-    //}
+        fs["tictoc"] >> tictoc;
+        fs["camera_index"] >> camera_index;
+        fs["camera_name"] >> camera_name;
+        fs["focus"] >> m_focalDistance;
+        fs["focalLength"] >> m_focalLength;
+        fs["aperature"] >> m_aperatureValue;
+        fs["focusMovementValue"] >> m_focusMovementValue;
+        fs["exposure"] >> m_exposure;
+    }
 #endif
 }

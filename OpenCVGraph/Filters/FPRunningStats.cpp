@@ -107,36 +107,36 @@ namespace openCVGraph
 
         Calc(graphData);
 
-        graphData.m_imCapture.copyTo(imView);
-        imView = imView * 16;
-        cv::resize(imView, imView, cv::Size(512, 512));
+        graphData.m_imCapture.copyTo(m_imView);
+        m_imView = m_imView * 16;
+        cv::resize(m_imView, m_imView, cv::Size(512, 512));
         
         std::ostringstream str;
 
         str.str("");
         str << "SPACE to reset";
-        DrawShadowTextMono(imView, str.str(), Point(20, 20), 0.66);
+        DrawShadowTextMono(m_imView, str.str(), Point(20, 20), 0.66);
 
         str.str("");
         str << "mean: " << setiosflags(ios::fixed) << setprecision(1) << dMean << " std: " << dStdDevMean;
-        DrawShadowTextMono(imView, str.str(), Point(20, 50), 0.8);
+        DrawShadowTextMono(m_imView, str.str(), Point(20, 50), 0.8);
 
         str.str("");
         str << "capMin: " << (int)dCapMin << " capMax: " << (int)dCapMax;
-        DrawShadowTextMono(imView, str.str(), Point(20, 100), 0.66);
+        DrawShadowTextMono(m_imView, str.str(), Point(20, 100), 0.66);
 
 
         str.str("");
         str << "minStd: "<< dStdDevMin << " maxStd: " << dStdDevMax;
-        DrawShadowTextMono(imView, str.str(), Point(20, 120),0.66);
+        DrawShadowTextMono(m_imView, str.str(), Point(20, 120),0.66);
 
         str.str("");
         str << m_n << "/" << graphData.m_FrameNumber;
-        DrawShadowTextMono(imView,str.str(), Point(20, 500), 0.66);
+        DrawShadowTextMono(m_imView,str.str(), Point(20, 500), 0.66);
 
 
 
-        cv::imshow(m_CombinedName, imView);
+        cv::imshow(m_CombinedName, m_imView);
         return fOK;
     }
 
@@ -149,21 +149,13 @@ namespace openCVGraph
 
 
 
-    void  FPRunningStats::saveConfig(FileStorage fs, GraphData& data)
+    void  FPRunningStats::saveConfig(FileStorage& fs, GraphData& data)
     {
-        //FileStorage fs2(m_persistFile, FileStorage::WRITE);
-        //fs2 << "tictoc" << tictoc;
-
-        //fs2.release();
+        fs << "tictoc" << tictoc.c_str();
     }
 
-    void  FPRunningStats::loadConfig(FileStorage fs, GraphData& data)
+    void  FPRunningStats::loadConfig(FileNode& fs, GraphData& data)
     {
-        //FileStorage fs2(m_persistFile, FileStorage::READ);
-        //cout << m_persistFile << endl;
-
-        //fs2["tictoc"] >> tictoc;
-
-        //fs2.release();
+        fs["tictoc"] >> tictoc;
     }
 }

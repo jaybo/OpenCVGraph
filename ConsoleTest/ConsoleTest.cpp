@@ -27,8 +27,6 @@ int main()
     graph1.GotoState(GraphManager::GraphState::Run);
 
 
-
-
     //GraphManager graph2("Graph2");
     //std::shared_ptr<FPImageSource> fpImage2 (new FPImageSource("Image2", graph2.gd, true));
     //graph2.AddFilter(fpImage2);

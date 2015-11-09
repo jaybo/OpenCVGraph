@@ -14,6 +14,7 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
+//#define XIMEA_DIR
 #ifdef XIMEA_DIR
     // General image source:
     //   if   "camera_index" is set, use that camera
@@ -29,11 +30,11 @@ namespace openCVGraph
 
         virtual bool init(GraphData& graphData) override;
         virtual bool process(GraphData& graphData) override;
-        virtual bool processKeyboard(GraphData& data) override;
+        virtual bool processKeyboard(GraphData& data, int key) override;
         virtual bool fini(GraphData& graphData) override;
 
-        virtual void saveConfig() override;
-        virtual void loadConfig() override;
+        virtual void saveConfig(FileStorage& fs, GraphData& data) override;
+        virtual void loadConfig(FileNode& fs, GraphData& data) override;
 
         void Log(bool fOK, string s)
         {

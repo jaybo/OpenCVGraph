@@ -31,8 +31,8 @@ namespace openCVGraph
         virtual bool processKeyboard(GraphData& data, int key) override;
         virtual bool fini(GraphData& graphData) override;
 
-        virtual void saveConfig(FileStorage fs, GraphData& data) override;
-        virtual void loadConfig(FileStorage fs, GraphData& data) override;
+        virtual void saveConfig(FileStorage& fs, GraphData& data) override;
+        virtual void loadConfig(FileNode& fs, GraphData& data) override;
 
     protected:
         enum ImageSource {
@@ -54,7 +54,6 @@ namespace openCVGraph
         // Allow special setup parameters per camera
         std::string camera_name;        // Ximea8, Ximea16, ...
 
-        int cameraIndex;
         cv::VideoCapture cap;
         vector<fs::path> images;
         int imageIndex = 0;

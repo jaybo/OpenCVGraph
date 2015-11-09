@@ -16,13 +16,12 @@ namespace openCVGraph
 		gd.abortOnESC = abortOnESC;
         m_GraphState = GraphState::Stop;
 
-        std::cout << "GraphManager()" << std::endl;
         std::string config("config");
         fs::create_directory(config);
 
         // The settings file name combines both the GraphName and the Filter together
-        m_persistFile = config + "/" + m_Name + ".yml";
-        std::cout << m_persistFile << std::endl;
+        m_persistFile = config + "\\" + m_Name + ".yml";
+        std::cout << "GraphManager() file: " << m_persistFile << std::endl;
     }
 
     GraphManager::~GraphManager()
@@ -49,19 +48,19 @@ namespace openCVGraph
         // first process keyhits, then the frame
         int c = waitKey(1);
         if (c != -1) {
-            for (int i = 0; i < Processors.size(); i++) {
-                fOK &= Processors[i]->processKeyboard(gd, c);
+            for (int i = 0; i < m_Filters.size(); i++) {
+                fOK &= m_Filters[i]->processKeyboard(gd, c);
             }
         }
 
         // MAKE ONE PASS THROUGH THE GRAPH
-		for (int i = 0; i < Processors.size(); i++) {
-			Processors[i]->tic();
+		for (int i = 0; i < m_Filters.size(); i++) {
+			m_Filters[i]->tic();
 			// Q: Bail only at end of loop or partway through?
 			// Currently, complete the loop
-			fOK &= Processors[i]->process(gd);
+			fOK &= m_Filters[i]->process(gd);
 
-			Processors[i]->toc();
+			m_Filters[i]->toc();
             gd.m_FrameNumber++;
 		}
 
@@ -74,15 +73,13 @@ namespace openCVGraph
 		bool fOK = true;
 		m_Stepping = false;
 
-        saveConfig();
         loadConfig();
 
-
 		// Init everybody
-		for (int i = 0; i < Processors.size(); i++) {
-			fOK &= Processors[i]->init(gd);
+		for (int i = 0; i < m_Filters.size(); i++) {
+			fOK &= m_Filters[i]->init(gd);
 			if (!fOK) {
-				cout << "ERROR: " + Processors[i]->m_CombinedName << " failed init()" << endl;
+				cout << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()" << endl;
 			}
 		}
 
@@ -111,9 +108,11 @@ namespace openCVGraph
 			}
         }
 
+        saveConfig();
+
 		// clean up
-		for (int i = 0; i < Processors.size(); i++) {
-			Processors[i]->fini(gd);
+		for (int i = 0; i < m_Filters.size(); i++) {
+			m_Filters[i]->fini(gd);
 		}
         destroyAllWindows();
 
@@ -142,12 +141,11 @@ namespace openCVGraph
         FileStorage fs(m_persistFile, FileStorage::WRITE);
         if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
 
-        fs << m_Name << "{";
-        fs << "baby" << 1;
-        fs << "}";
-        for (int i = 0; i < Processors.size(); i++) {
-            //fs << "tictoc" << tictoc.c_str();
-            Processors[i]->saveConfig(fs, gd);
+        for (int i = 0; i < m_Filters.size(); i++) {
+            cout << m_Filters[i]->Name;
+            fs << m_Filters[i]->Name.c_str() << "{";
+            m_Filters[i]->saveConfig(fs, gd);
+            fs << "}";
         }
         fs.release();
     }
@@ -157,17 +155,11 @@ namespace openCVGraph
         FileStorage fs(m_persistFile, FileStorage::READ);
         if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
 
-        string name;
-        int baby;
-        auto n = fs[m_Name];
-        n["baby"] >> baby;
-
-        cout << "name" << name;
-        cout << "baby" << baby;
-
-        for (int i = 0; i < Processors.size(); i++) {
-            //fs << "tictoc" << tictoc.c_str();
-            Processors[i]->loadConfig(fs, gd);
+        for (int i = 0; i < m_Filters.size(); i++) {
+            auto node = fs[m_Filters[i]->Name.c_str()];
+            if (!node.empty()) {
+                m_Filters[i]->loadConfig(node, gd);
+            }
         }
         fs.release();
     }

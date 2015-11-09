@@ -20,8 +20,8 @@ namespace openCVGraph
         virtual bool fini(GraphData& graphData) override;
         virtual bool processKeyboard(GraphData& data, int key) override;
 
-        virtual void saveConfig(FileStorage fs, GraphData& data) override;
-        virtual void loadConfig(FileStorage fs, GraphData& data) override;
+        virtual void saveConfig(FileStorage& fs, GraphData& data) override;
+        virtual void loadConfig(FileNode& fs, GraphData& data) override;
 
         void Calc(GraphData& graphData);
 

@@ -27,8 +27,8 @@ namespace openCVGraph
         virtual void tic();
         virtual void toc();
 
-        virtual void saveConfig(FileStorage fs, GraphData& data);
-        virtual void loadConfig(FileStorage fs, GraphData& data);
+        virtual void saveConfig(FileStorage &fs, GraphData& data);
+        virtual void loadConfig(FileNode &fs, GraphData& data);
         
         std::string Name;
 		std::string m_CombinedName; // Graph-Filter name
@@ -38,7 +38,7 @@ namespace openCVGraph
 		bool m_showView = false;
 		double duration;
 		std::string tictoc;
-		cv::Mat imView;
+		cv::Mat m_imView;
         int m_width, m_height;
 
 		ZoomView view; 

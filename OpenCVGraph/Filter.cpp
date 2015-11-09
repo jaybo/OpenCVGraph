@@ -17,7 +17,7 @@ namespace openCVGraph
 
 		m_CombinedName = data.m_GraphName + "-" + name;
  
-		imView = Mat::eye(10, 10, CV_16U);
+		m_imView = Mat::eye(10, 10, CV_16U);
 	}
 
 	Filter::~Filter()
@@ -30,7 +30,7 @@ namespace openCVGraph
 	bool Filter::init(GraphData& data)
 	{
 		if (m_showView) {
-			view = ZoomView(m_CombinedName, imView );
+			view = ZoomView(m_CombinedName, m_imView );
             view.Init(m_width, m_height, m_MouseCallback);
 		}
 
@@ -76,12 +76,12 @@ namespace openCVGraph
 		std::cout << Name << "\ttime(sec):" << std::fixed << std::setprecision(6) << duration << std::endl;
 	}
 
-	void Filter::saveConfig(FileStorage fs, GraphData& data)
+	void Filter::saveConfig(FileStorage& fs, GraphData& data)
 	{
 		fs << "tictoc" << tictoc.c_str();
 	}
 
-	void Filter::loadConfig(FileStorage fs, GraphData& data)
+	void Filter::loadConfig(FileNode& fs, GraphData& data)
 	{
 		fs["tictoc"] >> tictoc;
 	}

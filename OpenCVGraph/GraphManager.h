@@ -21,7 +21,7 @@ namespace openCVGraph
         ~GraphManager();
 
 		GraphData gd;
-		std::vector<Processor> Processors;
+		std::vector<Processor> m_Filters;
 
 		void StartThread();
 		void JoinThread();
@@ -31,7 +31,7 @@ namespace openCVGraph
 
         bool AddFilter(Processor filter) {
             if (m_GraphState == GraphState::Stop) {
-                Processors.push_back(filter);
+                m_Filters.push_back(filter);
                 return true;
             }
             else return false;
@@ -39,8 +39,8 @@ namespace openCVGraph
 
         bool RemoveFilter(Processor filter) {
             if (m_GraphState == GraphState::Stop) {
-                Processors.erase(std::remove(Processors.begin(), Processors.end(), filter), Processors.end());
-                Processors.push_back(filter);
+                m_Filters.erase(std::remove(m_Filters.begin(), m_Filters.end(), filter), m_Filters.end());
+                m_Filters.push_back(filter);
                 return true;
             }
             else return false;

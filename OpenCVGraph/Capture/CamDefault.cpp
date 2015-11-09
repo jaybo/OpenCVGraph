@@ -19,7 +19,6 @@ namespace openCVGraph
         : Filter(name, graphData, showView, width, height)
     {
         source = Noise;
-        camera_index = -1;
     }
 
     // keyWait required to make the UI activate
@@ -42,9 +41,9 @@ namespace openCVGraph
         
         // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
         if (camera_index.length() > 0) {
-
-            std::stringstream(camera_index) >> cameraIndex;
-            fOK = cap.open(cameraIndex);
+            int camIndex;
+            std::stringstream(camera_index) >> camIndex;
+            fOK = cap.open(camIndex);
             if (fOK) {
                 // set camera specific properties
                 fOK = cap.read(graphData.m_imCapture);
@@ -158,12 +157,12 @@ namespace openCVGraph
 
 		if (m_showView && fOK) {
             if (camera_name == "Ximea16") {
-                imView = 16 * graphData.m_imCapture;
+                m_imView = 16 * graphData.m_imCapture;
             }
             else {
-                imView = graphData.m_imCapture;
+                m_imView = graphData.m_imCapture;
             }
-			cv::imshow(m_CombinedName, imView);
+			cv::imshow(m_CombinedName, m_imView);
 		}
         return fOK;
     }
@@ -179,28 +178,25 @@ namespace openCVGraph
 
 
 
-    void  CamDefault::saveConfig(FileStorage fs, GraphData& data)
+    void  CamDefault::saveConfig(FileStorage& fs, GraphData& data)
     {
-        //fs << "{"
-        //fs << "tictoc" << tictoc;
-        //fs << "camera_index" << camera_index;
-        //fs << "camera_name" << camera_name;
-        //fs << "image_name" << image_name;
-        //fs << "movie_name" << movie_name;
-        //fs << "image_dir" << image_dir;
+        fs << "tictoc" << tictoc.c_str();
+        fs << "camera_index" << camera_index.c_str();
+        fs << "camera_name" << camera_name.c_str();
+        fs << "image_name" << image_name.c_str();
+        fs << "movie_name" << movie_name.c_str();
+        fs << "image_dir" << image_dir.c_str();
 
     }
 
-    void  CamDefault::loadConfig(FileStorage fs, GraphData& data)
+    void  CamDefault::loadConfig(FileNode& fs, GraphData& data)
     {
-		// cout << m_persistFile << endl;
-        
-        //fs["tictoc"] >> tictoc;
-        //fs["camera_index"] >> camera_index;
-        //fs ["camera_name"] >> camera_name;
-        //fs["image_name"] >> image_name;
-        //fs["movie_name"] >> movie_name;
-        //fs["image_dir"] >> image_dir;
+        fs["tictoc"] >> tictoc;
+        fs["camera_index"] >> camera_index;
+        fs["camera_name"] >> camera_name;
+        fs["image_name"] >> image_name;
+        fs["movie_name"] >> movie_name;
+        fs["image_dir"] >> image_dir;
 
     }
 }
