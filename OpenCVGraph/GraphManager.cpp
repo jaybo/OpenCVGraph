@@ -13,7 +13,7 @@ namespace openCVGraph
     {
         m_Name = name;
 		gd.m_GraphName = m_Name;
-		gd.abortOnESC = abortOnESC;
+		gd.m_AbortOnESC = abortOnESC;
         m_GraphState = GraphState::Stop;
 
         std::string config("config");
@@ -41,15 +41,14 @@ namespace openCVGraph
 		thread.join();
 	}
 
-	bool GraphManager::ProcessOne()
+	bool GraphManager::ProcessOne(int key)
 	{
 		bool fOK = true;
         
-        // first process keyhits, then the frame
-        int c = waitKey(1);
-        if (c != -1) {
+        // first process keyhits
+        if (key != -1) {
             for (int i = 0; i < m_Filters.size(); i++) {
-                fOK &= m_Filters[i]->processKeyboard(gd, c);
+                fOK &= m_Filters[i]->processKeyboard(gd, key);
             }
         }
 
@@ -85,6 +84,13 @@ namespace openCVGraph
 
 		// main processing loop
         while (fOK) {
+            // This should be the only waitKey() in the entire graph
+            int key = cv::waitKey(1);   
+            if (gd.m_AbortOnESC && (key == 27)) {
+                fOK = false;
+                break;
+            }
+
 			switch (m_GraphState) {
 			case GraphState::Stop:
 				// Snooze.  But this should be a mutex or awaitable object
@@ -92,20 +98,17 @@ namespace openCVGraph
 				break;
 			case GraphState::Pause:
 				if (m_Stepping) {
-					fOK &= ProcessOne();
+					fOK &= ProcessOne(key);
 					m_Stepping = false;
 				}
 				// Snooze.  But this should be a mutex or awaitable object
 				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 				break;
 			case GraphState::Run:
-				fOK &= ProcessOne();
+				fOK &= ProcessOne(key);
 				break;
 			}
-			auto key = cv::waitKey(1);
-			if (gd.abortOnESC && (key == 27)) {
-				fOK = false;
-			}
+
         }
 
         saveConfig();

@@ -54,7 +54,7 @@ namespace openCVGraph
         string m_persistFile;
 
         bool ProcessLoop();
-		bool ProcessOne();
+		bool ProcessOne(int key);
 
         void saveConfig();
         void loadConfig();
