@@ -140,7 +140,6 @@ namespace openCVGraph
 
             // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
 
-            cv::imshow(m_CombinedName, m_imView);
         }
         return fOK;
     }

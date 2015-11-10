@@ -11,7 +11,7 @@ namespace openCVGraph
 
 	public:
 		ZoomView();
-		ZoomView(const std::string &name, cv::Mat &mat);
+		ZoomView(const std::string &name);
 
 		~ZoomView();
 
@@ -19,7 +19,7 @@ namespace openCVGraph
             cv::MouseCallback mouseCallback);
 		virtual bool KeyboardProcessor(int key);
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
-        void UpdateView();
+        void UpdateView(cv::Mat mat);
 		
 
 	private:

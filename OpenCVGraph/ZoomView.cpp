@@ -74,15 +74,11 @@ namespace openCVGraph
 
 	}
 
-	ZoomView::ZoomView(const string &name, cv::Mat &mat)
+	ZoomView::ZoomView(const string &name)
 	{
 		Name = name;
 		cout << Name << endl;
-		MatView = mat;
-        
 	}
-
-
 
 	ZoomView::~ZoomView()
 	{
@@ -92,7 +88,6 @@ namespace openCVGraph
         cv::MouseCallback mouseCallback = NULL)
     {
         cv::namedWindow(Name, WINDOW_AUTOSIZE);
-        cv::imshow(Name, MatView);
         cv::resizeWindow(Name, width, height);
         if (mouseCallback) {
             m_mouseCallback = mouseCallback;
@@ -108,9 +103,10 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::UpdateView()
+	void ZoomView::UpdateView(Mat mat)
 	{
-		
+        MatView = mat;
+        cv::imshow(Name, MatView);
 	}
 
 

@@ -35,7 +35,7 @@ namespace openCVGraph
 
         void UpdateView() {
             if (m_showView) {
-                view.UpdateView();
+                view.UpdateView(m_imView);
             }
         };
         double m_DurationMS;

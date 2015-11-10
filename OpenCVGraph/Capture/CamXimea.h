@@ -10,7 +10,7 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
-#define XIMEA_DIR
+// #define XIMEA_DIR
 #ifdef XIMEA_DIR
 
     class CamXimea : public CamDefault

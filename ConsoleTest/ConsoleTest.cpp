@@ -14,16 +14,18 @@ int main()
     GraphManager graph1("Graph1");
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
-    CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
+    CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
+    // CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
     
     // Add processors
+    CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
+    graph1.AddFilter(fpSimple);
+
     CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
-    graph1.AddFilter(fpSimple);
+
 
     // Start the thread for that graph running
     graph1.StartThread();

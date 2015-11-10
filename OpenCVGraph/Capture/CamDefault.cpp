@@ -40,10 +40,9 @@ namespace openCVGraph
         bool fOK = false;
         
         // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
-        if (camera_index.length() > 0) {
-            int camIndex;
-            std::stringstream(camera_index) >> camIndex;
-            fOK = cap.open(camIndex);
+        if (camera_index >= 0) {
+
+            fOK = cap.open(camera_index);
             if (fOK) {
                 // set camera specific properties
                 fOK = cap.read(graphData.m_imCapture);
@@ -51,12 +50,15 @@ namespace openCVGraph
                 if (!graphData.m_imCapture.data)   // Check for invalid input
                 {
                     fOK = false;
-                    std::cout << "Could not open capture device #" << camera_index << std::endl;
+                    std::cout << "Could not read from capture device #" << camera_index << std::endl;
                 }
                 else {
                     source = Camera;
                     fOK = true;
                 }
+            }
+            else {
+                std::cout << "Could not open capture device #" << camera_index << std::endl;
             }
         }
         
@@ -154,10 +156,11 @@ namespace openCVGraph
             cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
             break;
 		}
+        // Copy imCapture to imResult
+        graphData.m_imCapture.copyTo(graphData.m_imResult);
 
 		if (m_showView && fOK) {
             m_imView = graphData.m_imCapture;
-			cv::imshow(m_CombinedName, m_imView);
 		}
         return fOK;
     }
@@ -175,7 +178,9 @@ namespace openCVGraph
 
     void  CamDefault::saveConfig(FileStorage& fs, GraphData& data)
     {
-        fs << "camera_index" << camera_index.c_str();
+        cvWriteComment((CvFileStorage *) *fs, "Set camera_index to -1 to skip use of camera", 0);
+        fs << "camera_index" << camera_index;
+        cvWriteComment((CvFileStorage *)*fs, ".tiff, .png, or .jpg", 0);
         fs << "image_name" << image_name.c_str();
         fs << "movie_name" << movie_name.c_str();
         fs << "image_dir" << image_dir.c_str();

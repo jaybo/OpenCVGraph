@@ -30,7 +30,7 @@ namespace openCVGraph
 	bool Filter::init(GraphData& data)
 	{
 		if (m_showView) {
-			view = ZoomView(m_CombinedName, m_imView );
+			view = ZoomView(m_CombinedName);
             view.Init(m_width, m_height, m_MouseCallback);
 		}
 

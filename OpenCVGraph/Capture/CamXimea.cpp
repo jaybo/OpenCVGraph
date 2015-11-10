@@ -60,11 +60,7 @@ namespace openCVGraph
 
         bool fOK = false;
 
-        int cameraIndex = 0;
-        if (camera_index.length() > 0) {
-            std::stringstream(camera_index) >> cameraIndex;
-        }
-        fOK = cap.open(cameraIndex);
+        fOK = cap.open(camera_index);
         if (fOK) {
             // set camera specific properties
             if (fOK) {
@@ -131,7 +127,6 @@ namespace openCVGraph
             //else {
             //    m_imView = graphData.m_imCapture;
             //}
-            cv::imshow(m_CombinedName, m_imView);
         }
         return fOK;
     }

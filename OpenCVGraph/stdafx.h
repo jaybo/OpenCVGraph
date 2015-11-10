@@ -33,7 +33,7 @@
 
 #include "OpenCVGraph.h"
 
-#define XIMEA_DIR
+//#define XIMEA_DIR
 #ifdef XIMEA_DIR
 #include <xiApi.h>
 #endif

@@ -46,7 +46,7 @@ namespace openCVGraph
         ImageSource source;
 
         // following are processed in order, looking for valid input
-        std::string camera_index;
+        int camera_index = 0;
         std::string image_name;
         std::string movie_name;
         std::string image_dir;
