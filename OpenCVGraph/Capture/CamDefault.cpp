@@ -156,12 +156,7 @@ namespace openCVGraph
 		}
 
 		if (m_showView && fOK) {
-            if (camera_name == "Ximea16") {
-                m_imView = 16 * graphData.m_imCapture;
-            }
-            else {
-                m_imView = graphData.m_imCapture;
-            }
+            m_imView = graphData.m_imCapture;
 			cv::imshow(m_CombinedName, m_imView);
 		}
         return fOK;
@@ -180,23 +175,17 @@ namespace openCVGraph
 
     void  CamDefault::saveConfig(FileStorage& fs, GraphData& data)
     {
-        fs << "tictoc" << tictoc.c_str();
         fs << "camera_index" << camera_index.c_str();
-        fs << "camera_name" << camera_name.c_str();
         fs << "image_name" << image_name.c_str();
         fs << "movie_name" << movie_name.c_str();
         fs << "image_dir" << image_dir.c_str();
-
     }
 
     void  CamDefault::loadConfig(FileNode& fs, GraphData& data)
     {
-        fs["tictoc"] >> tictoc;
         fs["camera_index"] >> camera_index;
-        fs["camera_name"] >> camera_name;
         fs["image_name"] >> image_name;
         fs["movie_name"] >> movie_name;
         fs["image_dir"] >> image_dir;
-
     }
 }

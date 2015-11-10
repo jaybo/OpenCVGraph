@@ -14,9 +14,4 @@ bool dirExists(const std::string& path);
 
 void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale);
 
-//bool getWindowRect(const String &  winname, cv::Rect2d rect)
-//{
-//    CvWindow* window;
-//
-//    window = icvFindWindowByName(name);
-//}
+vector<Mat> createHistogramImages(Mat& img);

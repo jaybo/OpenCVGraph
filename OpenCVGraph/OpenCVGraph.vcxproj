@@ -190,6 +190,7 @@
     <ClCompile Include="Capture\CamXimea.cpp" />
     <ClCompile Include="Capture\CamDefault.cpp" />
     <ClCompile Include="Filters\FPRunningStats.cpp" />
+    <ClCompile Include="Filters\Simple.hpp" />
     <ClCompile Include="OpenCVGraph.cpp" />
     <ClCompile Include="ZoomView.cpp" />
     <ClCompile Include="GraphManager.cpp" />

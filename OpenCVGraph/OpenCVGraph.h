@@ -23,3 +23,4 @@
 #include "Capture/CamDefault.h"
 #include "Capture/CamXimea.h"
 #include "Filters/FPRunningStats.h"
+#include "Filters/Simple.hpp"

@@ -17,10 +17,13 @@ namespace openCVGraph
     {
     }
 
-    // keyWait required to make the UI activate
+    // 
     bool FPRunningStats::processKeyboard(GraphData& data, int key)
     {
         bool fOK = true;
+        if (key == ' ') {
+            m_n = 0;    // RESET
+        }
         if (m_showView) {
             return view.KeyboardProcessor(key);  
         }
@@ -105,38 +108,40 @@ namespace openCVGraph
             m_newS.copyTo(m_oldS);
         }
 
-        Calc(graphData);
+        if (m_n >= 2) {
+            Calc(graphData);
 
-        graphData.m_imCapture.copyTo(m_imView);
-        m_imView = m_imView * 16;
-        cv::resize(m_imView, m_imView, cv::Size(512, 512));
-        
-        std::ostringstream str;
+            graphData.m_imCapture.copyTo(m_imView);
+            m_imView = m_imView * 16;
+            cv::resize(m_imView, m_imView, cv::Size(512, 512));
 
-        str.str("");
-        str << "SPACE to reset";
-        DrawShadowTextMono(m_imView, str.str(), Point(20, 20), 0.66);
+            std::ostringstream str;
 
-        str.str("");
-        str << "mean: " << setiosflags(ios::fixed) << setprecision(1) << dMean << " std: " << dStdDevMean;
-        DrawShadowTextMono(m_imView, str.str(), Point(20, 50), 0.8);
+            str.str("");
+            str << "SPACE to reset";
+            DrawShadowTextMono(m_imView, str.str(), Point(20, 20), 0.66);
 
-        str.str("");
-        str << "capMin: " << (int)dCapMin << " capMax: " << (int)dCapMax;
-        DrawShadowTextMono(m_imView, str.str(), Point(20, 100), 0.66);
+            str.str("");
+            str << "mean: " << setiosflags(ios::fixed) << setprecision(1) << dMean << " std: " << dStdDevMean;
+            DrawShadowTextMono(m_imView, str.str(), Point(20, 50), 0.8);
 
-
-        str.str("");
-        str << "minStd: "<< dStdDevMin << " maxStd: " << dStdDevMax;
-        DrawShadowTextMono(m_imView, str.str(), Point(20, 120),0.66);
-
-        str.str("");
-        str << m_n << "/" << graphData.m_FrameNumber;
-        DrawShadowTextMono(m_imView,str.str(), Point(20, 500), 0.66);
+            str.str("");
+            str << "capMin: " << (int)dCapMin << " capMax: " << (int)dCapMax;
+            DrawShadowTextMono(m_imView, str.str(), Point(20, 100), 0.66);
 
 
+            str.str("");
+            str << "minStd: " << dStdDevMin << " maxStd: " << dStdDevMax;
+            DrawShadowTextMono(m_imView, str.str(), Point(20, 120), 0.66);
 
-        cv::imshow(m_CombinedName, m_imView);
+            str.str("");
+            str << m_n << "/" << graphData.m_FrameNumber;
+            DrawShadowTextMono(m_imView, str.str(), Point(20, 500), 0.66);
+
+            // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
+
+            cv::imshow(m_CombinedName, m_imView);
+        }
         return fOK;
     }
 
@@ -151,11 +156,9 @@ namespace openCVGraph
 
     void  FPRunningStats::saveConfig(FileStorage& fs, GraphData& data)
     {
-        fs << "tictoc" << tictoc.c_str();
     }
 
     void  FPRunningStats::loadConfig(FileNode& fs, GraphData& data)
     {
-        fs["tictoc"] >> tictoc;
     }
 }

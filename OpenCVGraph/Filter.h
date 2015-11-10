@@ -24,8 +24,8 @@ namespace openCVGraph
 		virtual bool fini(GraphData& data);
         virtual bool processKeyboard(GraphData& data, int key);
 
-        virtual void tic();
-        virtual void toc();
+        void tic();
+        void toc();
 
         virtual void saveConfig(FileStorage &fs, GraphData& data);
         virtual void loadConfig(FileNode &fs, GraphData& data);
@@ -38,12 +38,15 @@ namespace openCVGraph
                 view.UpdateView();
             }
         };
+        double m_DurationMS;
 
 	protected:
 		bool m_firstTime = true;
 		bool m_showView = false;
-		double duration;
-		std::string tictoc;
+        double m_TimeStart;
+        double m_TimeEnd;
+
+        double m_TickFrequency;
 		cv::Mat m_imView;
         int m_width, m_height;
 

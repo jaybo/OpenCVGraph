@@ -11,12 +11,12 @@ namespace openCVGraph
     Filter::Filter(std::string name, GraphData& data, bool showView, int width, int height)
         : Name(name), m_showView(showView),
         m_width(width), m_height(height),
-        m_firstTime(true), duration(0), tictoc(""), frameToStop(0)
+        m_firstTime(true), m_DurationMS(0), frameToStop(0)
     {
 		std::cout << "Filter()" << std::endl;
 
 		m_CombinedName = data.m_GraphName + "-" + name;
- 
+        m_TickFrequency = cv::getTickFrequency();
 		m_imView = Mat::eye(10, 10, CV_16U);
 	}
 
@@ -54,7 +54,7 @@ namespace openCVGraph
 		return true;
 	}
 
-    // keyWait required to make the UI activate
+    // Process keyboard hits
     bool Filter::processKeyboard(GraphData& data, int key)
     {
         if (m_showView) {
@@ -66,23 +66,22 @@ namespace openCVGraph
 	// Record time at start of processing
 	void Filter::tic()
 	{
-		duration = static_cast<double>(cv::getTickCount());
+		m_TimeStart = static_cast<double>(cv::getTickCount());
 	}
 
 	// Calc delta at end of processing
 	void Filter::toc()
 	{
-		duration = (static_cast<double>(cv::getTickCount()) - duration) / cv::getTickFrequency();
-		std::cout << Name << "\ttime(sec):" << std::fixed << std::setprecision(6) << duration << std::endl;
+        m_TimeEnd = static_cast<double>(cv::getTickCount());
+		m_DurationMS = (m_TimeEnd - m_TimeStart) / m_TickFrequency * 1000;
+		std::cout << Name << "\ttime(MS): " << std::fixed << std::setprecision(1) << m_DurationMS << std::endl;
 	}
 
 	void Filter::saveConfig(FileStorage& fs, GraphData& data)
 	{
-		fs << "tictoc" << tictoc.c_str();
 	}
 
 	void Filter::loadConfig(FileNode& fs, GraphData& data)
 	{
-		fs["tictoc"] >> tictoc;
 	}
 }

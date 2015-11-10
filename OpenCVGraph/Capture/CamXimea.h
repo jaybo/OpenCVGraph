@@ -3,20 +3,15 @@
 #pragma warning(disable : 4482)
 
 #include "..\stdafx.h"
-
+#include <xiApi.h>
+#include "CamXimea.h"
 namespace fs = ::boost::filesystem;
 
 
 namespace openCVGraph
 {
-
+#define XIMEA_DIR
 #ifdef XIMEA_DIR
-    // General image source:
-    //   if   "camera_index" is set, use that camera
-    //   elif "image_name" is set, use just that image
-    //   elif "movie_name" is set, use that movie
-    //   elif "image_dir" is set and contains images, use all images in dir
-    //   else create a noise image
 
     class CamXimea : public CamDefault
     {
@@ -134,9 +129,9 @@ namespace openCVGraph
         void Exposure(bool up) {
             bool fOK = true;
             if (!m_isAutoGain) {
-                int inc = 500;
+                int inc = 100;
                 m_exposure += up ? inc : -inc;
-                m_exposure = fmax(m_exposure, 1000);
+                m_exposure = fmax(m_exposure, 1000);    // arbitrary: 1mS is the lowest we go
                 cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
                 Log(fOK, "Exposure " + std::to_string(m_exposure));
             }
@@ -154,7 +149,7 @@ namespace openCVGraph
         void Gain(bool up) {
             bool fOK = true;
             if (!m_isAutoGain) {
-                float inc = 0.5;
+                float inc = 0.25;
                 m_gain += up ? inc : -inc;
                 m_gain = fmax(m_gain, 1.0);
                 m_gain = fmin(m_gain, 10.0);
@@ -175,14 +170,15 @@ namespace openCVGraph
     private:
 
         bool m_isAutoGain = false;
-        bool m_is16bpp;
-        bool m_isSquare;
-        double m_gain;
+        bool m_is16bpp = true;
+        bool m_isSquare = true;
+        bool m_minimumBuffers = true;
+        double m_gain = 1.0;
         double m_focalDistance;
         double m_focalLength;
         double m_aperatureValue;
         double m_focusMovementValue;
-        double m_exposure;
+        double m_exposure = 10000;
     };
 #endif
 }

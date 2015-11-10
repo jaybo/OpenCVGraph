@@ -51,9 +51,6 @@ namespace openCVGraph
         std::string movie_name;
         std::string image_dir;
 
-        // Allow special setup parameters per camera
-        std::string camera_name;        // Ximea8, Ximea16, ...
-
         cv::VideoCapture cap;
         vector<fs::path> images;
         int imageIndex = 0;

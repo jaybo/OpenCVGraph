@@ -14,28 +14,31 @@ int main()
     GraphManager graph1("Graph1");
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-   CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
- //   CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
+    // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
+    CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
     
     // Add processors
     CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
     graph1.AddFilter(fpRunningStats);
 
+    CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
+    graph1.AddFilter(fpSimple);
+
     // Start the thread for that graph running
     graph1.StartThread();
     graph1.GotoState(GraphManager::GraphState::Run);
 
 
-    GraphManager graph2("Graph2");
-    CvFilter fpImage2 (new CamDefault("CamDefault", graph2.gd, true));
-    graph2.AddFilter(fpImage2);
-    graph2.StartThread();
-    graph2.GotoState(GraphManager::GraphState::Run);
+    //GraphManager graph2("Graph2");
+    //CvFilter fpImage2 (new CamDefault("CamDefault", graph2.gd, true));
+    //graph2.AddFilter(fpImage2);
+    //graph2.StartThread();
+    //graph2.GotoState(GraphManager::GraphState::Run);
 
 
     graph1.JoinThread();
-    graph2.JoinThread();
+    //graph2.JoinThread();
 
     /*
     //Mat a(200, 200, CV_16U);

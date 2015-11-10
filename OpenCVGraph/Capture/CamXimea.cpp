@@ -45,15 +45,10 @@ namespace openCVGraph
             case ',':
                 Focus(false);
                 break;
-            case 27:    // ESC
-                fOK = false;
-                break;
             }
 
         }
-        else {
-            return view.KeyboardProcessor();  // Hmm,  what to do here?
-        }
+
         return fOK;
     }
 
@@ -65,51 +60,53 @@ namespace openCVGraph
 
         bool fOK = false;
 
-        // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
+        int cameraIndex = 0;
         if (camera_index.length() > 0) {
-
             std::stringstream(camera_index) >> cameraIndex;
-            fOK = cap.open(cameraIndex);
+        }
+        fOK = cap.open(cameraIndex);
+        if (fOK) {
+            // set camera specific properties
             if (fOK) {
-                // set camera specific properties
-                if (camera_name == "Ximea16") {
-#ifdef XIMEA_DIR
+                fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, m_is16bpp ? XI_MONO16 : XI_MONO8);
+
+                if (m_isSquare) {
                     // only capture 3840x3840@16bpp
                     fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
                     fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
-                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, XI_MONO16);
+                }
 
-                    // Limit the number of buffers
+                // Limit the number of buffers
+                if (m_minimumBuffers) {
                     fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
                     fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
-
-                    // Autogain off
-                    fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
-
-                    // Enable aperature and focus
-                    cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
-                    m_focalDistance = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE);
-                    m_focalLength = cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH);
-                    m_aperatureValue = cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE);
-
-                    fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
-                    m_focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
-
-                    fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, 2000);
-                    fOK = cap.set(CV_CAP_PROP_XI_GAIN, 1.0);
-#endif
                 }
-                fOK = cap.read(graphData.m_imCapture);
+                // Autogain off
+                fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
 
-                if (!graphData.m_imCapture.data)   // Check for invalid input
-                {
-                    fOK = false;
-                    std::cout << "Could not open capture device #" << camera_index << std::endl;
-                }
-                else {
-                    source = Camera;
-                    fOK = true;
-                }
+                // Enable aperature and focus
+                cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
+                m_focalDistance = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE);
+                m_focalLength = cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH);
+                m_aperatureValue = cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE);
+
+                fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
+                m_focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
+
+                fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
+                fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain);
+
+            }
+            fOK = cap.read(graphData.m_imCapture);
+
+            if (!graphData.m_imCapture.data)   // Check for invalid input
+            {
+                fOK = false;
+                std::cout << "Could not open capture device #" << camera_index << std::endl;
+            }
+            else {
+                source = Camera;
+                fOK = true;
             }
         }
 
@@ -123,19 +120,17 @@ namespace openCVGraph
         m_firstTime = false;
         bool fOK = true;
 
-        switch (source) {
-        case Camera:
-            fOK = cap.read(graphData.m_imCapture);
-            break;
-        }
+        fOK = cap.read(graphData.m_imCapture);
+        // make 16bpp full range
+        graphData.m_imCapture *= 16;
 
         if (m_showView && fOK) {
-            if (camera_name == "Ximea16") {
-                m_imView = 16 * graphData.m_imCapture;
-            }
-            else {
+            //if (graphData.m_imCapture.depth() == CV_16U) {
                 m_imView = graphData.m_imCapture;
-            }
+            //}
+            //else {
+            //    m_imView = graphData.m_imCapture;
+            //}
             cv::imshow(m_CombinedName, m_imView);
         }
         return fOK;
@@ -154,23 +149,19 @@ namespace openCVGraph
 
     void  CamXimea::saveConfig(FileStorage& fs, GraphData& data)
     {
-        fsf << "tictoc" << tictoc.c_str();
-        fsf << "camera_index" << camera_index.c_str();
-        fsf << "camera_name" << camera_name.c_str();
-        fsf << "focus" << m_focalDistance;
-        fsf << "focalLength" << m_focalLength;
-        fsf << "aperature" << m_aperatureValue;
-        fsf << "focusMovementValue" << m_focusMovementValue;
-        fsf << "exposure" << m_exposure;
+        fs << "camera_index" << camera_index.c_str();
+        fs << "minimum_buffers" << m_minimumBuffers;
+        fs << "focus" << m_focalDistance;
+        fs << "focalLength" << m_focalLength;
+        fs << "aperature" << m_aperatureValue;
+        fs << "focusMovementValue" << m_focusMovementValue;
+        fs << "exposure" << m_exposure;
     }
 
     void  CamXimea::loadConfig(FileNode& fs, GraphData& data)
     {
-        cout << m_persistFile << endl;
-
-        fs["tictoc"] >> tictoc;
         fs["camera_index"] >> camera_index;
-        fs["camera_name"] >> camera_name;
+        fs["minimum_buffers"] >> m_minimumBuffers;
         fs["focus"] >> m_focalDistance;
         fs["focalLength"] >> m_focalLength;
         fs["aperature"] >> m_aperatureValue;
