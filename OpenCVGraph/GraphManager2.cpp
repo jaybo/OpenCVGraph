@@ -86,6 +86,7 @@ namespace openCVGraph
 
 		// main processing loop
         while (fOK) {
+            
             // This should be the only waitKey() in the entire graph
             int key = cv::waitKey(1);   
             if (gd.m_AbortOnESC && (key == 27)) {
@@ -94,7 +95,8 @@ namespace openCVGraph
             }
 
 			switch (m_GraphState) {
-			case GraphState::Stop:
+			
+            case GraphState::Stop:
 				// Snooze.  But this should be a mutex or awaitable object
 				boost::this_thread::sleep(boost::posix_time::milliseconds(33));
 				break;
@@ -153,15 +155,7 @@ namespace openCVGraph
         for (int i = 0; i < m_Filters.size(); i++) {
             cout << m_Filters[i]->Name;
             fs << m_Filters[i]->Name.c_str() << "{";
-            // Persist the filter data
             m_Filters[i]->saveConfig(fs, gd);
-            // Save how long the filter took to process its last sample
-            // Help, take me back to C#!!! or even javascript
-            std::stringstream strDuration;
-            strDuration << fixed << setprecision(1) << m_Filters[i]->m_DurationMS;
-            const std::string tmp = strDuration.str();
-            const char* cstr = tmp.c_str();
-            fs << "LastDurationMS" << cstr;
             fs << "}";
         }
         fs.release();

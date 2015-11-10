@@ -3,6 +3,9 @@
 #pragma warning(disable : 4482)
 
 #include "..\stdafx.h"
+
+// #define XIMEA_DIR
+#ifdef XIMEA_DIR
 #include <xiApi.h>
 #include "CamXimea.h"
 namespace fs = ::boost::filesystem;
@@ -10,8 +13,7 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
-// #define XIMEA_DIR
-#ifdef XIMEA_DIR
+
 
     class CamXimea : public CamDefault
     {
@@ -180,5 +182,5 @@ namespace openCVGraph
         double m_focusMovementValue;
         double m_exposure = 10000;
     };
-#endif
 }
+#endif
