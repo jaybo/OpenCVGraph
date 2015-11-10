@@ -112,7 +112,7 @@ namespace openCVGraph
             Calc(graphData);
 
             graphData.m_imCapture.copyTo(m_imView);
-            m_imView = m_imView * 16;
+            m_imView = m_imView;
             cv::resize(m_imView, m_imView, cv::Size(512, 512));
 
             std::ostringstream str;

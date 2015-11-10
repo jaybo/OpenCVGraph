@@ -131,7 +131,7 @@ namespace openCVGraph
         void Exposure(bool up) {
             bool fOK = true;
             if (!m_isAutoGain) {
-                int inc = 100;
+                int inc = 1000;
                 m_exposure += up ? inc : -inc;
                 m_exposure = fmax(m_exposure, 1000);    // arbitrary: 1mS is the lowest we go
                 cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);

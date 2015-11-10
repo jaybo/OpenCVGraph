@@ -1,10 +1,15 @@
 %YAML:1.0
-CamDefault:
-   tictoc: ""
+GraphManager:
+   CudaEnabledDeviceCount: 0
+   CudaDeviceIndex: 0
+CamXimea:
    camera_index: 0
-   camera_name: ""
-   image_name: ""
-   movie_name: ""
-   image_dir: ""
+   minimum_buffers: 1
+   focus: 0.
+   focalLength: 0.
+   aperature: 0.
+   focusMovementValue: 0.
+   exposure: 117000.
+   LastDurationMS: "81.3"
 RunningStats:
-   tictoc: ""
+   LastDurationMS: "477.7"

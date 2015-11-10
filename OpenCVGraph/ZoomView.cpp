@@ -9,8 +9,6 @@ namespace openCVGraph
 
 	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
 	{
-		int j = 42;
-
 		ZoomView* view = (ZoomView*)param;
 		cout << view->Name << endl;
 
@@ -106,6 +104,7 @@ namespace openCVGraph
 	void ZoomView::UpdateView(Mat mat)
 	{
         MatView = mat;
+       // MatZoomed = MatView.resize()
         cv::imshow(Name, MatView);
 	}
 

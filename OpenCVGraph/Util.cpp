@@ -38,9 +38,8 @@ void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale)
 }
 
 
-vector<Mat> createHistogramImages(Mat& img)
+vector<Mat> createHistogramImages(Mat& img, int bins, int width, int height)
 {
-    int bins = 256;             // number of bins
     int nc = img.channels();    // number of channels
     int depth = img.depth();
     bool is16bpp = (depth == CV_16U);

@@ -1,5 +1,8 @@
 
 #include "..\stdafx.h"
+
+#ifdef XIMEA_DIR
+
 #include "CamXimea.h"
 
 using namespace std;
@@ -9,7 +12,7 @@ namespace fs = ::boost::filesystem;
 namespace openCVGraph
 {
 
-#ifdef XIMEA_DIR
+
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height)
         : CamDefault(name, graphData, showView, width, height)
     {
@@ -117,16 +120,15 @@ namespace openCVGraph
         bool fOK = true;
 
         fOK = cap.read(graphData.m_imCapture);
-        // make 16bpp full range
-        graphData.m_imCapture *= 16;
+
+        if (graphData.m_imCapture.depth() == CV_16U) {
+            // make 16bpp full range
+            graphData.m_imCapture *= 16;
+        }
 
         if (m_showView && fOK) {
-            //if (graphData.m_imCapture.depth() == CV_16U) {
                 m_imView = graphData.m_imCapture;
-            //}
-            //else {
-            //    m_imView = graphData.m_imCapture;
-            //}
+
         }
         return fOK;
     }
@@ -144,7 +146,7 @@ namespace openCVGraph
 
     void  CamXimea::saveConfig(FileStorage& fs, GraphData& data)
     {
-        fs << "camera_index" << camera_index.c_str();
+        fs << "camera_index" << camera_index;
         fs << "minimum_buffers" << m_minimumBuffers;
         fs << "focus" << m_focalDistance;
         fs << "focalLength" << m_focalLength;
@@ -163,5 +165,5 @@ namespace openCVGraph
         fs["focusMovementValue"] >> m_focusMovementValue;
         fs["exposure"] >> m_exposure;
     }
-#endif
 }
+#endif
