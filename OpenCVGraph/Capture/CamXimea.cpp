@@ -1,8 +1,4 @@
-
 #include "..\stdafx.h"
-
-#ifdef XIMEA_DIR
-
 #include "CamXimea.h"
 
 using namespace std;
@@ -11,8 +7,6 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
-
-
     CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height)
         : CamDefault(name, graphData, showView, width, height)
     {
@@ -126,9 +120,17 @@ namespace openCVGraph
             graphData.m_imCapture *= 16;
         }
 
+        // Get the capture image onto the GPU
+        graphData.m_imCaptureGpu16U.upload(graphData.m_imCapture);
+        graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu32F, CV_32F);
+        graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu8U, CV_8U, 0.00390625);  // 1/256 scale factor
+        graphData.m_imCaptureGpu8U.download(graphData.m_imCapture8U);
+        
+        //graphData.m_imCapture.convertTo(graphData.m_imCapture8U, CV_8U, 0.00390625);  // 1/256 scale factor
+
 
         if (m_showView && fOK) {
-            m_imView = graphData.m_imCapture;
+            m_imView = graphData.m_imCapture8U;
         }
         return fOK;
     }
@@ -166,4 +168,4 @@ namespace openCVGraph
         fs["exposure"] >> m_exposure;
     }
 }
-#endif
+

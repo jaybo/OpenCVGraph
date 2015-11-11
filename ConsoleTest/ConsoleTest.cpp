@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "..\OpenCVGraph\OpenCVGraph.h"
+
 
 using namespace std;
 using namespace openCVGraph;
@@ -18,16 +18,18 @@ int main()
     CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
 
-    CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
-    graph1.AddFilter(fpHistogram);
 
     
     // Add processors
+    //CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
+    //graph1.AddFilter(fpHistogram);
+
+
     //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
     //graph1.AddFilter(fpSimple);
 
-    CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
-    graph1.AddFilter(fpRunningStats);
+    //CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
+    //graph1.AddFilter(fpRunningStats);
 
 
 

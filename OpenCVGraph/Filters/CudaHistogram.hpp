@@ -51,7 +51,7 @@ namespace openCVGraph
             
 
             if (m_showView) {
-                gd.m_imCapture.copyTo(m_imView);
+                m_imView = gd.m_imCapture8U;
             }
             return true;  // if you return false, the graph stops
         }

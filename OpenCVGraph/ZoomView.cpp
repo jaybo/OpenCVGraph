@@ -26,7 +26,8 @@ namespace openCVGraph
 			break;
 
 		case cv::EVENT_MOUSEWHEEL:
-
+            view->m_mx = x;
+            view->m_my = y;
 
 			if (flags & EVENT_FLAG_CTRLKEY)
 			{
@@ -54,24 +55,40 @@ namespace openCVGraph
 			{
 				view->ZoomFactor--;
 			}
-
 			break;
 
 		case cv::EVENT_LBUTTONDOWN:
             view->m_MouseLButtonDown = true;
+            view->m_sx = x;
+            view->m_sy = y;
+            view->m_dx = 0;
+            view->m_dy = 0;
 			break;
 
 		case cv::EVENT_MOUSEMOVE:
 			cout << x << ", " << y << endl;
             if (view->m_MouseLButtonDown) {
-                view->m_cx = -x;
-                view->m_cy = -y;
+                int absZoom = abs(view->ZoomFactor);
+                if (absZoom > 0) {
+                    view->m_dx = (x - view->m_sx) * absZoom;
+                    view->m_dy = (y - view->m_sy) * absZoom;
+                }
+                else {
+                    view->m_dx = (x - view->m_sx);
+                    view->m_dy = (y - view->m_sy);
+                }
             }
 			break;
 		case cv::EVENT_LBUTTONUP:
             view->m_MouseLButtonDown = false;
+            view->m_cx -= view->m_dx;
+            view->m_cy -= view->m_dy;
+            view->m_dx = 0;
+            view->m_dy = 0;
+
 			break;
 		}
+
 	}
 
 	ZoomView::ZoomView() {
@@ -93,8 +110,6 @@ namespace openCVGraph
     {
         m_winWidth = width;
         m_winHeight = height;
-        m_cx = m_winWidth / 2;
-        m_cy = m_winHeight / 2;
         cv::namedWindow(Name, WINDOW_AUTOSIZE);
         cv::resizeWindow(Name, width, height);
         if (mouseCallback) {
@@ -114,9 +129,14 @@ namespace openCVGraph
 	void ZoomView::UpdateView(Mat mat)
 	{
         MatView = mat;
+        if (firstTime) {
+            firstTime = false;
+            m_cx = MatView.cols / 2;
+            m_cy = MatView.rows / 2;
+        }
 
         int srcHeight, srcWidth;
-        if (ZoomFactor > 1) {
+        if (ZoomFactor >= 1) {
             srcHeight = (int)((float)m_winHeight / ZoomFactor);
             srcWidth = (int)((float)m_winWidth / ZoomFactor);
         }
@@ -128,9 +148,12 @@ namespace openCVGraph
             srcHeight = m_winHeight * abs(ZoomFactor);
             srcWidth = m_winWidth * abs(ZoomFactor);
         }
-        Rect rSrc(srcWidth / 2 - m_cx, srcHeight / 2 - m_cy, srcWidth, srcHeight);
 
-        cv::getRectSubPix(MatView, Size(srcWidth, srcHeight), Point(m_cx, m_cy), MatZoomed);
+        getRectSubPix(MatView, Size(srcWidth, srcHeight), 
+            Point(m_cx - m_dx, m_cy - m_dy),
+                //(srcWidth) - m_cx * srcWidth / m_winWidth, 
+                //(srcHeight) - m_cy * srcHeight / m_winHeight), 
+            MatZoomed);
         resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight));
         cv::imshow(Name, MatZoomed);
 	}

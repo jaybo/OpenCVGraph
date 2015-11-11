@@ -30,12 +30,11 @@
 #include "Filter.h"
 #include "GraphManager.h"
 #include "Capture/CamDefault.h"
-#include "Capture/CamXimea.h"
+
 #include "Filters/FPRunningStats.h"
 #include "Filters/Simple.hpp"
 #include "Filters/CudaHistogram.hpp"
 
-//#define XIMEA_DIR
-#ifdef XIMEA_DIR
-#include <xiApi.h>
-#endif
+// Camera specific includes
+#include "Capture/CameraSDKs/Ximea/API/xiApi.h"
+#include "Capture/CamXimea.h"

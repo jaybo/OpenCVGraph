@@ -81,6 +81,10 @@ namespace openCVGraph
         m_firstTime = false;
         bool fOK = true;
 
+        if (m_showView) {
+            m_imView = graphData.m_imCapture8U;
+        }
+
         // let the camera stabilize
         if (graphData.m_FrameNumber < 2) return true;
 
@@ -111,9 +115,6 @@ namespace openCVGraph
         if (m_n >= 2) {
             Calc(graphData);
 
-            graphData.m_imCapture.copyTo(m_imView);
-            m_imView = m_imView;
-            cv::resize(m_imView, m_imView, cv::Size(512, 512));
 
             std::ostringstream str;
 
@@ -141,6 +142,9 @@ namespace openCVGraph
             // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
 
         }
+
+
+
         return fOK;
     }
 

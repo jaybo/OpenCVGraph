@@ -13,7 +13,13 @@ namespace openCVGraph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
 
 		cv::Mat m_imCapture;                // Capture image.  Don't modify this except in capture filters.
-		cv::Mat m_imResult;                 // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
+        cv::Mat m_imCapture8U;               // 8 bit version
+        cv::Mat m_imResult;                 // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
+
+        // Cuda!
+        cv::cuda::GpuMat m_imCaptureGpu16U;
+        cv::cuda::GpuMat m_imCaptureGpu32F;
+        cv::cuda::GpuMat m_imCaptureGpu8U;
 
 
 

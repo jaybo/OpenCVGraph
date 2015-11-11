@@ -21,7 +21,7 @@ namespace openCVGraph
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    class CamDefault : public Filter
+    class CamDefault : public openCVGraph::Filter
     {
     public:
         CamDefault(std::string name, GraphData& data, bool showView = false, int width = 512, int height= 512);

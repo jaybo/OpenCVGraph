@@ -107,7 +107,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;OPENCVGUI_EXPORTS;%(PreprocessorDefinitions);XIMEA_DIR=%(XIMEA_DIR)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;OPENCVGUI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -192,7 +192,6 @@
     <ClCompile Include="Capture\CamDefault.cpp" />
     <ClCompile Include="Filters\FPRunningStats.cpp" />
     <ClCompile Include="Filters\Simple.hpp" />
-    <ClCompile Include="OpenCVGraph.cpp" />
     <ClCompile Include="ZoomView.cpp" />
     <ClCompile Include="GraphManager.cpp" />
     <ClCompile Include="stdafx.cpp" />
