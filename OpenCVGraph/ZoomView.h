@@ -24,9 +24,12 @@ namespace openCVGraph
 
 	private:
 		std::string Name;
-		int sx = 0, sy = 0;
+		int m_cx, m_cy;
+        int m_winWidth, m_winHeight;
         int ZoomFactor = 0;     // 0 is 1:1 pixelwise
         
+        bool m_MouseLButtonDown;
+
         cv::Mat MatView;        // original image to view
         cv::Mat MatZoomed;      // then modified by pan and zoom
         
