@@ -1,7 +1,7 @@
 %YAML:1.0
 GraphManager:
-   CudaEnabledDeviceCount: 0
-   CudaDeviceIndex: 0
+   CudaEnabledDeviceCount: 1
+   CudaDeviceIndex: 1
 CamXimea:
    camera_index: 0
    minimum_buffers: 1
@@ -9,7 +9,9 @@ CamXimea:
    focalLength: 0.
    aperature: 0.
    focusMovementValue: 0.
-   exposure: 117000.
-   LastDurationMS: "81.3"
+   exposure: 124000.
+   LastDurationMS: "82.6"
+CudaHistogram:
+   LastDurationMS: "33.6"
 RunningStats:
-   LastDurationMS: "477.7"
+   LastDurationMS: "519.5"

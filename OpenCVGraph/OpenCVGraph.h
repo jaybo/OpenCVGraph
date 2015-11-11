@@ -1,10 +1,13 @@
 #pragma once
 
-#include <stdio.h>
-#include <tchar.h>
-#include <memory>
 #include <cstring>
+#include <sstream>
 #include <iostream>
+#include <memory>
+#include <iomanip>
+#include <algorithm>
+#include <numeric>
+#include <chrono>
 
 // Boost
 #include <boost/filesystem.hpp>
@@ -13,6 +16,12 @@
 
 // OpenCV
 #include <opencv2/opencv.hpp>
+#include "opencv2/core.hpp"
+#include "opencv2/core/cuda.hpp"
+#include <opencv2/cudaimgproc.hpp>
+#include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudafilters.hpp"
+#include "opencv2/cudawarping.hpp"
 
 // Local
 #include "util.h"
@@ -24,3 +33,9 @@
 #include "Capture/CamXimea.h"
 #include "Filters/FPRunningStats.h"
 #include "Filters/Simple.hpp"
+#include "Filters/CudaHistogram.hpp"
+
+//#define XIMEA_DIR
+#ifdef XIMEA_DIR
+#include <xiApi.h>
+#endif

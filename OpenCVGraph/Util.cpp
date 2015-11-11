@@ -38,69 +38,53 @@ void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale)
 }
 
 
-vector<Mat> createHistogramImages(Mat& img, int bins, int width, int height)
+vector<Mat> createGrayHistogram(Mat& img, int bins, int width=256, int height = 400)
 {
     int nc = img.channels();    // number of channels
     int depth = img.depth();
     bool is16bpp = (depth == CV_16U);
 
-    vector<Mat> hist(nc);       // histogram arrays
+    //if (!img.data)
+    //{
+    //    return NULL;
+    //}
 
-                                // Initalize histogram arrays
-    for (int i = 0; i < hist.size(); i++)
-        hist[i] = Mat::zeros(1, bins, CV_32SC1);
 
-    // Calculate the histogram of the image
-    for (int i = 0; i < img.rows; i++)
+    /// Establish the number of bins
+    int histSize = bins;
+
+    /// Set the ranges ( for B,G,R) )
+    float range[] = { 0, (float) (is16bpp ? 65535 : 255) };
+    const float* histRange = { range };
+
+    bool uniform = true; bool accumulate = false;
+
+    Mat hist;
+
+    /// Compute the histograms:
+    calcHist(&img, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+    // Draw the histogram
+    int hist_w = width; int hist_h = height;
+    int bin_w = cvRound((double)hist_w / histSize);
+
+    Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
+
+    /// Normalize the result to [ 0, histImage.rows ]
+    normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+
+    /// Draw for each channel
+    for (int i = 1; i < histSize; i++)
     {
-        for (int j = 0; j < img.cols; j++)
-        {
-            for (int k = 0; k < nc; k++)
-            {
-                if (is16bpp) {
-                    ushort val = img.at<ushort>(i, j) / 256; 
-                    hist[k].at<int>(val) += 1;
-                }
-                else {
-                    uchar val = nc == 1 ? img.at<uchar>(i, j) : img.at<Vec3b>(i, j)[k];
-                    hist[k].at<int>(val) += 1;
-                }
-            }
-        }
+        line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(hist.at<float>(i - 1))),
+            Point(bin_w*(i), hist_h - cvRound(hist.at<float>(i))),
+            Scalar(255, 0, 0), 2, 8, 0);
     }
 
-    // For each histogram arrays, obtain the maximum (peak) value
-    // Needed to normalize the display later
-    int hmax[3] = { 0,0,0 };
-    for (int i = 0; i < nc; i++)
-    {
-        for (int j = 0; j < bins - 1; j++)
-            hmax[i] = hist[i].at<int>(j) > hmax[i] ? hist[i].at<int>(j) : hmax[i];
-    }
+    /// Display
+    namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE);
+    imshow("calcHist Demo", histImage);
 
-    const char* wname[3] = { "blue", "green", "red" };
-    Scalar colors[3] = { Scalar(255,0,0), Scalar(0,255,0), Scalar(0,0,255) };
-
-    vector<Mat> canvas(nc);
-
-    // Display each histogram in a canvas
-    for (int i = 0; i < nc; i++)
-    {
-        canvas[i] = Mat::ones(125, bins, CV_8UC3);
-
-        for (int j = 0, rows = canvas[i].rows; j < bins - 1; j++)
-        {
-            line(
-                canvas[i],
-                Point(j, rows),
-                Point(j, rows - (hist[i].at<int>(j) * rows / hmax[i])),
-                nc == 1 ? Scalar(200, 200, 200) : colors[i],
-                1, 8, 0
-                );
-        }
-
-        imshow(nc == 1 ? "value" : wname[i], canvas[i]);
-    }
-    return canvas;
+    return histImage;
 }
 

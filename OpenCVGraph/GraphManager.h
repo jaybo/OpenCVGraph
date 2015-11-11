@@ -55,7 +55,7 @@ namespace openCVGraph
         string m_persistFile;
         GraphCallback m_GraphCallback;
         int m_CudaEnabledDeviceCount;
-        int m_CudaDeviceIndex;
+        int m_CudaDeviceIndex = 1;
 
         bool ProcessLoop();
 		bool ProcessOne(int key);

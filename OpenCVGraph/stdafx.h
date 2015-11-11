@@ -12,31 +12,9 @@
 #include <windows.h>
 #endif
 
-// TODO: reference additional headers your program requires here
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <memory>
-#include <iomanip>
-#include <algorithm>
-#include <numeric>
-#include <chrono>
-
-
-// OpenCV
-#include <opencv2/opencv.hpp>
-
-// Boost
-#include <boost/filesystem.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread.hpp>
-
 #include "OpenCVGraph.h"
 
-//#define XIMEA_DIR
-#ifdef XIMEA_DIR
-#include <xiApi.h>
-#endif
+
 
 //#define openCVGraph_DLL 1
 //

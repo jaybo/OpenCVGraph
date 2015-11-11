@@ -17,7 +17,10 @@ namespace openCVGraph
         m_GraphCallback = callback;
 
         m_GraphState = GraphState::Stop;
-        //        m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
+        m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
+        if (m_CudaEnabledDeviceCount > 0 && m_CudaDeviceIndex <= m_CudaEnabledDeviceCount) {
+           // bugbug todo cv::cuda::setDevice(m_CudaEnabledDeviceCount);
+        }
 
         std::string config("config");
         fs::create_directory(config);

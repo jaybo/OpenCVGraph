@@ -17,6 +17,10 @@ int main()
     // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
     CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
+
+    CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
+    graph1.AddFilter(fpHistogram);
+
     
     // Add processors
     //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));

@@ -126,9 +126,9 @@ namespace openCVGraph
             graphData.m_imCapture *= 16;
         }
 
-        if (m_showView && fOK) {
-                m_imView = graphData.m_imCapture;
 
+        if (m_showView && fOK) {
+            m_imView = graphData.m_imCapture;
         }
         return fOK;
     }
