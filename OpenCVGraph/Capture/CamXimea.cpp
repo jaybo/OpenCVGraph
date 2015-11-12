@@ -49,6 +49,26 @@ namespace openCVGraph
         return fOK;
     }
 
+    void CamXimea::ExposureCallback(int pos, void * userData) {
+        CamXimea* camXimea = (CamXimea *)userData;
+        camXimea->Exposure(pos);
+    }
+
+    void CamXimea::GainCallback(int pos, void * userData) {
+        CamXimea* camXimea = (CamXimea *)userData;
+        camXimea->Gain(pos);
+    }
+
+    void CamXimea::FocusCallback(int pos, void * userData) {
+        CamXimea* camXimea = (CamXimea *)userData;
+        camXimea->Focus(pos);
+    }
+
+    void CamXimea::ApertureCallback(int pos, void * userData) {
+        CamXimea* camXimea = (CamXimea *)userData;
+        camXimea->Aperature(pos);
+    }
+
     //Allocate resources if needed
     bool CamXimea::init(GraphData& graphData)
     {
@@ -78,10 +98,10 @@ namespace openCVGraph
                 fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
 
                 // Enable aperature and focus
-                cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
-                m_focalDistance = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE);
-                m_focalLength = cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH);
-                m_aperatureValue = cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE);
+                //cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
+                //m_focalDistance = (int) (1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE));
+                //m_focalLength = (int)(1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH));
+                //m_aperatureValue = (int)(1000 * (cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE));
 
                 fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
                 m_focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
@@ -89,6 +109,20 @@ namespace openCVGraph
                 fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
                 fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain);
 
+                if (m_showView) {
+                    if (m_showExposureSlider) {
+                        createTrackbar("Exposure", m_CombinedName, &m_exposure, 500000, ExposureCallback, this);
+                    }
+                    if (m_showGainSlider) {
+                        createTrackbar("Gain", m_CombinedName, &m_gain, 10000, GainCallback, this);
+                    }
+                    if (m_showFocusSlider) {
+                        createTrackbar("Focus", m_CombinedName, &m_focalDistance, 1000000, FocusCallback, this);
+                    }
+                    if (m_showApertureSlider) {
+                        createTrackbar("Aperture", m_CombinedName, &m_aperture, 22000, ApertureCallback, this);
+                    }
+                }
             }
             fOK = cap.read(graphData.m_imCapture);
 
@@ -152,9 +186,14 @@ namespace openCVGraph
         fs << "minimum_buffers" << m_minimumBuffers;
         fs << "focus" << m_focalDistance;
         fs << "focalLength" << m_focalLength;
-        fs << "aperature" << m_aperatureValue;
+        fs << "aperture" << m_aperture;
         fs << "focusMovementValue" << m_focusMovementValue;
         fs << "exposure" << m_exposure;
+        fs << "gain" << m_gain;
+        fs << "show_gain_slider" << m_showGainSlider;
+        fs << "show_exposure_slider" << m_showExposureSlider;
+        fs << "show_focus_slider" << m_showFocusSlider;
+        fs << "show_aperature_slider" << m_showApertureSlider;
     }
 
     void  CamXimea::loadConfig(FileNode& fs, GraphData& data)
@@ -163,9 +202,14 @@ namespace openCVGraph
         fs["minimum_buffers"] >> m_minimumBuffers;
         fs["focus"] >> m_focalDistance;
         fs["focalLength"] >> m_focalLength;
-        fs["aperature"] >> m_aperatureValue;
+        fs["aperture"] >> m_aperture;
         fs["focusMovementValue"] >> m_focusMovementValue;
         fs["exposure"] >> m_exposure;
+        fs["gain"] >> m_gain;
+        fs["show_gain_slider"] >> m_showGainSlider;
+        fs["show_exposure_slider"] >> m_showExposureSlider;
+        fs["show_focus_slider"] >> m_showFocusSlider;
+        fs["show_aperature_slider"] >> m_showApertureSlider;
     }
 }
 
