@@ -107,7 +107,7 @@ namespace openCVGraph
                 m_focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
 
                 fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
-                fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain);
+                fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
 
                 if (m_showView) {
                     if (m_showExposureSlider) {

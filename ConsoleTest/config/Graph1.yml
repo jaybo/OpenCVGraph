@@ -5,13 +5,14 @@ GraphManager:
 CamXimea:
    camera_index: 0
    minimum_buffers: 1
-   focus: 0.
-   focalLength: 0.
-   aperature: 0.
+   focus: 70423
+   focalLength: 0
+   aperture: 4896
    focusMovementValue: 0.
-   exposure: 124000.
-   LastDurationMS: "82.6"
-CudaHistogram:
-   LastDurationMS: "33.6"
-RunningStats:
-   LastDurationMS: "519.5"
+   exposure: 15493
+   gain: 2113
+   show_gain_slider: 1
+   show_exposure_slider: 1
+   show_focus_slider: 0
+   show_aperature_slider: 1
+   LastDurationMS: "119.9"
