@@ -65,7 +65,7 @@ namespace openCVGraph
             // Currently, complete the loop
             fOK &= m_Filters[i]->process(gd);
             m_Filters[i]->toc();
-            m_Filters[i]->UpdateView();
+            m_Filters[i]->UpdateView(gd);
         }
         gd.m_FrameNumber++;
 

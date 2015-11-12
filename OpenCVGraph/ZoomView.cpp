@@ -69,9 +69,13 @@ namespace openCVGraph
 			cout << x << ", " << y << endl;
             if (view->m_MouseLButtonDown) {
                 int absZoom = abs(view->ZoomFactor);
-                if (absZoom > 0) {
+                if (view->ZoomFactor < 0) {
                     view->m_dx = (x - view->m_sx) * absZoom;
                     view->m_dy = (y - view->m_sy) * absZoom;
+                }
+                else  if (view->ZoomFactor > 0) {
+                    view->m_dx = (int) ((x - view->m_sx) / (float) absZoom);
+                    view->m_dy = (int) ((y - view->m_sy) / (float) absZoom);
                 }
                 else {
                     view->m_dx = (x - view->m_sx);
@@ -126,7 +130,7 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::UpdateView(Mat mat)
+	void ZoomView::UpdateView(Mat mat, GraphData graphData)
 	{
         MatView = mat;
         if (firstTime) {
@@ -151,8 +155,6 @@ namespace openCVGraph
 
         getRectSubPix(MatView, Size(srcWidth, srcHeight), 
             Point(m_cx - m_dx, m_cy - m_dy),
-                //(srcWidth) - m_cx * srcWidth / m_winWidth, 
-                //(srcHeight) - m_cy * srcHeight / m_winHeight), 
             MatZoomed);
         resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight));
         cv::imshow(Name, MatZoomed);

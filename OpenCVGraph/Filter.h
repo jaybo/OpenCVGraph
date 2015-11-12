@@ -33,9 +33,9 @@ namespace openCVGraph
         std::string Name;
 		std::string m_CombinedName; // Graph-Filter name
 
-        void UpdateView() {
+        void UpdateView(GraphData graphData) {
             if (m_showView) {
-                view.UpdateView(m_imView);
+                view.UpdateView(m_imView, graphData);
             }
         };
         double m_DurationMS;
