@@ -36,9 +36,10 @@
 #include "GraphManager.h"
 #include "Capture/CamDefault.h"
 
-#include "Filters/FPRunningStats.h"
+#include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
 #include "Filters/CudaHistogram.hpp"
+#include "Filters/Canny.hpp"
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"

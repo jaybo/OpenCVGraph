@@ -26,15 +26,19 @@ void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale)
     ptOffset.x += 2;
     ptOffset.y += 2;
     int depth = m.depth();
-    double mx = 255;
+    double hi = 255;
+    double lo = 128;
     if (depth <= 1) {   // 8bit
-        mx = 255;
+        hi = 255;
+        lo = hi / 2;
+
     }
     else if (depth <= 3) { // 16bit
-        mx = 65535;
+        hi = 65535;
+        lo = hi / 2;
     }
-    cv::putText(m, str, ptOffset, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(0, 0, 0));
-    cv::putText(m, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(mx, mx, mx));
+    cv::putText(m, str, ptOffset, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(lo, lo, lo));  // shadow
+    cv::putText(m, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(hi, hi, hi));
 }
 
 

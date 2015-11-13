@@ -26,7 +26,7 @@ namespace openCVGraph
     {
         bool fOK = true;
         if (m_showView) {
-            return view.KeyboardProcessor(key);  // Hmm,  what to do here?
+            return m_ZoomView.KeyboardProcessor(key);  // Hmm,  what to do here?
         }
         return fOK;
     }

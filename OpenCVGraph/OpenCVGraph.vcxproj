@@ -161,8 +161,9 @@
     <ClInclude Include="Filter.h" />
     <ClInclude Include="Capture\CamXimea.h" />
     <ClInclude Include="Capture\CamDefault.h" />
+    <ClInclude Include="Filters\Canny.hpp" />
     <ClInclude Include="Filters\CudaHistogram.hpp" />
-    <ClInclude Include="Filters\FPRunningStats.h" />
+    <ClInclude Include="Filters\ImageStatistics.hpp" />
     <ClInclude Include="OpenCVGraph.h" />
     <ClInclude Include="Property.h" />
     <ClInclude Include="GraphData.h" />
@@ -190,7 +191,6 @@
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Capture\CamXimea.cpp" />
     <ClCompile Include="Capture\CamDefault.cpp" />
-    <ClCompile Include="Filters\FPRunningStats.cpp" />
     <ClCompile Include="Filters\Simple.hpp" />
     <ClCompile Include="ZoomView.cpp" />
     <ClCompile Include="GraphManager.cpp" />

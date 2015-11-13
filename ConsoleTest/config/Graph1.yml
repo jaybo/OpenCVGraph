@@ -7,12 +7,16 @@ CamXimea:
    minimum_buffers: 1
    focus: 70423
    focalLength: 0
-   aperture: 4896
+   aperture: 0
    focusMovementValue: 0.
-   exposure: 15493
-   gain: 2113
+   exposure: 19718
+   gain: 366
    show_gain_slider: 1
    show_exposure_slider: 1
    show_focus_slider: 0
    show_aperature_slider: 1
-   LastDurationMS: "119.9"
+   LastDurationMS: "123.9"
+Canny:
+   LastDurationMS: "59.7"
+RunningStats:
+   LastDurationMS: "463.6"

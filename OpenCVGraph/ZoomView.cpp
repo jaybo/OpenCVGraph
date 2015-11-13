@@ -130,7 +130,7 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::UpdateView(Mat mat, GraphData graphData)
+	void ZoomView::UpdateView(Mat mat, Mat matOverlay, GraphData graphData)
 	{
         MatView = mat;
         if (firstTime) {
@@ -157,6 +157,12 @@ namespace openCVGraph
             Point(m_cx - m_dx, m_cy - m_dy),
             MatZoomed);
         resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight));
+
+        // merge in the (usually) text overlay
+        if (!matOverlay.empty()) {
+            // MatZoomed += matOverlay;
+            bitwise_or(MatZoomed, matOverlay, MatZoomed);
+        }
         cv::imshow(Name, MatZoomed);
 	}
 

@@ -35,7 +35,7 @@ namespace openCVGraph
 
         void UpdateView(GraphData graphData) {
             if (m_showView) {
-                view.UpdateView(m_imView, graphData);
+                m_ZoomView.UpdateView(m_imView, m_imViewOverlay, graphData);
             }
         };
         double m_DurationMS;
@@ -47,10 +47,12 @@ namespace openCVGraph
         double m_TimeEnd;
 
         double m_TickFrequency;
-		cv::Mat m_imView;
+
         int m_width, m_height;
 
-		ZoomView view; 
+        cv::Mat m_imView;               // image to display
+        cv::Mat m_imViewOverlay;        // overlay for that image
+        ZoomView m_ZoomView;
         cv::MouseCallback m_MouseCallback = NULL;
 	};
 

@@ -24,12 +24,14 @@ int main()
     //CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
     //graph1.AddFilter(fpHistogram);
 
+    CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
+    graph1.AddFilter(canny);
 
     //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
     //graph1.AddFilter(fpSimple);
 
-    //CvFilter fpRunningStats(new FPRunningStats("RunningStats", graph1.gd, true));
-    //graph1.AddFilter(fpRunningStats);
+    CvFilter fpRunningStats(new ImageStatistics("RunningStats", graph1.gd, true));
+    graph1.AddFilter(fpRunningStats);
 
 
 

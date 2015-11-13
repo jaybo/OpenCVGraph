@@ -30,8 +30,8 @@ namespace openCVGraph
 	bool Filter::init(GraphData& data)
 	{
 		if (m_showView) {
-			view = ZoomView(m_CombinedName);
-            view.Init(m_width, m_height, m_MouseCallback);
+            m_ZoomView = ZoomView(m_CombinedName);
+            m_ZoomView.Init(m_width, m_height, m_MouseCallback);
 		}
 
 		return true;
@@ -58,7 +58,7 @@ namespace openCVGraph
     bool Filter::processKeyboard(GraphData& data, int key)
     {
         if (m_showView) {
-            return view.KeyboardProcessor(key);
+            return m_ZoomView.KeyboardProcessor(key);
         }
         return true;
     }
