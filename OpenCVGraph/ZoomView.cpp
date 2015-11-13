@@ -10,7 +10,7 @@ namespace openCVGraph
 	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
 	{
 		ZoomView* view = (ZoomView*)param;
-		cout << view->Name << endl;
+		cout << view->m_ZoomViewName << endl;
 
         if (view->m_mouseCallback) {
             // call a user callback if supplied
@@ -101,8 +101,8 @@ namespace openCVGraph
 
 	ZoomView::ZoomView(const string &name)
 	{
-		Name = name;
-		cout << Name << endl;
+        m_ZoomViewName = name;
+		cout << m_ZoomViewName << endl;
 	}
 
 	ZoomView::~ZoomView()
@@ -114,12 +114,12 @@ namespace openCVGraph
     {
         m_winWidth = width;
         m_winHeight = height;
-        cv::namedWindow(Name, WINDOW_AUTOSIZE);
-        cv::resizeWindow(Name, width, height);
+        cv::namedWindow(m_ZoomViewName, WINDOW_AUTOSIZE);
+        cv::resizeWindow(m_ZoomViewName, width, height);
         if (mouseCallback) {
             m_mouseCallback = mouseCallback;
         }
-        cv::setMouseCallback(Name, (cv::MouseCallback) DefaultMouseProcessor, this);
+        cv::setMouseCallback(m_ZoomViewName, (cv::MouseCallback) DefaultMouseProcessor, this);
     }
     
     bool ZoomView::KeyboardProcessor(int key)
@@ -163,7 +163,7 @@ namespace openCVGraph
             // MatZoomed += matOverlay;
             bitwise_or(MatZoomed, matOverlay, MatZoomed);
         }
-        cv::imshow(Name, MatZoomed);
+        cv::imshow(m_ZoomViewName, MatZoomed);
 	}
 
 

@@ -18,6 +18,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
+#include <boost/log/trivial.hpp>
+
 
 // OpenCV
 #include <opencv2/opencv.hpp>
@@ -32,7 +34,7 @@
 #include "util.h"
 #include "GraphData.h"
 #include "ZoomView.h"
-#include "Filter.h"
+#include "Filter.hpp"
 #include "GraphManager.h"
 #include "Capture/CamDefault.h"
 

@@ -176,8 +176,9 @@ namespace openCVGraph
 
 
 
-    void  CamDefault::saveConfig(FileStorage& fs, GraphData& data)
+    void  CamDefault::saveConfig(FileStorage& fs, GraphData& data) 
     {
+        Filter::saveConfig(fs, data);
         cvWriteComment((CvFileStorage *) *fs, "Set camera_index to -1 to skip use of camera", 0);
         fs << "camera_index" << camera_index;
         cvWriteComment((CvFileStorage *)*fs, ".tiff, .png, or .jpg", 0);
@@ -186,8 +187,9 @@ namespace openCVGraph
         fs << "image_dir" << image_dir.c_str();
     }
 
-    void  CamDefault::loadConfig(FileNode& fs, GraphData& data)
+    void  CamDefault::loadConfig(FileNode& fs, GraphData& data) 
     {
+        Filter::loadConfig(fs, data);
         fs["camera_index"] >> camera_index;
         fs["image_name"] >> image_name;
         fs["movie_name"] >> movie_name;

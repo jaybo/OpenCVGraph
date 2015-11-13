@@ -23,7 +23,7 @@ namespace openCVGraph
 		
 
 	private:
-		std::string Name;
+		std::string m_ZoomViewName;
 		int m_cx = 0, m_cy = 0;     // center of view (in view image coords) (0,0 is center of view)
         int m_dx = 0, m_dy = 0;     // drag delta (window coords)
         int m_sx, m_sy;             // mouse pos at start of drag (window coords)

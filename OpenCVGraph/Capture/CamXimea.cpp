@@ -180,8 +180,9 @@ namespace openCVGraph
 
 
 
-    void  CamXimea::saveConfig(FileStorage& fs, GraphData& data)
+    void  CamXimea::saveConfig(FileStorage& fs, GraphData& data) 
     {
+        Filter::saveConfig(fs, data);
         fs << "camera_index" << camera_index;
         fs << "minimum_buffers" << m_minimumBuffers;
         fs << "focus" << m_focalDistance;
@@ -196,8 +197,9 @@ namespace openCVGraph
         fs << "show_aperature_slider" << m_showApertureSlider;
     }
 
-    void  CamXimea::loadConfig(FileNode& fs, GraphData& data)
+    void  CamXimea::loadConfig(FileNode& fs, GraphData& data) 
     {
+        Filter::loadConfig(fs, data);
         fs["camera_index"] >> camera_index;
         fs["minimum_buffers"] >> m_minimumBuffers;
         fs["focus"] >> m_focalDistance;

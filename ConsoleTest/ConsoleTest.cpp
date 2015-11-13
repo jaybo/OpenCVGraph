@@ -2,13 +2,20 @@
 //
 
 #include "stdafx.h"
+#include <boost/log/common.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/logger.hpp>
+#include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/sources/severity_logger.hpp>
 
 
 using namespace std;
 using namespace openCVGraph;
 
+
 int main()
 {
+    // boost::log::sources::severity_logger< severity_level > lg;
 
     // Create a graph
     GraphManager graph1("Graph1");
@@ -17,7 +24,6 @@ int main()
     // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
     CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
-
 
     
     // Add processors
@@ -30,7 +36,7 @@ int main()
     //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
     //graph1.AddFilter(fpSimple);
 
-    CvFilter fpRunningStats(new ImageStatistics("RunningStats", graph1.gd, true));
+    CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd, true));
     graph1.AddFilter(fpRunningStats);
 
 

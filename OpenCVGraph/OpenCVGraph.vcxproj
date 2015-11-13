@@ -158,9 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
-    <ClInclude Include="Filter.h" />
     <ClInclude Include="Capture\CamXimea.h" />
     <ClInclude Include="Capture\CamDefault.h" />
+    <ClInclude Include="Filter.hpp" />
     <ClInclude Include="Filters\Canny.hpp" />
     <ClInclude Include="Filters\CudaHistogram.hpp" />
     <ClInclude Include="Filters\ImageStatistics.hpp" />
@@ -188,7 +188,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Capture\CamXimea.cpp" />
     <ClCompile Include="Capture\CamDefault.cpp" />
     <ClCompile Include="Filters\Simple.hpp" />

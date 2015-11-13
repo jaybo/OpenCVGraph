@@ -6,12 +6,6 @@
 
 namespace fs = ::boost::filesystem;
 
-#include "..\Property.h"
-#include "..\GraphData.h"
-#include "..\Config.h"
-#include "..\Filter.h"
-#include "..\ZoomView.h"
-
 namespace openCVGraph
 {
     // General image source:

@@ -27,6 +27,13 @@ namespace openCVGraph
 
         // The settings file name combines both the GraphName and the Filter together
         m_persistFile = config + "\\" + m_Name + ".yml";
+
+        //logging::core::get()->set_filter
+        //    (
+        //        logging::trivial::severity >= logging::trivial::info
+        //        );
+
+
         std::cout << "GraphManager() file: " << m_persistFile << std::endl;
     }
 
@@ -60,12 +67,16 @@ namespace openCVGraph
 
         // MAKE ONE PASS THROUGH THE GRAPH
         for (int i = 0; i < m_Filters.size(); i++) {
-            m_Filters[i]->tic();
+            Processor filter = m_Filters[i];
+            filter->tic();
             // Q: Bail only at end of loop or partway through?
             // Currently, complete the loop
-            fOK &= m_Filters[i]->process(gd);
-            m_Filters[i]->toc();
-            m_Filters[i]->UpdateView(gd);
+            if (filter->IsEnabled())
+            {
+                fOK &= filter->process(gd);
+            }
+            filter->toc();
+            filter->UpdateView(gd);
         }
         gd.m_FrameNumber++;
 
@@ -84,7 +95,7 @@ namespace openCVGraph
         for (int i = 0; i < m_Filters.size(); i++) {
             fOK &= m_Filters[i]->init(gd);
             if (!fOK) {
-                cout << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()" << endl;
+                BOOST_LOG_TRIVIAL(error) << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
             }
         }
 
@@ -163,17 +174,11 @@ namespace openCVGraph
 
         // Save state for each filter
         for (int i = 0; i < m_Filters.size(); i++) {
-            cout << m_Filters[i]->Name;
-            fs << m_Filters[i]->Name.c_str() << "{";
+            Processor filter = m_Filters[i];
+            cout << filter->m_FilterName;
+            fs << filter->m_FilterName.c_str() << "{";
             // Persist the filter data
-            m_Filters[i]->saveConfig(fs, gd);
-            // Save how long the filter took to process its last sample
-            // Help, take me back to C#!!! or even javascript
-            std::stringstream strDuration;
-            strDuration << fixed << setprecision(1) << m_Filters[i]->m_DurationMS;
-            const std::string tmp = strDuration.str();
-            const char* cstr = tmp.c_str();
-            fs << "LastDurationMS" << cstr;
+            filter->saveConfig(fs, gd);
             fs << "}";
         }
         fs.release();
@@ -188,9 +193,10 @@ namespace openCVGraph
         node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
 
         for (int i = 0; i < m_Filters.size(); i++) {
-            auto node = fs[m_Filters[i]->Name.c_str()];
+            Processor filter = m_Filters[i];
+            auto node = fs[filter->m_FilterName.c_str()];
             if (!node.empty()) {
-                m_Filters[i]->loadConfig(node, gd);
+                filter->loadConfig(node, gd);
             }
         }
         fs.release();
