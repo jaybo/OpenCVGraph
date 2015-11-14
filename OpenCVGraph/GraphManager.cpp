@@ -128,7 +128,7 @@ namespace openCVGraph
 
             // Callback to client app?
             if (m_GraphCallback) {
-                fOK = (*m_GraphCallback)(gd);
+                fOK = (*m_GraphCallback)(this);
             }
         }
 

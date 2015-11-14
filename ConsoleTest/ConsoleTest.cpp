@@ -12,20 +12,42 @@
 using namespace std;
 using namespace openCVGraph;
 
+bool graphCallback(GraphManager* graphManager) {
+    cin.sync_with_stdio(false);
+    auto count = std::cin.rdbuf()->in_avail();
+    if (count > 0) {
+        auto key = std::getchar();
+        if (key == 'r' || key == 'R') {
+            graphManager->GotoState(GraphManager::GraphState::Run);
+        }
+        else if (key == 's' || key == 'S') {
+            graphManager->GotoState(GraphManager::GraphState::Stop);
+        }
+        else if (key == 'P' || key == 'P') {
+            graphManager->GotoState(GraphManager::GraphState::Pause);
+        }
+        else if (key == ' ') {
+            graphManager->Step();
+        }
+
+    }
+
+    return true;
+}
 
 int main()
 {
     // boost::log::sources::severity_logger< severity_level > lg;
 
     // Create a graph
-    GraphManager graph1("Graph1");
+    GraphManager graph1("Graph1", true, graphCallback);
 
     // Add an image source (could be camera, single image, directory, noise, movie)
     // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
     CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
     graph1.AddFilter(fpImage1);
 
-    
+
     // Add processors
     //CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
     //graph1.AddFilter(fpHistogram);
@@ -62,7 +84,7 @@ int main()
     //randu(b, Scalar::all(0), Scalar::all(255));
     //randu(a, Scalar::all(0), Scalar::all(64000));
 
-    
+
     ZoomView view1("viewA", a, 1024, 1024, 100, 100);
     ZoomView view2("viewB", b, 300, 300, 400,400);
 

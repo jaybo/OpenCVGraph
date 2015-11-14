@@ -7,10 +7,10 @@ using namespace std;
 namespace openCVGraph
 {
     typedef std::shared_ptr < Filter> Processor;
-    typedef bool(*GraphCallback)(GraphData data);
+    class GraphManager;
+    typedef bool(*GraphCallback)(GraphManager* graphManager);
 
     class  GraphManager {
-
 	public:
         enum GraphState {
             Stop,
@@ -63,4 +63,7 @@ namespace openCVGraph
         void saveConfig();
         void loadConfig();
     };
+
+
+
 }
