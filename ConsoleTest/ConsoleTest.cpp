@@ -42,24 +42,32 @@ int main()
     // Create a graph
     GraphManager graph1("Graph1", true, graphCallback);
 
-    // Add an image source (could be camera, single image, directory, noise, movie)
-    // CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
-    CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
-    graph1.AddFilter(fpImage1);
+    if (true) {
+        // Add an image source (could be camera, single image, directory, noise, movie)
+         CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
+         graph1.AddFilter(fpImage1);
+
+         CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
+         graph1.AddFilter(canny);
 
 
-    // Add processors
-    //CvFilter fpHistogram(new CudaHistogram("CudaHistogram", graph1.gd, true));
-    //graph1.AddFilter(fpHistogram);
+    }
+    else {
+        CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
+        graph1.AddFilter(fpImage1);
 
-    CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
-    graph1.AddFilter(canny);
+        CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
+        graph1.AddFilter(canny);
 
-    //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
-    //graph1.AddFilter(fpSimple);
+        CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
+        graph1.AddFilter(fpSimple);
 
-    CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd, true));
-    graph1.AddFilter(fpRunningStats);
+        CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd, true));
+        graph1.AddFilter(fpRunningStats);
+    }
+
+
+
 
 
 

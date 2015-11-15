@@ -159,6 +159,12 @@ namespace openCVGraph
         // Copy imCapture to imResult
         graphData.m_imCapture.copyTo(graphData.m_imResult);
 
+#define WITH_CUDA
+#ifdef WITH_CUDA
+        cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
+        graphData.m_imCaptureGpu8U.upload(graphData.m_imCapture8U);
+        cv::cuda::lshift(graphData.m_imCapture8U, 8, graphData.m_imCapture8U);
+#endif
 		if (m_showView && fOK) {
             m_imView = graphData.m_imCapture;
 		}
