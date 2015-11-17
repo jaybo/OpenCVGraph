@@ -40,7 +40,6 @@
 
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
-#include "Filters/CudaHistogram.hpp"
 #include "Filters/Canny.hpp"
 
 // Camera specific includes
