@@ -39,6 +39,7 @@ namespace openCVGraph
         cv::Mat m_imResult;                 // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
 
         // Cuda!
+        bool m_UseCuda = true;
         cv::cuda::GpuMat m_imCaptureGpu16U;
         cv::cuda::GpuMat m_imCaptureGpu32F;
         cv::cuda::GpuMat m_imCaptureGpu8U;

@@ -90,6 +90,9 @@ namespace openCVGraph
         m_Stepping = false;
 
         loadConfig();
+        
+        // Let the filters know whether or not to use Cuda
+        gd.m_UseCuda = m_UseCuda;
 
         // Init everybody
         for (int i = 0; i < m_Filters.size(); i++) {
@@ -170,6 +173,7 @@ namespace openCVGraph
         // Persist the filter data
         fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
         fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
+        fs << "UseCuda" << m_UseCuda;
         fs << "}";
 
         // Save state for each filter
@@ -191,6 +195,8 @@ namespace openCVGraph
 
         auto node = fs["GraphManager"];
         node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
+
+        node["UseCuda"] >> m_UseCuda;
 
         for (int i = 0; i < m_Filters.size(); i++) {
             Processor filter = m_Filters[i];

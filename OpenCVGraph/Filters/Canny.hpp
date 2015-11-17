@@ -23,10 +23,14 @@ namespace openCVGraph
 
         bool Canny::process(GraphData& graphData)
         {
-            auto canny = cuda::createCannyEdgeDetector(100, 200);
-            canny->detect(graphData.m_imCaptureGpu8U, cannyOut8U);
-            cannyOut8U.download(graphData.m_imResult);
-
+            if (graphData.m_UseCuda) {
+                auto canny = cuda::createCannyEdgeDetector(100, 200);
+                canny->detect(graphData.m_imCaptureGpu8U, cannyOut8U);
+                cannyOut8U.download(graphData.m_imResult);
+            }
+            else {
+                cv::Canny(graphData.m_imCapture8U, graphData.m_imResult, 100, 200);
+            }
             if (m_showView) {
                 graphData.m_imResult.copyTo(m_imView);
             }

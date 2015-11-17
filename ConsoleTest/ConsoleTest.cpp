@@ -42,7 +42,7 @@ int main()
     // Create a graph
     GraphManager graph1("Graph1", true, graphCallback);
 
-    if (false) {
+    if (true) {
         // Add an image source (could be camera, single image, directory, noise, movie)
          CvFilter cap1(new CamDefault("CamDefault", graph1.gd));
          graph1.AddFilter(cap1);
@@ -50,7 +50,7 @@ int main()
          CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
          graph1.AddFilter(canny);
 
-
+         graph1.UseCuda(false);
     }
     else {
         CvFilter cam2(new CamXimea("CamXimea", graph1.gd));

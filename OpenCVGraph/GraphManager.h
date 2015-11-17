@@ -47,6 +47,12 @@ namespace openCVGraph
             else return false;
         }
 
+        void UseCuda(bool useCuda) {
+            if (m_GraphState == GraphState::Stop) {
+                m_UseCuda = useCuda;
+            }
+        }
+
 	private:
 		boost::thread thread;
         GraphState m_GraphState;
@@ -56,6 +62,7 @@ namespace openCVGraph
         GraphCallback m_GraphCallback;
         int m_CudaEnabledDeviceCount;
         int m_CudaDeviceIndex = 1;
+        bool m_UseCuda = false;
 
         bool ProcessLoop();
 		bool ProcessOne(int key);
