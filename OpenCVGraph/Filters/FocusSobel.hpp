@@ -16,8 +16,16 @@ namespace openCVGraph
     {
     public:
 
+        static void FocusSobel::SliderCallback(int pos, void * userData) {
+            FocusSobel* filter = (FocusSobel *)userData;
+            if (!(pos & 1)) {
+                pos++;      // kernels must be odd
+            }
+            filter->KernelSize(pos);
+        }
+
         FocusSobel::FocusSobel(std::string name, GraphData& graphData,
-            bool showView = true, int width = 512, int height = 512)
+            int width = 512, int height = 512)
             : Filter(name, graphData, width, height)
         {
             // To write on the overlay, you must allocate it.
@@ -25,24 +33,38 @@ namespace openCVGraph
             m_imViewOverlay = Mat(height, width, CV_8U);
         }
 
-        static void FocusSobel::SliderCallback(int pos, void * userData) {
-            FocusSobel* filter = (FocusSobel *)userData;
-            filter->KernelSize(pos);
-        }
-
-        bool FocusSobel::init(GraphData graphData) {
+        bool FocusSobel::init(GraphData& graphData) override
+        {
             Filter::init(graphData);
             if (m_showView) {
                 if (m_showSlider) {
-                    createTrackbar("Kernel", m_CombinedName, &m_kSize, 20, SliderCallback, this);
+                    createTrackbar("Kernel", m_CombinedName, &m_kSize, 7, SliderCallback, this);
                 }
             }
+
+            return true;
         }
 
-        bool FocusSobel::process(GraphData& graphData)
+        bool FocusSobel::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
+                Scalar s;
+                graphData.m_imResultGpu16U = graphData.m_imCaptureGpu16U;
+                auto nPoints = graphData.m_imCaptureGpu16U.size().area();
 
+                // X
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCaptureGpu16U.type(), graphData.m_imResultGpu16U.type(), 1, 0, m_kSize);
+                m_cudaFilter->apply(graphData.m_imCaptureGpu16U, graphData.m_imResultGpu16U);
+                s = cv::cuda::sum(graphData.m_imResultGpu16U);
+                meanX = s[0] / nPoints;
+
+                // Y
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCaptureGpu16U.type(), graphData.m_imResultGpu16U.type(), 0, 1, m_kSize);
+                m_cudaFilter->apply(graphData.m_imCaptureGpu16U, graphData.m_imResultGpu16U);
+                s = cv::cuda::sum(graphData.m_imResultGpu16U);
+                meanY = s[0] / nPoints;
+
+                meanXY = (meanX + meanY) / 2;
             }
             else {
                 cv::Sobel(graphData.m_imCapture, m_imSx,
@@ -57,7 +79,6 @@ namespace openCVGraph
                 meanX = cv::mean(m_imSx)[0];
                 meanY = cv::mean(m_imSy)[0];
                 meanXY = (meanX + meanY) / 2;
-
             }
             if (m_showView) {
                 graphData.m_imCapture8U.copyTo(m_imView);
@@ -66,7 +87,8 @@ namespace openCVGraph
             return true;  // if you return false, the graph stops
         }
 
-        void FocusSobel::DrawOverlay(GraphData graphData) {
+        void FocusSobel::DrawOverlay(GraphData graphData) 
+        {
             m_imViewOverlay = 0;
             std::ostringstream str;
 
@@ -74,7 +96,7 @@ namespace openCVGraph
             double scale = 1.0;
 
             str.str("");
-            str << "   mean     X      Y";
+            str << "  meanXY    X      Y";
             DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 50), scale);
 
             str.str("");
@@ -104,7 +126,7 @@ namespace openCVGraph
         Mat m_imSx;
         Mat m_imSy;
         double meanX, meanY, meanXY;
-        //cv::cuda::GpuMat foo8U;
+        cv::Ptr<cv::cuda::Filter> m_cudaFilter;
         int m_kSize = 3;
         bool m_showSlider = true;
 

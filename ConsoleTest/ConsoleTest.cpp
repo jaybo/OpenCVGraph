@@ -68,7 +68,7 @@ int main()
         CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd));
         graph1.AddFilter(fpRunningStats);
 
-        CvFilter fFocusSobel(new FocusSobel("FocusSobel", graph1.gd, true, 512, 200));
+        CvFilter fFocusSobel(new FocusSobel("FocusSobel", graph1.gd, 512, 150));
         graph1.AddFilter(fFocusSobel);
 
     }

@@ -45,6 +45,10 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imCaptureGpu32F;
         cv::cuda::GpuMat m_imCaptureGpu8U;
 
+        cv::cuda::GpuMat m_imResultGpu8U;
+        cv::cuda::GpuMat m_imResultGpu16U;
+        cv::cuda::GpuMat m_imResultGpu32F;
+
         // Bag for random data
         GraphProperties m_Properties;
         
