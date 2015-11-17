@@ -19,7 +19,7 @@ namespace openCVGraph
         Filter::Filter(std::string name, GraphData& data, bool showView = false, int width = 512, int height=512)
             : m_FilterName(name), m_showView(showView),
             m_width(width), m_height(height),
-            m_firstTime(true), m_DurationMS(0), frameToStop(0)
+            m_firstTime(true), m_DurationMS(0)
         {
             BOOST_LOG_TRIVIAL(info) << "Filter() " << m_FilterName;
 
@@ -55,9 +55,9 @@ namespace openCVGraph
             return true;
         }
 
-        virtual void UpdateView(GraphData graphData) {
+        virtual void UpdateView(GraphData& graphData) {
             if (m_showView) {
-                m_ZoomView.UpdateView(m_imView, m_imViewOverlay, graphData);
+                m_ZoomView.UpdateView(m_imView, m_imViewOverlay, graphData, m_ZoomViewLockIndex);
             }
         };
 
@@ -88,20 +88,42 @@ namespace openCVGraph
         {
             m_TimeEnd = static_cast<double>(cv::getTickCount());
             m_DurationMS = (m_TimeEnd - m_TimeStart) / m_TickFrequency * 1000;
-
+            m_DurationMSSum += m_DurationMS;
+            m_DurationMSMax = max(m_DurationMS, m_DurationMSMax);
+            m_DurationMSMin = min(m_DurationMS, m_DurationMSMin);
             BOOST_LOG_TRIVIAL(info) << m_FilterName << "\ttime(MS): " << std::fixed << std::setprecision(1) << m_DurationMS;
         }
 
         virtual void Filter::saveConfig(FileStorage& fs, GraphData& data)
         {
-            // Save how long the filter took to process its last sample
-            // Help, take me back to C#!!! or even javascript
-            std::stringstream strDuration;
-            strDuration << fixed << setprecision(1) << m_DurationMS;
-            const std::string tmp = strDuration.str();
-            const char* cstr = tmp.c_str();
-            fs << "LastDurationMS" << cstr;
             fs << "IsEnabled" << m_Enabled;
+            fs << "ZoomViewLockIndex" << m_ZoomViewLockIndex;
+
+            // Save how long the filter took to process its last sample, mean, min, max
+            // Help, take me back to C#!!! or even javascript
+            std::stringstream strT;
+            std::string tmp;
+            strT << fixed << setprecision(1);
+
+            strT << (m_DurationMSSum / (( data.m_FrameNumber == 0) ? 1 : data.m_FrameNumber));
+            tmp = strT.str();
+            fs << "Duration_MS_Mean" << tmp.c_str();
+
+            strT.str("");
+            strT << m_DurationMSMin;
+            tmp = strT.str();
+            fs << "Duration_MS_Min" << tmp.c_str();
+
+            strT.str("");
+            strT << m_DurationMSMax;
+            tmp = strT.str();
+            fs << "Duration_MS_Max" << tmp.c_str();
+
+            strT.str("");
+            strT <<  m_DurationMS;
+            tmp = strT.str();
+            fs << "Duration_MS_Last" << tmp.c_str();
+
         }
 
         virtual void Filter::loadConfig(FileNode& fs, GraphData& data)
@@ -109,6 +131,10 @@ namespace openCVGraph
             auto en = fs["IsEnabled"];
             if (!en.empty()) {
                 en >> m_Enabled;
+            }
+            fs ["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
+            if (m_ZoomViewLockIndex >= MAX_ZOOMVIEW_LOCKS) {
+                m_ZoomViewLockIndex = -1;
             }
         }
 
@@ -119,12 +145,15 @@ namespace openCVGraph
 
         bool Filter::IsEnabled() { return m_Enabled; }
 
-		long frameToStop;
-        
         std::string m_FilterName;
 		std::string m_CombinedName; // Graph-Filter name
 
-        double m_DurationMS;
+        double m_DurationMS = 0;                // tictoc of last process
+        double m_DurationMSSum = 0;             // sum of all durations
+        double m_DurationMSMin = 9999;             
+        double m_DurationMSMax = 0;
+
+        int m_ZoomViewLockIndex = -1;
 
 	protected:
 		bool m_firstTime = true;

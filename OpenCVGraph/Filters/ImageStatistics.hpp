@@ -52,16 +52,19 @@ namespace openCVGraph
         void  ImageStatistics::saveConfig(FileStorage& fs, GraphData& data)
         {
             Filter::saveConfig(fs, data);
+            fs << "use_Cuda" << m_UseCuda;
         }
 
         void  ImageStatistics::loadConfig(FileNode& fs, GraphData& data)
         {
             Filter::loadConfig(fs, data);
+            fs["use_Cuda"] >> m_UseCuda;
         }
 
 
     private:
         int m_n;
+        bool m_UseCuda = true;
         double dCapMax, dCapMin;
         double dMean, dMeanMin, dMeanMax, dStdDevMean, dStdDevMin, dStdDevMax, dVarMin, dVarMax;
         cv::Mat m_oldM, m_newM, m_oldS, m_newS, m_capF, m_imVariance, m_dOld, m_dNew;
@@ -145,9 +148,6 @@ namespace openCVGraph
 
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
-
-            //cv::cuda::rectStdDev
-
             cv::Point ptMin, ptMax;
             cv::cuda::minMaxLoc(graphData.m_imCaptureGpu32F, &dCapMin, &dCapMax, &ptMin, &ptMax);
 
@@ -166,11 +166,11 @@ namespace openCVGraph
             cv::Scalar varMean, varStd;
             // argh, only works with 8bpp!!!
             //cv::cuda::meanStdDev(m_imVarianceGpu, varMean, varStd);
-            varMean = cv::cuda::sum(m_imVarianceGpu);
-            dMean = varMean[0] / nPoints;
+            sStdDev = cv::cuda::sum(m_imVarianceGpu);
+            double meanVariance = sStdDev[0] / nPoints;
 
             cv::cuda::minMaxLoc(m_imVarianceGpu, &dVarMin, &dVarMax, &ptMin, &ptMax);
-            dStdDevMean = sqrt(dMean);
+            dStdDevMean = sqrt(meanVariance);
             dStdDevMin = sqrt(dVarMin);
             dStdDevMax = sqrt(dVarMax);
         }
@@ -189,12 +189,10 @@ namespace openCVGraph
 
             m_n++;
 
-            //Accumulate(graphData);
-            AccumulateGpu(graphData);
+            m_UseCuda ? AccumulateGpu(graphData) : Accumulate(graphData);
 
             if (m_n >= 2) {
-                // Calc(graphData);
-                CalcGpu(graphData);
+                m_UseCuda ? CalcGpu(graphData) : Calc(graphData);
                 DrawOverlay(graphData);
             }
             return fOK;
@@ -229,7 +227,6 @@ namespace openCVGraph
 
             // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
         }
-
 
     };
 }

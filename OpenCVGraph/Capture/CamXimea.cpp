@@ -111,7 +111,7 @@ namespace openCVGraph
 
                 if (m_showView) {
                     if (m_showExposureSlider) {
-                        createTrackbar("Exposure", m_CombinedName, &m_exposure, 500000, ExposureCallback, this);
+                        createTrackbar("Exposure", m_CombinedName, &m_exposure, 200000, ExposureCallback, this);
                     }
                     if (m_showGainSlider) {
                         createTrackbar("Gain", m_CombinedName, &m_gain, 10000, GainCallback, this);

@@ -6,10 +6,13 @@ using namespace cv;
 
 namespace openCVGraph
 {
+    ZoomView * g_LastActiveZoomView = NULL;
 
 	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
 	{
 		ZoomView* view = (ZoomView*)param;
+        g_LastActiveZoomView = view;
+
 		cout << view->m_ZoomViewName << endl;
 
         if (view->m_mouseCallback) {
@@ -49,11 +52,11 @@ namespace openCVGraph
 			cout << d << endl;
 			if (d>0)
 			{
-				view->ZoomFactor++; 
+				view->m_ZoomFactor++; 
 			}
 			else
 			{
-				view->ZoomFactor--;
+				view->m_ZoomFactor--;
 			}
 			break;
 
@@ -68,12 +71,12 @@ namespace openCVGraph
 		case cv::EVENT_MOUSEMOVE:
 			cout << x << ", " << y << endl;
             if (view->m_MouseLButtonDown) {
-                int absZoom = abs(view->ZoomFactor);
-                if (view->ZoomFactor < 0) {
+                int absZoom = abs(view->m_ZoomFactor);
+                if (view->m_ZoomFactor < 0) {
                     view->m_dx = (x - view->m_sx) * absZoom;
                     view->m_dy = (y - view->m_sy) * absZoom;
                 }
-                else  if (view->ZoomFactor > 0) {
+                else  if (view->m_ZoomFactor > 0) {
                     view->m_dx = (int) ((x - view->m_sx) / (float) absZoom);
                     view->m_dy = (int) ((y - view->m_sy) / (float) absZoom);
                 }
@@ -130,8 +133,27 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::UpdateView(Mat mat, Mat matOverlay, GraphData graphData)
+	void ZoomView::UpdateView(Mat mat, Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex)
 	{
+        if (zoomWindowLockIndex >= 0) {
+            if (this == g_LastActiveZoomView) {
+                // We are the active view, so save our coords
+                graphData.ZoomWindowPositions[zoomWindowLockIndex].x = m_cx;
+                graphData.ZoomWindowPositions[zoomWindowLockIndex].y = m_cy;
+                graphData.ZoomWindowPositions[zoomWindowLockIndex].dx = m_dx;
+                graphData.ZoomWindowPositions[zoomWindowLockIndex].dy = m_dy;
+                graphData.ZoomWindowPositions[zoomWindowLockIndex].zoomFactor = m_ZoomFactor;
+            }
+            else {
+                // We aren't the active view, so sync to somebody else
+                m_cx = graphData.ZoomWindowPositions[zoomWindowLockIndex].x;
+                m_cy = graphData.ZoomWindowPositions[zoomWindowLockIndex].y;
+                m_dx = graphData.ZoomWindowPositions[zoomWindowLockIndex].dx;
+                m_dy = graphData.ZoomWindowPositions[zoomWindowLockIndex].dy;
+                m_ZoomFactor = graphData.ZoomWindowPositions[zoomWindowLockIndex].zoomFactor;
+            }
+        }
+
         MatView = mat;
         if (firstTime) {
             firstTime = false;
@@ -140,17 +162,17 @@ namespace openCVGraph
         }
 
         int srcHeight, srcWidth;
-        if (ZoomFactor >= 1) {
-            srcHeight = (int)((float)m_winHeight / ZoomFactor);
-            srcWidth = (int)((float)m_winWidth / ZoomFactor);
+        if (m_ZoomFactor >= 1) {
+            srcHeight = (int)((float)m_winHeight / m_ZoomFactor);
+            srcWidth = (int)((float)m_winWidth / m_ZoomFactor);
         }
-        else if (ZoomFactor == 0) {
+        else if (m_ZoomFactor == 0) {
             srcHeight = m_winHeight;
             srcWidth = m_winWidth;
         }
         else {
-            srcHeight = m_winHeight * abs(ZoomFactor);
-            srcWidth = m_winWidth * abs(ZoomFactor);
+            srcHeight = m_winHeight * abs(m_ZoomFactor);
+            srcWidth = m_winWidth * abs(m_ZoomFactor);
         }
 
         getRectSubPix(MatView, Size(srcWidth, srcHeight), 
@@ -160,8 +182,12 @@ namespace openCVGraph
 
         // merge in the (usually) text overlay
         if (!matOverlay.empty()) {
-            // MatZoomed += matOverlay;
-            bitwise_or(MatZoomed, matOverlay, MatZoomed);
+            // make a black outline to the text
+            matOverlay.copyTo(MatShadow);
+            dilate(MatShadow, MatShadow, dilateElement);
+            bitwise_not(MatShadow, MatShadow);
+            bitwise_and(MatShadow, MatZoomed, MatZoomed);
+            bitwise_or(matOverlay, MatZoomed, MatZoomed);
         }
         cv::imshow(m_ZoomViewName, MatZoomed);
 	}

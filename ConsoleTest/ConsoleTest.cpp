@@ -42,7 +42,7 @@ int main()
     // Create a graph
     GraphManager graph1("Graph1", true, graphCallback);
 
-    if (true) {
+    if (false) {
         // Add an image source (could be camera, single image, directory, noise, movie)
          CvFilter fpImage1(new CamDefault("CamDefault", graph1.gd, true));
          graph1.AddFilter(fpImage1);
@@ -56,11 +56,11 @@ int main()
         CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
         graph1.AddFilter(fpImage1);
 
-        CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
-        graph1.AddFilter(canny);
+        //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
+        //graph1.AddFilter(canny);
 
-        CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
-        graph1.AddFilter(fpSimple);
+        //CvFilter fpSimple(new Simple("Simple", graph1.gd, true));
+        //graph1.AddFilter(fpSimple);
 
         CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd, true));
         graph1.AddFilter(fpRunningStats);
