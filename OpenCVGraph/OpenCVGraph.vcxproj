@@ -164,7 +164,6 @@
     <ClInclude Include="Capture\CamDefault.h" />
     <ClInclude Include="Filter.hpp" />
     <ClInclude Include="Filters\Canny.hpp" />
-    <ClInclude Include="Filters\CudaHistogram.hpp" />
     <ClInclude Include="Filters\ImageStatistics.hpp" />
     <ClInclude Include="OpenCVGraph.h" />
     <ClInclude Include="Property.h" />

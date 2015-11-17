@@ -13,8 +13,8 @@ namespace openCVGraph
     class ImageStatistics : public Filter
     {
     public:
-        ImageStatistics(std::string name, GraphData& graphData, bool showView, int width = 512, int height = 512)
-            : Filter(name, graphData, showView, width, height)
+        ImageStatistics(std::string name, GraphData& graphData, int width = 512, int height = 512)
+            : Filter(name, graphData, width, height)
         {
             // To write on the overlay, you must allocate it.
             // This indicates to the renderer the need to merge it with the final output image.

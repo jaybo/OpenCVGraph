@@ -17,7 +17,7 @@ namespace openCVGraph
 
         Simple::Simple(std::string name, GraphData& graphData,
             bool showView = true, int width = 512, int height = 512)
-            : Filter(name, graphData, showView, width, height)
+            : Filter(name, graphData, width, height)
         {
         }
 

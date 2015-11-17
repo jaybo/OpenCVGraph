@@ -16,7 +16,7 @@ namespace openCVGraph
     //   else create a noise image
 
     CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height)
-        : openCVGraph::Filter(name, graphData, showView, width, height)
+        : openCVGraph::Filter(name, graphData, width, height)
     {
         source = Noise;
     }

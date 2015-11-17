@@ -16,10 +16,8 @@ namespace openCVGraph
 	{
 	public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, bool showView = false, int width = 512, int height=512)
-            : m_FilterName(name), m_showView(showView),
-            m_width(width), m_height(height),
-            m_firstTime(true), m_DurationMS(0)
+        Filter::Filter(std::string name, GraphData& data, int width = 512, int height=512)
+            : m_FilterName(name), m_width(width), m_height(height)
         {
             BOOST_LOG_TRIVIAL(info) << "Filter() " << m_FilterName;
 
@@ -41,7 +39,7 @@ namespace openCVGraph
                 m_ZoomView = ZoomView(m_CombinedName);
                 m_ZoomView.Init(m_width, m_height, m_MouseCallback);
             }
-
+            m_IsInitialized = true;
             return true;
         }
 
@@ -65,6 +63,7 @@ namespace openCVGraph
         // Deallocate resources
         virtual bool Filter::fini(GraphData& data)
         {
+            m_IsInitialized = false;
             return true;
         }
 
@@ -142,6 +141,14 @@ namespace openCVGraph
         {
             m_Enabled = enable;
         }
+        
+        /// Can only be called before the graph is first started
+        virtual void Filter::EnableZoomView(bool enable)
+        {
+            if (!m_IsInitialized) {
+                m_showView = enable;
+            }
+        }
 
         bool Filter::IsEnabled() { return m_Enabled; }
 
@@ -157,8 +164,9 @@ namespace openCVGraph
 
 	protected:
 		bool m_firstTime = true;
-		bool m_showView = false;
+		bool m_showView = true;
         bool m_Enabled = true;
+        bool m_IsInitialized = false;
         double m_TimeStart;
         double m_TimeEnd;
 
