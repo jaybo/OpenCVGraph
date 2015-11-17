@@ -76,7 +76,10 @@ namespace openCVGraph
                 fOK &= filter->process(gd);
             }
             filter->toc();
-            filter->UpdateView(gd);
+            if (filter->IsEnabled())
+            {
+                filter->UpdateView(gd);
+            }
         }
         gd.m_FrameNumber++;
 

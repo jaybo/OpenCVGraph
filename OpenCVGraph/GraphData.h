@@ -36,6 +36,7 @@ namespace openCVGraph
 
 		cv::Mat m_imCapture;                // Capture image.  Don't modify this except in capture filters.
         cv::Mat m_imCapture8U;              // 8 bit monochrome version
+        cv::Mat m_imCapture16U;             // 16 bit monochrome version
         cv::Mat m_imResult;                 // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
 
         // Cuda!

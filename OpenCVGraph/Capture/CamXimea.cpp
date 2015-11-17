@@ -152,6 +152,10 @@ namespace openCVGraph
         if (graphData.m_imCapture.depth() == CV_16U) {
             // make 16bpp full range
             graphData.m_imCapture *= 16;
+            graphData.m_imCapture16U = graphData.m_imCapture;
+        }
+        else {
+            graphData.m_imCapture8U = graphData.m_imCapture;
         }
 
         // Get the capture image onto the GPU

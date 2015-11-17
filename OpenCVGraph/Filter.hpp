@@ -33,6 +33,7 @@ namespace openCVGraph
 
         // Graph is starting up
         // Allocate resources if needed
+        // Specify special capture format(s) required
         virtual bool Filter::init(GraphData& data)
         {
             if (m_showView) {
@@ -96,6 +97,7 @@ namespace openCVGraph
         virtual void Filter::saveConfig(FileStorage& fs, GraphData& data)
         {
             fs << "IsEnabled" << m_Enabled;
+            fs << "ShowView" << m_showView;
             fs << "ZoomViewLockIndex" << m_ZoomViewLockIndex;
 
             // Save how long the filter took to process its last sample, mean, min, max
@@ -131,6 +133,7 @@ namespace openCVGraph
             if (!en.empty()) {
                 en >> m_Enabled;
             }
+            fs ["ShowView"] >> m_showView;
             fs ["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
             if (m_ZoomViewLockIndex >= MAX_ZOOMVIEW_LOCKS) {
                 m_ZoomViewLockIndex = -1;

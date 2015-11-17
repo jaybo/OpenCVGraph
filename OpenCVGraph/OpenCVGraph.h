@@ -41,6 +41,7 @@
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
 #include "Filters/Canny.hpp"
+#include "Filters/FocusSobel.hpp"
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"
