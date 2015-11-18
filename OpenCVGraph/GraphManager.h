@@ -54,7 +54,7 @@ namespace openCVGraph
         }
 
 	private:
-		boost::thread thread;
+		std::thread thread;
         GraphState m_GraphState;
 		bool m_Stepping;
 		std::string m_Name;

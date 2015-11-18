@@ -8,16 +8,15 @@
 #include <algorithm>
 #include <numeric>
 #include <chrono>
-
+#include <thread>
 
 #include <list>
 #include <boost/any.hpp>
 
 
+#include <glob.h>
 // Boost
 #include <boost/filesystem.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
 
 

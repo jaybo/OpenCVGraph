@@ -46,7 +46,7 @@ namespace openCVGraph
 
     void GraphManager::StartThread()
     {
-        thread = boost::thread(&GraphManager::ProcessLoop, this);
+        thread = std::thread::thread(&GraphManager::ProcessLoop, this);
     }
 
     void GraphManager::JoinThread()
@@ -117,7 +117,7 @@ namespace openCVGraph
             switch (m_GraphState) {
             case GraphState::Stop:
                 // Snooze.  But this should be a mutex or awaitable object
-                boost::this_thread::sleep(boost::posix_time::milliseconds(33));
+                std::this_thread::sleep_for(std::chrono::milliseconds(33));
                 break;
             case GraphState::Pause:
                 if (m_Stepping) {
@@ -125,7 +125,7 @@ namespace openCVGraph
                     m_Stepping = false;
                 }
                 // Snooze.  But this should be a mutex or awaitable object
-                boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 break;
             case GraphState::Run:
                 fOK &= ProcessOne(key);
