@@ -52,11 +52,11 @@ namespace openCVGraph
 			cout << d << endl;
 			if (d>0)
 			{
-				view->m_ZoomFactor++; 
+				view->m_ZoomFactor+= 2; 
 			}
 			else
 			{
-				view->m_ZoomFactor--;
+				view->m_ZoomFactor-=2;
 			}
 			break;
 
@@ -85,6 +85,8 @@ namespace openCVGraph
                     view->m_dy = (y - view->m_sy);
                 }
             }
+           // view->m_SampledPixelU16 = getU16Pix(view->MatView, P`oint(view->m_cx, view->m_cy));
+
 			break;
 		case cv::EVENT_LBUTTONUP:
             view->m_MouseLButtonDown = false;
@@ -178,7 +180,8 @@ namespace openCVGraph
         getRectSubPix(MatView, Size(srcWidth, srcHeight), 
             Point(m_cx - m_dx, m_cy - m_dy),
             MatZoomed);
-        resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight));
+
+        resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0 , INTER_NEAREST);
 
         // merge in the (usually) text overlay
         if (!matOverlay.empty()) {

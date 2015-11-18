@@ -10,34 +10,119 @@ using namespace std;
 
 namespace openCVGraph
 {
-    // Focus filter
-    class Focus : public Filter
+    // Scores an image using sobel filter.  Cannot score astimatism.
+
+    class FocusLaplace : public Filter
     {
     public:
 
-        Focus::Focus(std::string name, GraphData& graphData,
-            bool showView = true, int width = 512, int height = 512)
-            : Filter(name, graphData, width, height)
-        {
+        static void FocusLaplace::SliderCallback(int pos, void * userData) {
+            FocusLaplace* filter = (FocusLaplace *)userData;
+            if (!(pos & 1)) {
+                pos++;      // kernels must be odd
+            }
+            filter->KernelSize(pos);
         }
 
-        bool Focus::process(GraphData& graphData)
+        FocusLaplace::FocusLaplace(std::string name, GraphData& graphData,
+            int width = 512, int height = 512)
+            : Filter(name, graphData, width, height)
+        {
+            // To write on the overlay, you must allocate it.
+            // This indicates to the renderer the need to merge it with the final output image.
+            m_imViewOverlay = Mat(height, width, CV_8U);
+        }
+
+        bool FocusLaplace::init(GraphData& graphData) override
+        {
+            Filter::init(graphData);
+            if (m_showView) {
+                if (m_showSlider) {
+                    createTrackbar("Kernel", m_CombinedName, &m_kSize, 3, SliderCallback, this);
+                }
+            }
+
+            return true;
+        }
+
+        bool FocusLaplace::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
-                auto canny = cuda::createCannyEdgeDetector(100, 200);
-                canny->detect(graphData.m_imCaptureGpu8U, cannyOut8U);
-                cannyOut8U.download(graphData.m_imResult);
+                Scalar s;
+                graphData.m_imResultGpu16U = graphData.m_imCaptureGpu16U;
+                auto nPoints = graphData.m_imCaptureGpu16U.size().area();
+
+                // X
+                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_imCaptureGpu16U.type(), graphData.m_imResultGpu16U.type(), m_kSize);
+                m_cudaFilter->apply(graphData.m_imCaptureGpu16U, graphData.m_imResultGpu16U);
+                s = cv::cuda::sum(graphData.m_imResultGpu16U);
+                meanX = s[0] / nPoints;
+
             }
             else {
-               
+                cv::Sobel(graphData.m_imCapture, m_imSx,
+                    graphData.m_imCapture.depth(),
+                    1, 0,
+                    m_kSize);
+                cv::Sobel(graphData.m_imCapture, m_imSy,
+                    graphData.m_imCapture.depth(),
+                    0, 1,
+                    m_kSize);
+
+                meanX = cv::mean(m_imSx)[0];
+                meanY = cv::mean(m_imSy)[0];
+                meanXY = (meanX + meanY) / 2;
             }
             if (m_showView) {
-                graphData.m_imResult.copyTo(m_imView);
+                graphData.m_imCapture8U.copyTo(m_imView);
+                DrawOverlay(graphData);
             }
             return true;  // if you return false, the graph stops
         }
+
+        void FocusLaplace::DrawOverlay(GraphData graphData)
+        {
+            m_imViewOverlay = 0;
+            std::ostringstream str;
+
+            int posLeft = 10;
+            double scale = 1.0;
+
+            str.str("");
+            str << "  meanXY    X      Y";
+            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 50), scale);
+
+            str.str("");
+            str << std::setfill(' ') << setw(7) << (int)meanXY << setw(7) << (int)meanX << setw(7) << (int)meanY;
+            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 100), scale);
+        }
+
+        void FocusLaplace::KernelSize(int kernelSize) {
+            m_kSize = kernelSize;
+        }
+
+        void  FocusLaplace::saveConfig(FileStorage& fs, GraphData& data)
+        {
+            Filter::saveConfig(fs, data);
+            fs << "kernel_size" << m_kSize;
+            fs << "show_slider" << m_showSlider;
+        }
+
+        void  FocusLaplace::loadConfig(FileNode& fs, GraphData& data)
+        {
+            Filter::loadConfig(fs, data);
+            fs["kernel_size"] >> m_kSize;
+            fs["show_slider"] >> m_showSlider;
+        }
+
     private:
-        cv::cuda::GpuMat cannyOut8U;
+        Mat m_imSx;
+        Mat m_imSy;
+        double meanX, meanY, meanXY;
+        cv::Ptr<cv::cuda::Filter> m_cudaFilter;
+        int m_kSize = 3;
+        bool m_showSlider = true;
+
     };
 }
 #endif

@@ -34,6 +34,7 @@ namespace openCVGraph
         int m_ZoomFactor = 0;     // 0 is 1:1 pixelwise
         static ZoomView* s_ActiveZoomView ;
         bool m_MouseLButtonDown = false;
+        int m_SampledPixelU16;
 
         cv::Mat MatView;        // original image to view
         cv::Mat MatZoomed;      // then modified by pan and zoom

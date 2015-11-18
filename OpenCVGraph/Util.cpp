@@ -41,6 +41,14 @@ void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale)
     cv::putText(m, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(hi, hi, hi));
 }
 
+int getU16Pix(const cv::Mat& img, cv::Point pt)
+{
+    cv::Mat patch;
+    cv::remap(img, patch, cv::Mat(1, 1, CV_16UC1, &pt), cv::noArray(),
+        cv::INTER_NEAREST, cv::BORDER_CONSTANT, Scalar(128,128,128));
+    return patch.at<int>(0, 0);
+    return 0;
+}
 
 vector<Mat> createGrayHistogram(Mat& img, int bins, int width=256, int height = 400)
 {
