@@ -123,7 +123,7 @@ namespace openCVGraph
     }
 
 
-    bool CamDefault::process(GraphData& graphData)
+    ProcessResult CamDefault::process(GraphData& graphData)
     {
         m_firstTime = false;
 		bool fOK = true;
@@ -169,7 +169,7 @@ namespace openCVGraph
 
         }
 
-        return fOK;
+        return ProcessResult::OK;
     }
 
 

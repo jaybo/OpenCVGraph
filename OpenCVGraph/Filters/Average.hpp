@@ -50,28 +50,35 @@ namespace openCVGraph
             return true;
         }
 
-        bool Average::process(GraphData& graphData) override
+        ProcessResult Average::process(GraphData& graphData) override
         {
+            ProcessResult result = ProcessResult::Continue;  // Averaging filters return this to skip the rest of the loop
+
             if (graphData.m_UseCuda) {
-                if (m_imGpuAverage.empty()) {
-                    m_imGpuAverage = cv::cuda::GpuMat(graphData.m_imResultGpu32F.size(), CV_32F);
-                    m_imGpuAverage.setTo(Scalar(0));
+                if (m_imGpuAverage32F.empty()) {
+                    m_imGpuAverage32F = cv::cuda::GpuMat(graphData.m_imResultGpu32F.size(), CV_32F);
+                    m_imGpuAverage32F.setTo(Scalar(0));
                 }
 
-                cuda::add(m_imGpuAverage, graphData.m_imResultGpu32F, m_imGpuAverage);
+                cuda::add(m_imGpuAverage32F, graphData.m_imResultGpu32F, m_imGpuAverage32F);
 
-                if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
-                    cuda::divide(m_imGpuAverage, Scalar(m_FramesToAverage), m_imGpuAverage);
-                    m_imGpuAverage.convertTo(graphData.m_imResultGpu16U, CV_16U);
-                    m_imGpuAverage.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0/256);
-                    m_imGpuAverage.setTo(Scalar(0));
+                if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
+                    cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
+                    m_imGpuAverage32F.copyTo(graphData.m_imResultGpu32F);
+                    m_imGpuAverage32F.convertTo(graphData.m_imResultGpu16U, CV_16U);
+                    m_imGpuAverage32F.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0/256);
+                    m_imGpuAverage32F.setTo(Scalar(0));
+                    result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
             }
             else {
                 //todo
+                assert(false);
 
             }
-            return true;  // if you return false, the graph stops
+            m_FramesAveraged++;
+
+            return result;  // if you return false, the graph stops
         }
 
         void Average::processView(GraphData & graphData) override
@@ -86,6 +93,7 @@ namespace openCVGraph
 
         void Average::FramesToAverage(int n) {
             m_FramesToAverage = n;
+            m_FramesAveraged = 0;
         }
 
         void  Average::saveConfig(FileStorage& fs, GraphData& data)
@@ -103,8 +111,9 @@ namespace openCVGraph
         }
 
     private:
-        cv::cuda::GpuMat m_imGpuAverage;
+        cv::cuda::GpuMat m_imGpuAverage32F;
         int m_FramesToAverage = 3;
+        int m_FramesAveraged = 0;
         bool m_showSlider = true;
         // bool m_RunningAverage = true;
 

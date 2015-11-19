@@ -27,7 +27,7 @@ namespace openCVGraph
             return fOK;
         }
 
-        bool Canny::process(GraphData& graphData)
+        ProcessResult Canny::process(GraphData& graphData)
         {
             if (graphData.m_UseCuda) {
                 auto canny = cuda::createCannyEdgeDetector(100, 200);
@@ -37,7 +37,7 @@ namespace openCVGraph
             else {
                 cv::Canny(graphData.m_imCapture8U, graphData.m_imResult8U, 100, 200);
             }
-            return true;  // if you return false, the graph stops
+            return ProcessResult::OK;  // if you return false, the graph stops
         }
 
         void Canny::processView(GraphData& graphData)

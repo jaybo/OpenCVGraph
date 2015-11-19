@@ -46,13 +46,13 @@ namespace openCVGraph
         }
 
         // All of the work is done here
-        virtual bool Filter::process(GraphData& data)
+        virtual ProcessResult Filter::process(GraphData& data)
         {
             m_firstTime = false;
 
             // do all the work here
 
-            return true;
+            return ProcessResult::OK;
         }
 
         virtual void processView(GraphData& graphData) {

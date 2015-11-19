@@ -45,7 +45,7 @@ namespace openCVGraph
             return true;
         }
 
-        bool FocusFFT::process(GraphData& graphData) override
+        ProcessResult FocusFFT::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
                 Scalar s;
@@ -84,7 +84,7 @@ namespace openCVGraph
                 graphData.m_imCapture8U.copyTo(m_imView);
                 DrawOverlay(graphData);
             }
-            return true;  // if you return false, the graph stops
+            return ProcessResult::OK;  // if you return false, the graph stops
         }
 
         void FocusFFT::DrawOverlay(GraphData graphData)

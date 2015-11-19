@@ -25,6 +25,9 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
+            // Advertise the format(s) we need
+            graphData.m_NeedCV_32FC1;
+
             // To write on the overlay, you must allocate it.
             // This indicates to the renderer the need to merge it with the final output image.
             m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
@@ -151,13 +154,13 @@ namespace openCVGraph
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
             cv::Point ptMin, ptMax;
-            cv::cuda::minMaxLoc(graphData.m_imCaptureGpu32F, &dCapMin, &dCapMax, &ptMin, &ptMax);
+            cv::cuda::minMaxLoc(graphData.m_imResultGpu32F, &dCapMin, &dCapMax, &ptMin, &ptMax);
 
             cv::Scalar sMean, sStdDev;
             // argh, only works with 8pp!!!
             // cv::cuda::meanStdDev(m_newMGpu, imMean, imStdDev);   // stdDev here is across the mean image
             sMean = cv::cuda::sum(m_newMGpu);
-            auto nPoints = graphData.m_imCaptureGpu32F.size().area();
+            auto nPoints = graphData.m_imResultGpu32F.size().area();
             dMean = sMean[0] / nPoints;
 
             // Mean, and min and max of mean image
@@ -177,10 +180,9 @@ namespace openCVGraph
             dStdDevMax = sqrt(dVarMax);
         }
 
-        bool ImageStatistics::process(GraphData& graphData)
+        ProcessResult ImageStatistics::process(GraphData& graphData)
         {
             m_firstTime = false;
-            bool fOK = true;
 
             // let the camera stabilize
             // if (graphData.m_FrameNumber < 2) return true;
@@ -192,7 +194,7 @@ namespace openCVGraph
             if (m_N >= 2) {
                 m_UseCuda ? CalcGpu(graphData) : Calc(graphData);
             }
-            return fOK;
+            return ProcessResult::OK;
         }
 
         void ImageStatistics::processView(GraphData& graphData)

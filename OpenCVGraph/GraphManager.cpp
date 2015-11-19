@@ -54,9 +54,10 @@ namespace openCVGraph
         thread.join();
     }
 
-    bool GraphManager::ProcessOne(int key)
+    ProcessResult GraphManager::ProcessOne(int key)
     {
         bool fOK = true;
+        ProcessResult result = ProcessResult::OK;
 
         // first process keyhits
         if (key != -1) {
@@ -73,24 +74,25 @@ namespace openCVGraph
             // Currently, complete the loop
             if (filter->IsEnabled())
             {
-                fOK &= filter->process(gd);
+                result = filter->process(gd);
             }
             filter->toc();
             if (filter->IsEnabled())
             {
                 filter->processView(gd);
             }
+            if (result != ProcessResult::OK) break;
         }
         gd.m_FrameNumber++;
 
-        // If settings were modified 
-        return fOK;
+        return result;
     }
 
     bool GraphManager::ProcessLoop()
     {
         bool fOK = true;
         m_Stepping = false;
+        ProcessResult result;
 
         loadConfig();
         
@@ -121,14 +123,16 @@ namespace openCVGraph
                 break;
             case GraphState::Pause:
                 if (m_Stepping) {
-                    fOK &= ProcessOne(key);
+                    result = ProcessOne(key);
+                    fOK = fOK && (result != ProcessResult::Abort);
                     m_Stepping = false;
                 }
                 // Snooze.  But this should be a mutex or awaitable object
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 break;
             case GraphState::Run:
-                fOK &= ProcessOne(key);
+                result = ProcessOne(key);
+                fOK = fOK && (result != ProcessResult::Abort);
                 break;
             }
 

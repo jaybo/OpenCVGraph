@@ -27,6 +27,14 @@ namespace openCVGraph
 
     typedef std::list<GraphProperty> GraphProperties;
 
+    // Result of calling "process()" on each filter
+    enum ProcessResult {
+        OK,             // Normal result, continue through the processing loop
+        Abort,          // Catastropic error, abort
+        Continue,       // GoTo beginning of the loop.  Averaging filters will issue this result until they've accumulated enough images.
+    };
+
+
 #define MAX_ZOOMVIEW_LOCKS 10
 
 	class  GraphData {

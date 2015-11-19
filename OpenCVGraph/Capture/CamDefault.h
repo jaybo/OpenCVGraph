@@ -23,7 +23,7 @@ namespace openCVGraph
         virtual bool init(GraphData& graphData) override;
         virtual bool fini(GraphData& graphData) override;
 
-        virtual bool process(GraphData& graphData) override;
+        virtual ProcessResult process(GraphData& graphData) override;
         virtual bool processKeyboard(GraphData& data, int key) override;
         virtual void processView(GraphData& graphData) override;
 

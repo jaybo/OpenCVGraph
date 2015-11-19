@@ -38,12 +38,12 @@ namespace openCVGraph
         }
 
         // Do all of the work here.
-        bool Simple::process(GraphData& graphData)
+        ProcessResult Simple::process(GraphData& graphData)
         {
             // do something random to imResult
             graphData.m_imResult8U = 2 *graphData.m_imResult8U;
 
-            return true;  // if you return false, the graph stops
+            return ProcessResult::OK;  // if you return false, the graph stops
         }
 
         // View updates are a separate function so they don't 

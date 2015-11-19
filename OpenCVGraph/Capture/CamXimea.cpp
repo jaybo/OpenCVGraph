@@ -147,7 +147,7 @@ namespace openCVGraph
     }
 
 
-    bool CamXimea::process(GraphData& graphData)
+    ProcessResult CamXimea::process(GraphData& graphData)
     {
         m_firstTime = false;
         bool fOK = true;
@@ -185,7 +185,7 @@ namespace openCVGraph
         }
         graphData.m_imCaptureGpu8U.copyTo(graphData.m_imResultGpu8U);
 
-        return fOK;
+        return ProcessResult::OK;
     }
     
     void CamXimea::processView(GraphData& graphData)

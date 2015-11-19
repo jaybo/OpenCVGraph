@@ -65,7 +65,7 @@ namespace openCVGraph
         bool m_UseCuda = false;
 
         bool ProcessLoop();
-		bool ProcessOne(int key);
+		ProcessResult ProcessOne(int key);
 
         void saveConfig();
         void loadConfig();
