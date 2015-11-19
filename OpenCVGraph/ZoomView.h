@@ -19,7 +19,7 @@ namespace openCVGraph
             cv::MouseCallback mouseCallback);
 		virtual bool KeyboardProcessor(int key);
 		static void DefaultMouseProcessor(int event, int x, int y, int flags, void* param);
-        void UpdateView(cv::Mat mat, cv::Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex);
+        void processView(cv::Mat mat, cv::Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex);
 		
 
 	private:

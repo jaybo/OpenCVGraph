@@ -15,7 +15,7 @@ namespace openCVGraph
     //   elif "image_dir" is set and contains images, use all images in dir
     //   else create a noise image
 
-    CamDefault::CamDefault(std::string name, GraphData& graphData, bool showView, int width, int height)
+    CamDefault::CamDefault(std::string name, GraphData& graphData, int width, int height)
         : openCVGraph::Filter(name, graphData, width, height)
     {
         source = Noise;
@@ -157,7 +157,7 @@ namespace openCVGraph
             break;
 		}
         // Copy imCapture to imResult
-        graphData.m_imCapture.copyTo(graphData.m_imResult);
+        graphData.m_imCapture.copyTo(graphData.m_imResult8U);
 
         if (graphData.m_UseCuda) {
             cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
@@ -169,10 +169,16 @@ namespace openCVGraph
 
         }
 
-		if (m_showView && fOK) {
-            m_imView = graphData.m_imCapture;
-		}
         return fOK;
+    }
+
+
+    void CamDefault::processView(GraphData& graphData)
+    {
+        if (m_showView) {
+            m_imView = graphData.m_imCapture;
+            Filter::processView(graphData);
+        }
     }
 
     // deallocate resources

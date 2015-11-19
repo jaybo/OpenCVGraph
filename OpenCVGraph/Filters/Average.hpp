@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef INCLUDE_AVERAGE_HPP
-#define INCLUDE_AVERAGE_HPP
+#ifndef INCLUDE_OCVG_AVERAGE
+#define INCLUDE_OCVG_AVERAGE
 
 #include "..\stdafx.h"
 
@@ -35,10 +35,12 @@ namespace openCVGraph
         {
             Filter::init(graphData);
 
+            graphData.m_NeedCV_32FC1 = true;
+
             if (m_showView) {
                 // To write on the overlay, you must allocate it.
                 // This indicates to the renderer the need to merge it with the final output image.
-                m_imViewOverlay = Mat(m_width, m_height, CV_8U);
+                // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
 
                 if (m_showSlider) {
                     createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 10, SliderCallback, this);
@@ -52,30 +54,32 @@ namespace openCVGraph
         {
             if (graphData.m_UseCuda) {
                 if (m_imGpuAverage.empty()) {
-                    m_imGpuAverage = cv::cuda::GpuMat(graphData.m_imCaptureGpu32F.size(), CV_32F);
+                    m_imGpuAverage = cv::cuda::GpuMat(graphData.m_imResultGpu32F.size(), CV_32F);
                     m_imGpuAverage.setTo(Scalar(0));
                 }
 
-                cuda::add(m_imGpuAverage, graphData.m_imCaptureGpu32F, m_imGpuAverage);
+                cuda::add(m_imGpuAverage, graphData.m_imResultGpu32F, m_imGpuAverage);
 
                 if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
                     cuda::divide(m_imGpuAverage, Scalar(m_FramesToAverage), m_imGpuAverage);
+                    m_imGpuAverage.convertTo(graphData.m_imResultGpu16U, CV_16U);
+                    m_imGpuAverage.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0/256);
                     m_imGpuAverage.setTo(Scalar(0));
                 }
             }
             else {
-                // todo
+                //todo
+
             }
             return true;  // if you return false, the graph stops
         }
 
-        void Average::UpdateView(GraphData & graphData) override
+        void Average::processView(GraphData & graphData) override
         {
             if (m_showView) {
                 if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
-                    m_imGpuAverage.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0 / 256);
                     graphData.m_imResultGpu8U.download(m_imView);
-                    Filter::UpdateView(graphData);
+                    Filter::processView(graphData);
                 }
             }
         }
@@ -102,7 +106,7 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imGpuAverage;
         int m_FramesToAverage = 3;
         bool m_showSlider = true;
-        bool m_RunningAverage = true;
+        // bool m_RunningAverage = true;
 
     };
 }

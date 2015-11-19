@@ -78,7 +78,7 @@ namespace openCVGraph
             filter->toc();
             if (filter->IsEnabled())
             {
-                filter->UpdateView(gd);
+                filter->processView(gd);
             }
         }
         gd.m_FrameNumber++;

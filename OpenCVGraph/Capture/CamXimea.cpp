@@ -7,8 +7,8 @@ namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
-    CamXimea::CamXimea(std::string name, GraphData& graphData, bool showView, int width, int height)
-        : CamDefault(name, graphData, showView, width, height)
+    CamXimea::CamXimea(std::string name, GraphData& graphData, int width, int height)
+        : CamDefault(name, graphData, width, height)
     {
     }
 
@@ -18,31 +18,31 @@ namespace openCVGraph
         bool fOK = true;
         if (m_showView) {
 
-            switch (key) {
-                // EXPOSURE
-            case 0x00260000: // up arrow
-                Exposure(true);
-                break;
-            case 0x00280000: // down arrow
-                Exposure(false);
-                break;
+            //switch (key) {
+            //    // EXPOSURE
+            //case 0x00260000: // up arrow
+            //    Exposure(true);
+            //    break;
+            //case 0x00280000: // down arrow
+            //    Exposure(false);
+            //    break;
 
-                // GAIN
-            case 0x00270000: // RIGHT arrow
-                Gain(true);
-                break;
-            case 0x00250000: // LEFT arrow
-                Gain(false);
-                break;
+            //    // GAIN
+            //case 0x00270000: // RIGHT arrow
+            //    Gain(true);
+            //    break;
+            //case 0x00250000: // LEFT arrow
+            //    Gain(false);
+            //    break;
 
-                // FOCUS
-            case '.':
-                Focus(true);
-                break;
-            case ',':
-                Focus(false);
-                break;
-            }
+            //    // FOCUS
+            //case '.':
+            //    Focus(true);
+            //    break;
+            //case ',':
+            //    Focus(false);
+            //    break;
+            //}
 
         }
 
@@ -74,6 +74,11 @@ namespace openCVGraph
     {
         // call the base to read/write configs
         Filter::init(graphData);
+
+        // need 8 bit for our own view
+        if (m_showView) {
+            graphData.m_NeedCV_8UC1 = true;
+        }
 
         bool fOK = false;
 
@@ -153,24 +158,42 @@ namespace openCVGraph
             // make 16bpp full range
             graphData.m_imCapture *= 16;
             graphData.m_imCapture16U = graphData.m_imCapture;
+            if (graphData.m_NeedCV_8UC1) {
+                graphData.m_imCapture16U.convertTo(graphData.m_imCapture8U, CV_8U, 1.0 / 256);
+            }
         }
         else {
             graphData.m_imCapture8U = graphData.m_imCapture;
+            if (graphData.m_NeedCV_16UC1) {
+                graphData.m_imCapture8U.convertTo(graphData.m_imCapture16U, CV_16U, 256);
+            }
         }
+
+        graphData.m_imResult8U = graphData.m_imCapture8U;
+        graphData.m_imResult16U = graphData.m_imCapture16U;
+
 
         // Get the capture image onto the GPU
-        graphData.m_imCaptureGpu16U.upload(graphData.m_imCapture);
+        graphData.m_imCaptureGpu16U.upload(graphData.m_imCapture16U);
         graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu32F, CV_32F);
         graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu8U, CV_8U, 0.00390625);  // 1/256 scale factor
-        graphData.m_imCaptureGpu8U.download(graphData.m_imCapture8U);
-        
-        //graphData.m_imCapture.convertTo(graphData.m_imCapture8U, CV_8U, 0.00390625);  // 1/256 scale factor
 
-
-        if (m_showView && fOK) {
-            m_imView = graphData.m_imCapture8U;
+        // And update the Result images
+        graphData.m_imCaptureGpu16U.copyTo(graphData.m_imResultGpu16U);
+        if (graphData.m_NeedCV_32FC1) {
+            graphData.m_imCaptureGpu32F.copyTo(graphData.m_imResultGpu32F);
         }
+        graphData.m_imCaptureGpu8U.copyTo(graphData.m_imResultGpu8U);
+
         return fOK;
+    }
+    
+    void CamXimea::processView(GraphData& graphData)
+    {
+        if (m_showView) {
+            m_imView = graphData.m_imCapture8U;
+            Filter::processView(graphData);
+        }
     }
 
     // deallocate resources

@@ -135,7 +135,7 @@ namespace openCVGraph
 	}
 
 
-	void ZoomView::UpdateView(Mat mat, Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex)
+	void ZoomView::processView(Mat mat, Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex)
 	{
         if (zoomWindowLockIndex >= 0) {
             if (this == g_LastActiveZoomView) {

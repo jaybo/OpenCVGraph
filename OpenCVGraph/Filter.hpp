@@ -33,7 +33,8 @@ namespace openCVGraph
 
         // Graph is starting up
         // Allocate resources if needed
-        // Specify special capture format(s) required
+        // Specify capture and result format(s) required
+        // Register mouse callback
         virtual bool Filter::init(GraphData& data)
         {
             if (m_showView) {
@@ -54,9 +55,9 @@ namespace openCVGraph
             return true;
         }
 
-        virtual void UpdateView(GraphData& graphData) {
+        virtual void processView(GraphData& graphData) {
             if (m_showView) {
-                m_ZoomView.UpdateView(m_imView, m_imViewOverlay, graphData, m_ZoomViewLockIndex);
+                m_ZoomView.processView(m_imView, m_imViewTextOverlay, graphData, m_ZoomViewLockIndex);
             }
         };
 
@@ -178,7 +179,7 @@ namespace openCVGraph
         int m_width, m_height;
 
         cv::Mat m_imView;               // image to display
-        cv::Mat m_imViewOverlay;        // overlay for that image
+        cv::Mat m_imViewTextOverlay;        // overlay for that image
         ZoomView m_ZoomView;
         cv::MouseCallback m_MouseCallback = NULL;
 	};

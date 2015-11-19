@@ -16,9 +16,6 @@ namespace openCVGraph
         ImageStatistics(std::string name, GraphData& graphData, int width = 512, int height = 512)
             : Filter(name, graphData, width, height)
         {
-            // To write on the overlay, you must allocate it.
-            // This indicates to the renderer the need to merge it with the final output image.
-            m_imViewOverlay = Mat(height, width, CV_8U);
         }
 
 
@@ -27,7 +24,12 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
-            m_n = 0;
+
+            // To write on the overlay, you must allocate it.
+            // This indicates to the renderer the need to merge it with the final output image.
+            m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+
+            m_N = 0;
             return true;
         }
 
@@ -41,7 +43,7 @@ namespace openCVGraph
         {
             bool fOK = true;
             if (key == ' ') {
-                m_n = 0;    // RESET STATISTICS IF THE SPACE KEY IS PRESSED
+                m_N = 0;    // RESET STATISTICS IF THE SPACE KEY IS PRESSED
             }
             if (m_showView) {
                 return m_ZoomView.KeyboardProcessor(key);
@@ -63,7 +65,7 @@ namespace openCVGraph
 
 
     private:
-        int m_n;
+        int m_N;
         bool m_UseCuda = true;
         double dCapMax, dCapMin;
         double dMean, dMeanMin, dMeanMax, dStdDevMean, dStdDevMin, dStdDevMax, dVarMin, dVarMax;
@@ -73,10 +75,10 @@ namespace openCVGraph
 
 
         void ImageStatistics::Accumulate(GraphData& graphData) {
-            graphData.m_imCapture.convertTo(m_capF, CV_32F);
+            graphData.m_imResult8U.convertTo(m_capF, CV_32F);
 
             // See Knuth TAOCP vol 2, 3rd edition, page 232
-            if (m_n == 1)
+            if (m_N == 1)
             {
                 m_capF.copyTo(m_newM);
                 m_capF.copyTo(m_oldM);
@@ -86,7 +88,7 @@ namespace openCVGraph
             {
                 m_dOld = m_capF - m_oldM;
                 m_dNew = m_capF - m_newM;
-                m_newM = m_oldM + m_dOld / m_n;
+                m_newM = m_oldM + m_dOld / m_N;
                 m_newS = m_oldS + m_dOld.mul(m_dNew);
 
                 // set up for next iteration
@@ -96,18 +98,18 @@ namespace openCVGraph
         }
 
         void ImageStatistics::AccumulateGpu(GraphData& graphData) {
-            if (m_n == 1)
+            if (m_N == 1)
             {
-                graphData.m_imCaptureGpu32F.copyTo(m_newMGpu);
-                graphData.m_imCaptureGpu32F.copyTo(m_oldMGpu);
+                graphData.m_imResultGpu32F.copyTo(m_newMGpu);
+                graphData.m_imResultGpu32F.copyTo(m_oldMGpu);
                 cuda::multiply(m_oldMGpu, Scalar(0.0), m_oldSGpu);  // m_oldSGpu = m_oldMGpu * 0.0;
             }
             else
             {
-                cuda::subtract(graphData.m_imCaptureGpu32F, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
-                cuda::subtract(graphData.m_imCaptureGpu32F, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
+                cuda::subtract(graphData.m_imResultGpu32F, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
+                cuda::subtract(graphData.m_imResultGpu32F, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
 
-                cuda::divide(m_dOldGpu, Scalar(m_n), m_TGpu);   // Need a temp here m_TGpu
+                cuda::divide(m_dOldGpu, Scalar(m_N), m_TGpu);   // Need a temp here m_TGpu
                 cuda::add(m_oldMGpu, m_TGpu, m_newMGpu);
                 cuda::multiply(m_dOldGpu, m_dNewGpu, m_TGpu);   // temp again
                 cuda::add(m_oldSGpu, m_TGpu, m_newSGpu);
@@ -137,7 +139,7 @@ namespace openCVGraph
             cv::minMaxLoc(m_newM, &dMeanMin, &dMeanMax);
 
             // Variance
-            m_imVariance = m_newS / (m_n - 1);
+            m_imVariance = m_newS / (m_N - 1);
             cv::Scalar varMean, varStd;
             cv::meanStdDev(m_imVariance, varMean, varStd);
             cv::minMaxLoc(m_imVariance, &dVarMin, &dVarMax);
@@ -162,7 +164,7 @@ namespace openCVGraph
             cv::cuda::minMaxLoc(m_newMGpu, &dMeanMin, &dMeanMax, &ptMin, &ptMax);
 
             // Variance
-            cuda::divide(m_newSGpu, Scalar(m_n - 1), m_imVarianceGpu);  // imVariance = m_newS / (m_n - 1);
+            cuda::divide(m_newSGpu, Scalar(m_N - 1), m_imVarianceGpu);  // imVariance = m_newS / (m_N - 1);
             cv::Scalar varMean, varStd;
             // argh, only works with 8bpp!!!
             //cv::cuda::meanStdDev(m_imVarianceGpu, varMean, varStd);
@@ -180,26 +182,32 @@ namespace openCVGraph
             m_firstTime = false;
             bool fOK = true;
 
-            if (m_showView) {
-                m_imView = graphData.m_imCapture8U;
-            }
-
             // let the camera stabilize
-            if (graphData.m_FrameNumber < 2) return true;
+            // if (graphData.m_FrameNumber < 2) return true;
 
-            m_n++;
+            m_N++;  // count of frames processed
 
             m_UseCuda ? AccumulateGpu(graphData) : Accumulate(graphData);
 
-            if (m_n >= 2) {
+            if (m_N >= 2) {
                 m_UseCuda ? CalcGpu(graphData) : Calc(graphData);
-                DrawOverlay(graphData);
             }
             return fOK;
         }
 
+        void ImageStatistics::processView(GraphData& graphData)
+        {
+            if (m_showView) {
+                m_imView = graphData.m_imResult8U;
+                if (m_N >= 2) {
+                    DrawOverlay(graphData);
+                }
+                Filter::processView(graphData);
+            }
+        }
+
         void ImageStatistics::DrawOverlay(GraphData graphData) {
-            m_imViewOverlay = 0;
+            m_imViewTextOverlay = 0;
             std::ostringstream str;
 
             int posLeft = 10;
@@ -207,23 +215,23 @@ namespace openCVGraph
 
             str.str("");
             str << "      min    mean   max";
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 50), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 100), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 100), scale);
 
             str.str("");
             str << "SD: " << std::setfill(' ') << setw(7) << (int)dStdDevMin << setw(7) << (int)dStdDevMean << setw(7) << (int)dStdDevMax;
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 150), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 150), scale);
 
             str.str("");
             str << "SPACE to reset";
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 400), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 400), scale);
 
             str.str("");
-            str << m_n << "/" << graphData.m_FrameNumber;
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(20, 500), scale);
+            str << m_N << "/" << graphData.m_FrameNumber;
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(20, 500), scale);
 
             // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
         }

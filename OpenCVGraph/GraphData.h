@@ -34,16 +34,32 @@ namespace openCVGraph
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
 
-		cv::Mat m_imCapture;                // Capture image.  Don't modify this except in capture filters.
-        cv::Mat m_imCapture8U;              // 8 bit monochrome version
+        // Filters tell everybody what formats they need
+        bool m_NeedCV_8UC1 = false;
+        bool m_NeedCV_8UC3 = false;
+        bool m_NeedCV_16UC1 = false;
+        bool m_NeedCV_32FC1 = false;
+
+        // And what formats they need for Results
+        //bool m_NeedResult8U = false;
+        //bool m_NeedResult16U = false;
+        //bool m_NeedResult32F = false;
+
+		cv::Mat m_imCapture;                // Raw Capture image.  Don't modify this except in capture filters.
+
+        cv::Mat m_imCapture8U;              // 8 bit monochrome version if m_NeedCV_8UC1 is true
         cv::Mat m_imCapture16U;             // 16 bit monochrome version
-        cv::Mat m_imResult;                 // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
+        cv::Mat m_imCapture32F;             // 32 bit monochrome version
+
+        cv::Mat m_imResult8U;               // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
+        cv::Mat m_imResult16U;                 
+        cv::Mat m_imResult32F;                 
 
         // Cuda!
         bool m_UseCuda = true;
+        cv::cuda::GpuMat m_imCaptureGpu8U;
         cv::cuda::GpuMat m_imCaptureGpu16U;
         cv::cuda::GpuMat m_imCaptureGpu32F;
-        cv::cuda::GpuMat m_imCaptureGpu8U;
 
         cv::cuda::GpuMat m_imResultGpu8U;
         cv::cuda::GpuMat m_imResultGpu16U;

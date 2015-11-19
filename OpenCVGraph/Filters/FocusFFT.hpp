@@ -30,7 +30,7 @@ namespace openCVGraph
         {
             // To write on the overlay, you must allocate it.
             // This indicates to the renderer the need to merge it with the final output image.
-            m_imViewOverlay = Mat(height, width, CV_8U);
+            m_imViewTextOverlay = Mat(height, width, CV_8U);
         }
 
         bool FocusFFT::init(GraphData& graphData) override
@@ -89,7 +89,7 @@ namespace openCVGraph
 
         void FocusFFT::DrawOverlay(GraphData graphData)
         {
-            m_imViewOverlay = 0;
+            m_imViewTextOverlay = 0;
             std::ostringstream str;
 
             int posLeft = 10;
@@ -97,11 +97,11 @@ namespace openCVGraph
 
             str.str("");
             str << "  meanXY    X      Y";
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 50), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << std::setfill(' ') << setw(7) << (int)meanXY << setw(7) << (int)meanX << setw(7) << (int)meanY;
-            DrawShadowTextMono(m_imViewOverlay, str.str(), Point(posLeft, 100), scale);
+            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 100), scale);
         }
 
         void FocusFFT::KernelSize(int kernelSize) {

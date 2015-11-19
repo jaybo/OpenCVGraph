@@ -7,17 +7,17 @@ CamXimea:
    IsEnabled: 1
    ShowView: 1
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "123.4"
-   Duration_MS_Min: "118.0"
-   Duration_MS_Max: "583.8"
-   Duration_MS_Last: "121.6"
+   Duration_MS_Mean: "138.6"
+   Duration_MS_Min: "134.6"
+   Duration_MS_Max: "637.1"
+   Duration_MS_Last: "137.5"
    camera_index: 0
    minimum_buffers: 1
    focus: 1
    focalLength: 0
    aperture: 1200
    focusMovementValue: 0.
-   exposure: 2254
+   exposure: 2817
    gain: 0
    show_gain_slider: 1
    show_exposure_slider: 1
@@ -26,29 +26,29 @@ CamXimea:
 Average:
    IsEnabled: 1
    ShowView: 1
-   ZoomViewLockIndex: -1
-   Duration_MS_Mean: "1.1"
-   Duration_MS_Min: "0.9"
-   Duration_MS_Max: "7.9"
-   Duration_MS_Last: "0.9"
+   ZoomViewLockIndex: 0
+   Duration_MS_Mean: "2.3"
+   Duration_MS_Min: "1.9"
+   Duration_MS_Max: "8.0"
+   Duration_MS_Last: "1.9"
    frames_to_average: 4
    show_slider: 1
 Stats:
    IsEnabled: 1
    ShowView: 1
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "15.3"
-   Duration_MS_Min: "0.0"
-   Duration_MS_Max: "40.7"
-   Duration_MS_Last: "15.1"
+   Duration_MS_Mean: "13.3"
+   Duration_MS_Min: "1.8"
+   Duration_MS_Max: "41.0"
+   Duration_MS_Last: "13.6"
    use_Cuda: 1
 FocusSobel:
    IsEnabled: 1
    ShowView: 1
    ZoomViewLockIndex: -1
-   Duration_MS_Mean: "24.3"
-   Duration_MS_Min: "23.3"
-   Duration_MS_Max: "41.0"
-   Duration_MS_Last: "23.9"
+   Duration_MS_Mean: "23.9"
+   Duration_MS_Min: "23.1"
+   Duration_MS_Max: "32.9"
+   Duration_MS_Last: "23.8"
    kernel_size: 3
    show_slider: 1
