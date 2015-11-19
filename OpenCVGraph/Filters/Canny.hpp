@@ -44,8 +44,8 @@ namespace openCVGraph
         {
             if (m_showView) {
                 graphData.m_imResult8U.copyTo(m_imView);
+                Filter::processView(graphData);
             }
-            Filter::processView(graphData);
         }
 
 

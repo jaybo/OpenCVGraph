@@ -48,12 +48,12 @@ namespace openCVGraph
 
         // View updates are a separate function so they don't 
         // affect timing of the main processing loop
-        bool Simple::updateView(GraphData& graphData)
+        void Simple::processView(GraphData& graphData)
         {
             if (m_showView) {
                 graphData.m_imResult8U.copyTo(m_imView);
+                Filter::processView(graphData);
             }
-            return true;  // if you return false, the graph stops
         }
     };
 }
