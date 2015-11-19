@@ -14,7 +14,6 @@
 #include <boost/any.hpp>
 
 
-#include <glob.h>
 // Boost
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -41,6 +40,7 @@
 #include "Filters/Simple.hpp"
 #include "Filters/Canny.hpp"
 #include "Filters/FocusSobel.hpp"
+#include "Filters/Average.hpp"
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"

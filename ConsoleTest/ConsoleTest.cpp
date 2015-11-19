@@ -59,6 +59,9 @@ int main()
         CvFilter cam2(new CamXimea("CamXimea", graph1.gd));
         graph1.AddFilter(cam2);
 
+        CvFilter faverage(new Average("Average", graph1.gd, 512, 512));
+        graph1.AddFilter(faverage);
+
         //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
         //graph1.AddFilter(canny);
 

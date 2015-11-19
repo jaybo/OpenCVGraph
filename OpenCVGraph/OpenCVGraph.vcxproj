@@ -163,6 +163,7 @@
     <ClInclude Include="Capture\CamXimea.h" />
     <ClInclude Include="Capture\CamDefault.h" />
     <ClInclude Include="Filter.hpp" />
+    <ClInclude Include="Filters\Average.hpp" />
     <ClInclude Include="Filters\Canny.hpp" />
     <ClInclude Include="Filters\DarkLightFieldCorrection.hpp" />
     <ClInclude Include="Filters\FocusFFT.hpp" />

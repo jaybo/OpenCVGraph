@@ -21,11 +21,18 @@ namespace openCVGraph
         {
         }
 
+        // Do all of the work here.
         bool Simple::process(GraphData& graphData)
         {
             // do something random to the capture data and put the result into imResult
             graphData.m_imResult = 2 *graphData.m_imCapture;
 
+            return true;  // if you return false, the graph stops
+        }
+
+        // Just update the view
+        bool Simple::updateView(GraphData& graphData)
+        {
             if (m_showView) {
                 graphData.m_imResult.copyTo(m_imView);
             }
