@@ -62,7 +62,7 @@ namespace openCVGraph
         GraphCallback m_GraphCallback;
         int m_CudaEnabledDeviceCount;
         int m_CudaDeviceIndex = 1;
-        bool m_UseCuda = false;
+        bool m_UseCuda = true;
 
         bool ProcessLoop();
 		ProcessResult ProcessOne(int key);

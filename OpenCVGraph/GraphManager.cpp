@@ -203,7 +203,9 @@ namespace openCVGraph
         auto node = fs["GraphManager"];
         node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
 
-        node["UseCuda"] >> m_UseCuda;
+        if (!node["UseCuda"].empty()) {
+            node["UseCuda"] >> m_UseCuda;
+        }
 
         for (int i = 0; i < m_Filters.size(); i++) {
             Processor filter = m_Filters[i];

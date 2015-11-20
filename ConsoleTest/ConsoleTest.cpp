@@ -40,12 +40,12 @@ bool graphCallback(GraphManager* graphManager) {
 
 int main()
 {
-    // boost::log::sources::severity_logger< severity_level > lg;
-
-    // Create a graph
-    GraphManager graph1("Graph1", true, graphCallback);
-
     if (false) {
+        // Create a graph
+        GraphManager graph1("GraphWebCam", true, graphCallback);
+
+        graph1.UseCuda(false);
+
         // Add an image source (could be camera, single image, directory, noise, movie)
          CvFilter cap1(new CamDefault("CamDefault", graph1.gd));
          graph1.AddFilter(cap1);
@@ -53,35 +53,45 @@ int main()
          CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
          graph1.AddFilter(canny);
 
-         graph1.UseCuda(false);
+         // Start the thread for that graph running
+         graph1.StartThread();
+         graph1.GotoState(GraphManager::GraphState::Run);
+
+         graph1.JoinThread();
     }
     else {
+        // Create a graph
+        GraphManager graph1("GraphXimea", true, graphCallback);
+
         CvFilter cam2(new CamXimea("CamXimea", graph1.gd));
         graph1.AddFilter(cam2);
 
-        CvFilter faverage(new Average("Average", graph1.gd));
-        graph1.AddFilter(faverage);
+        CvFilter brightDark(new BrightDarkFieldCorrection("BrightDark", graph1.gd));
+        graph1.AddFilter(brightDark);
 
-        CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd));
-        graph1.AddFilter(fpRunningStats);
+        //CvFilter faverage(new Average("Average", graph1.gd));
+        //graph1.AddFilter(faverage);
 
-        CvFilter fFocusSobel(new FocusSobel("FocusSobel", graph1.gd, 512, 150));
-        graph1.AddFilter(fFocusSobel);
+        //CvFilter fpRunningStats(new ImageStatistics("Stats", graph1.gd));
+        //graph1.AddFilter(fpRunningStats);
 
-        CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
-        graph1.AddFilter(canny);
+        //CvFilter fFocusSobel(new FocusSobel("FocusSobel", graph1.gd, 512, 150));
+        //graph1.AddFilter(fFocusSobel);
 
-        CvFilter fpSimple(new Simple("Simple", graph1.gd));
-        graph1.AddFilter(fpSimple);
+        //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
+        //graph1.AddFilter(canny);
 
+        //CvFilter fpSimple(new Simple("Simple", graph1.gd));
+        //graph1.AddFilter(fpSimple);
+
+        // Start the thread for that graph running
+        graph1.StartThread();
+        graph1.GotoState(GraphManager::GraphState::Run);
+
+        graph1.JoinThread();
     }
 
 
-    // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
-
-    graph1.JoinThread();
 
  
     return 0;
