@@ -5,8 +5,6 @@
 #include "..\stdafx.h"
 #include "CamXimea.h"
 
-namespace fs = ::boost::filesystem;
-
 
 namespace openCVGraph
 {

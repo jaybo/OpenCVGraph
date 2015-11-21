@@ -2,11 +2,11 @@
 //
 
 #include "stdafx.h"
-#include <boost/log/common.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/sources/logger.hpp>
-#include <boost/log/sources/severity_feature.hpp>
-#include <boost/log/sources/severity_logger.hpp>
+//#include <boost/log/common.hpp>
+//#include <boost/log/trivial.hpp>
+//#include <boost/log/sources/logger.hpp>
+//#include <boost/log/sources/severity_feature.hpp>
+//#include <boost/log/sources/severity_logger.hpp>
 
 
 using namespace std;
@@ -42,7 +42,7 @@ int main()
 {
     if (false) {
         // Create a graph
-        GraphManager graph1("GraphWebCam", true, graphCallback);
+        GraphManager graph1("GraphWebCam", CV_8UC3, true,  graphCallback);
 
         graph1.UseCuda(false);
 
@@ -59,9 +59,30 @@ int main()
 
          graph1.JoinThread();
     }
-    else {
+    else if (true) {
         // Create a graph
-        GraphManager graph1("GraphXimea", true, graphCallback);
+        GraphManager graph1("GraphImageDir", CV_16UC1, true,  graphCallback);
+
+        graph1.UseCuda(false);
+
+        // Add an image source (could be camera, single image, directory, noise, movie)
+        CvFilter cap1(new CamDefault("CamDefault", graph1.gd));
+        graph1.AddFilter(cap1);
+
+        //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
+        //graph1.AddFilter(canny);
+
+        // Start the thread for that graph running
+        graph1.StartThread();
+        graph1.GotoState(GraphManager::GraphState::Run);
+
+        graph1.JoinThread();
+
+    }
+
+    else if (true) {
+        // Create a graph
+        GraphManager graph1("GraphXimea", CV_16UC1, true, graphCallback);
 
         CvFilter cam2(new CamXimea("CamXimea", graph1.gd));
         graph1.AddFilter(cam2);

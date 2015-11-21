@@ -4,8 +4,6 @@
 
 #include "..\stdafx.h"
 
-namespace fs = ::boost::filesystem;
-
 namespace openCVGraph
 {
     // General image source:
@@ -48,7 +46,7 @@ namespace openCVGraph
         std::string image_dir;
 
         cv::VideoCapture cap;
-        vector<fs::path> images;
+        vector<string> images;
         int imageIndex = 0;
 
     private:

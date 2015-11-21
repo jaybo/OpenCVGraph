@@ -1,8 +1,8 @@
 
 #pragma once
 
-#ifndef INCLUDE_FILTER_HPP
-#define INCLUDE_FILTER_HPP
+#ifndef INCLUDE_OCVG_FILTER_HPP
+#define INCLUDE_OCVG_FILTER_HPP
 
 #include "stdafx.h"
 
@@ -19,7 +19,7 @@ namespace openCVGraph
         Filter::Filter(std::string name, GraphData& data, int width = 512, int height=512)
             : m_FilterName(name), m_width(width), m_height(height)
         {
-            BOOST_LOG_TRIVIAL(info) << "Filter() " << m_FilterName;
+            // data.m_Logger->info("Filter() " + m_FilterName);
 
             m_CombinedName = data.m_GraphName + "-" + name;
             m_TickFrequency = cv::getTickFrequency();
@@ -28,7 +28,7 @@ namespace openCVGraph
 
         virtual Filter::~Filter()
         {
-            BOOST_LOG_TRIVIAL(info) << "~Filter() " << m_FilterName;
+            //data.m_Logger->info << "~Filter() " << m_FilterName;
         }
 
         // Graph is starting up
@@ -92,7 +92,7 @@ namespace openCVGraph
             m_DurationMSSum += m_DurationMS;
             m_DurationMSMax = max(m_DurationMS, m_DurationMSMax);
             m_DurationMSMin = min(m_DurationMS, m_DurationMSMin);
-            BOOST_LOG_TRIVIAL(info) << m_FilterName << "\ttime(MS): " << std::fixed << std::setprecision(1) << m_DurationMS;
+            //BOOST_LOG_TRIVIAL(info) << m_FilterName << "\ttime(MS): " << std::fixed << std::setprecision(1) << m_DurationMS;
         }
 
         virtual void Filter::saveConfig(FileStorage& fs, GraphData& data)

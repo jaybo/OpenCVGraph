@@ -1,7 +1,6 @@
 
 #include "stdafx.h"
 
-#include "GraphManager.h"
 
 namespace openCVGraph
 {
@@ -9,12 +8,20 @@ namespace openCVGraph
     // (or perform other work)
     // States: Stop, Pause (can only Step if Paused), and Run
 
-    GraphManager::GraphManager(const std::string name, bool abortOnESC, GraphCallback callback)
+    GraphManager::GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
     {
         m_Name = name;
         gd.m_GraphName = m_Name;
         gd.m_AbortOnESC = abortOnESC;
         m_GraphCallback = callback;
+
+        // Other types may be requested by individual filters
+        switch (primaryImageType) {
+        case CV_8UC1: gd.m_NeedCV_8UC1 = true; break;
+        case CV_8UC3: gd.m_NeedCV_8UC3 = true; break;
+        case CV_16UC1: gd.m_NeedCV_16UC1 = true; break;
+        case CV_32FC1: gd.m_NeedCV_32FC1 = true; break;
+        }
 
         m_GraphState = GraphState::Stop;
         m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
@@ -23,7 +30,7 @@ namespace openCVGraph
         }
 
         std::string config("config");
-        fs::create_directory(config);
+        openCVGraph::createDir(config);
 
         // The settings file name combines both the GraphName and the Filter together
         m_persistFile = config + "\\" + m_Name + ".yml";
@@ -103,7 +110,7 @@ namespace openCVGraph
         for (int i = 0; i < m_Filters.size(); i++) {
             fOK &= m_Filters[i]->init(gd);
             if (!fOK) {
-                BOOST_LOG_TRIVIAL(error) << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
+                //BOOST_LOG_TRIVIAL(error) << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
             }
         }
 

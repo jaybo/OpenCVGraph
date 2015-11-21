@@ -1,12 +1,16 @@
 
 #pragma once
+
+#ifndef INCLUDE_OCVG_GRAPHMANAGER_HPP
+#define INCLUDE_OCVG_GRAPHMANAGER_HPP
+
 #include "stdafx.h"
 
 using namespace std;
 
 namespace openCVGraph
 {
-    typedef std::shared_ptr < Filter> Processor;
+    typedef std::shared_ptr < openCVGraph::Filter> Processor;
     class GraphManager;
     typedef bool(*GraphCallback)(GraphManager* graphManager);
 
@@ -18,7 +22,7 @@ namespace openCVGraph
             Run
         };
         
-        GraphManager(std::string name, bool abortOnESC = true, GraphCallback callback = NULL);
+        GraphManager(std::string name, int primaryImageType = CV_8UC3, bool abortOnESC = true, GraphCallback callback = NULL);
         ~GraphManager();
 
 		GraphData gd;
@@ -71,6 +75,5 @@ namespace openCVGraph
         void loadConfig();
     };
 
-
-
 }
+#endif

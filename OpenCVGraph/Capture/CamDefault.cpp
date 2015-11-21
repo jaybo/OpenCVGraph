@@ -1,10 +1,9 @@
 
-#include "..\stdafx.h"
+#include "../stdafx.h"
 #include "CamDefault.h"
 
 using namespace std;
 using namespace cv;
-namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {
@@ -87,6 +86,42 @@ namespace openCVGraph
 
         // Directory Directory Directory Directory Directory Directory Directory 
         if (!fOK) {
+#if true
+            DIR *dir;
+            vector<string> extensions = { ".png", ".tif", ".tiff", ".jpg", ".jpeg" };
+            struct dirent *ent;
+            if ((dir = opendir(image_dir.c_str())) != NULL) {
+                /* find files with matching extensions.  C++ is sooooo ugly for this kind of stuff */
+                string imageDirWithEndingSlash = image_dir;
+                if (!(image_dir.back() == '/')) {
+                    imageDirWithEndingSlash += "/";
+                }
+                while ((ent = readdir(dir)) != NULL) {
+                    if (ent->d_type == DT_REG) {
+                        string originalCase = ent->d_name;
+                        string lowerCase = ent->d_name;
+                        std::transform(lowerCase.begin(), lowerCase.end(), lowerCase.begin(), ::tolower);
+
+                        for (std::vector<string>::iterator it = extensions.begin(); it != extensions.end(); ++it) {
+                            string extension = *it;
+                            if (lowerCase.find(extension, (lowerCase.length() - extension.length())) != std::string::npos)
+                            {
+                                string fullPath = imageDirWithEndingSlash + ent->d_name;
+                                images.push_back(fullPath);
+                                //printf("%s\n", fullPath.c_str());
+                                fOK = true;
+                            }
+                        }
+                    }
+                }
+                closedir(dir);
+                source = Directory;
+                fOK = true;
+            }
+            else {
+                /* could not open directory */
+            }
+#else
             if (fs::exists(image_dir) && fs::is_directory(image_dir)) {
 
                 fs::recursive_directory_iterator it(image_dir);
@@ -110,13 +145,19 @@ namespace openCVGraph
                 source = Directory;
                 fOK = true;
             }
+#endif
         }
 		
 		// Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
 		if (!fOK) {
 			source = Noise;
-			graphData.m_imCapture = Mat::zeros(512, 512, CV_16U);
-			fOK = true;
+            if (graphData.m_NeedCV_16UC1) {
+                graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_16UC1);
+            }
+            if (graphData.m_NeedCV_8UC3) {
+                graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_8UC3);
+            }
+            fOK = true;
 		}
 
 		return fOK;
@@ -140,7 +181,7 @@ namespace openCVGraph
 			break;
 		case Directory:
             if (images.size() > 0) {
-                string fname = images[imageIndex].string();
+                string fname = images[imageIndex];
                 // cout << fname << endl;
                 graphData.m_imCapture = imread(fname);
                 imageIndex++;
@@ -165,7 +206,14 @@ namespace openCVGraph
             cv::cuda::lshift(graphData.m_imCapture8U, 8, graphData.m_imCapture8U);
         }
         else {
-            cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
+            if (graphData.m_NeedCV_16UC1) {
+                graphData.m_imCapture16U = graphData.m_imCapture;
+                graphData.m_imResult16U = graphData.m_imCapture;
+                graphData.m_imCapture.convertTo(graphData.m_imResult8U, CV_8U);
+            }
+            if (graphData.m_NeedCV_8UC3) {
+                cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
+            }
 
         }
 
@@ -177,7 +225,7 @@ namespace openCVGraph
     {
         if (m_showView) {
             m_imView = graphData.m_imCapture;
-            Filter::processView(graphData);
+        //    Filter::processView(graphData);
         }
     }
 

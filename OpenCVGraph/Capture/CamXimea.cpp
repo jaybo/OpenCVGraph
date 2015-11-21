@@ -3,7 +3,6 @@
 
 using namespace std;
 using namespace cv;
-namespace fs = ::boost::filesystem;
 
 namespace openCVGraph
 {

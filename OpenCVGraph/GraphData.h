@@ -4,6 +4,7 @@
 #include "stdafx.h"
 
 using namespace std;
+//using namespace spdlog;
 
 namespace openCVGraph
 {
@@ -19,10 +20,10 @@ namespace openCVGraph
     struct GraphProperty
     {
         GraphProperty();
-        GraphProperty(const std::string &, const boost::any &);
+        GraphProperty(const std::string &, const void *);
 
         std::string Name;
-        boost::any Value;
+        void * Value;
     };
 
     typedef std::list<GraphProperty> GraphProperties;
@@ -39,6 +40,10 @@ namespace openCVGraph
 
 	class  GraphData {
 	public:
+        GraphData() {
+            //m_Logger = spdlog::stdout_logger_mt("console");
+        }
+
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
 
@@ -58,10 +63,12 @@ namespace openCVGraph
         cv::Mat m_imCapture8U;              // 8 bit monochrome version if m_NeedCV_8UC1 is true
         cv::Mat m_imCapture16U;             // 16 bit monochrome version
         cv::Mat m_imCapture32F;             // 32 bit monochrome version
+        cv::Mat m_imCapture8UC3;            // 24 bit RGB version
 
         cv::Mat m_imResult8U;               // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
         cv::Mat m_imResult16U;                 
         cv::Mat m_imResult32F;                 
+        cv::Mat m_imResult8UC3;             // 24 bit RGB version
 
         // Cuda!
         bool m_UseCuda = true;
@@ -81,6 +88,8 @@ namespace openCVGraph
 
         // Lock zoom and scroll positions of different filters
         ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
+
+        //std::shared_ptr<logger> m_Logger;
 
         // Return property or null if not found
         //void* GetProperty(const string name) {

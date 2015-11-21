@@ -9,14 +9,10 @@
 #include <numeric>
 #include <chrono>
 #include <thread>
-
 #include <list>
-#include <boost/any.hpp>
 
-
-// Boost
-#include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
+// SpdLog
+//#include "include/spdlog/spdlog.h"
 
 
 // OpenCV

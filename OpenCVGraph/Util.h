@@ -1,19 +1,26 @@
 #pragma once
 
+#ifndef INCLUDE_OCVG_UTIL_HPP
+#define INCLUDE_OCVG_UTIL_HPP
+
 #include "stdafx.h"
 #include "opencv2/highgui.hpp"
-
-struct CvWindow;
 
 using namespace std;
 using namespace cv;
 
-bool fileExists(const std::string& name);
+namespace openCVGraph
+{
+    bool fileExists(const std::string& name);
 
-bool dirExists(const std::string& path);
+    bool dirExists(const std::string& path);
 
-void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale);
+    void createDir(std::string& dir);
 
-int getU16Pix(const cv::Mat& img, cv::Point pt);
+    void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale);
 
-vector<Mat> createHistogramImages(Mat& img);
+    int getU16Pix(const cv::Mat& img, cv::Point pt);
+
+    vector<Mat> createGrayHistogram(Mat& img, int bins, int width = 256, int height = 400);
+}
+#endif

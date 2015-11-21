@@ -1,5 +1,12 @@
 #pragma once
 
+#ifndef INCLUDE_OCVG_ZOOMVIEW_HPP
+#define INCLUDE_OCVG_ZOOMVIEW_HPP
+
+#include "stdafx.h"
+
+using namespace cv;
+using namespace std;
 
 namespace openCVGraph
 {
@@ -47,3 +54,5 @@ namespace openCVGraph
 	};
 
 }
+
+#endif
