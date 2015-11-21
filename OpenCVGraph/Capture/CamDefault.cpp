@@ -213,6 +213,10 @@ namespace openCVGraph
             }
             if (graphData.m_NeedCV_8UC3) {
                 cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
+                graphData.m_imCapture8UC3 = graphData.m_imCapture;
+                graphData.m_imResult8UC3 = graphData.m_imCapture;
+                m_imView = graphData.m_imCapture;
+
             }
 
         }
@@ -225,7 +229,7 @@ namespace openCVGraph
     {
         if (m_showView) {
             m_imView = graphData.m_imCapture;
-        //    Filter::processView(graphData);
+                Filter::processView(graphData);
         }
     }
 
