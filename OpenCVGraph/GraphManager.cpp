@@ -30,10 +30,10 @@ namespace openCVGraph
         }
 
         std::string config("config");
-        //openCVGraph::createDir(config);
+        createDir();
 
         // The settings file name combines both the GraphName and the Filter together
-        m_persistFile = config + "\\" + m_Name + ".yml";
+        m_persistFile = config + "/" + m_Name + ".yml";
 
         //logging::core::get()->set_filter
         //    (

@@ -34,7 +34,7 @@ bool graphCallback(GraphManager* graphManager) {
 
 int main()
 {
-    if (false) {
+    if (true) {
         // Create a graph
         GraphManager graph1("GraphWebCam", CV_8UC3, true,  graphCallback);
 

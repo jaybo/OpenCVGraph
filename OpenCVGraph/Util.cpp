@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace OpenCVGraph {
+//namespace OpenCVGraph {
 
     bool fileExists(const std::string& name) {
         struct stat buffer;
@@ -23,13 +23,15 @@ namespace OpenCVGraph {
             return false;
     }
 
-    void createDir(std::string& dir) {
-#if defined _MSC_VER
-        _mkdir(dir.c_str());
-#elif defined __GNUC__
-        mkdir(dir.c_str(), 0777);
-#endif
+    void createDir() {
     }
+//    void createDir(std::string& dir) {
+//#if defined _MSC_VER
+//        _mkdir(dir.c_str());
+//#elif defined __GNUC__
+//        mkdir(dir.c_str(), 0777);
+//#endif
+//    }
 
     void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale)
     {
@@ -62,7 +64,7 @@ namespace OpenCVGraph {
         return 0;
     }
 
-    vector<Mat> createGrayHistogram(Mat& img, int bins, int width = 256, int height = 400)
+    vector<Mat> createGrayHistogram(Mat& img, int bins, int width, int height)
     {
         int nc = img.channels();    // number of channels
         int depth = img.depth();
@@ -112,4 +114,4 @@ namespace OpenCVGraph {
         return histImage;
     }
 
-}
+//}
