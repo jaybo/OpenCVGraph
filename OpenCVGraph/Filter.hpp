@@ -19,7 +19,7 @@ namespace openCVGraph
         Filter::Filter(std::string name, GraphData& data, int width = 512, int height=512)
             : m_FilterName(name), m_width(width), m_height(height)
         {
-            // data.m_Logger->info("Filter() " + m_FilterName);
+            data.m_Logger->info("Filter() " + m_FilterName);
 
             m_CombinedName = data.m_GraphName + "-" + name;
             m_TickFrequency = cv::getTickFrequency();

@@ -62,7 +62,7 @@ namespace openCVGraph
         }
         
         // SingleImage SingleImage SingleImage SingleImage SingleImage SingleImage 
-        if (!fOK && fileExists(image_name)) {
+        if (!fOK && openCVGraph::fileExists(image_name)) {
             Mat image = imread(image_name, CV_LOAD_IMAGE_UNCHANGED);   // Read the file
 
             if (!image.data)                              // Check for invalid input

@@ -9,6 +9,7 @@
 // Windows Header Files:
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX                        // else spdlog won't compile
 #include <windows.h>
 #include <conio.h>
 #include <direct.h>

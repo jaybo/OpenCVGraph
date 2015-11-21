@@ -4,7 +4,7 @@
 #include "stdafx.h"
 
 using namespace std;
-//using namespace spdlog;
+using namespace spdlog;
 
 namespace openCVGraph
 {
@@ -41,7 +41,7 @@ namespace openCVGraph
 	class  GraphData {
 	public:
         GraphData() {
-            //m_Logger = spdlog::stdout_logger_mt("console");
+            m_Logger = spdlog::stdout_logger_mt("console");
         }
 
 		std::string m_GraphName;			// Name of the loop processor running this graph
@@ -89,7 +89,7 @@ namespace openCVGraph
         // Lock zoom and scroll positions of different filters
         ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
 
-        //std::shared_ptr<logger> m_Logger;
+        std::shared_ptr<logger> m_Logger;
 
         // Return property or null if not found
         //void* GetProperty(const string name) {

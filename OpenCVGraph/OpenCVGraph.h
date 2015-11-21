@@ -12,7 +12,7 @@
 #include <list>
 
 // SpdLog
-//#include "include/spdlog/spdlog.h"
+#include "include/spdlog/spdlog.h"
 
 
 // OpenCV

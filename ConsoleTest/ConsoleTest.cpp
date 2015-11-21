@@ -2,12 +2,6 @@
 //
 
 #include "stdafx.h"
-//#include <boost/log/common.hpp>
-//#include <boost/log/trivial.hpp>
-//#include <boost/log/sources/logger.hpp>
-//#include <boost/log/sources/severity_feature.hpp>
-//#include <boost/log/sources/severity_logger.hpp>
-
 
 using namespace std;
 using namespace openCVGraph;
