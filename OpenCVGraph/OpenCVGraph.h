@@ -38,6 +38,7 @@
 #include "Filters/FocusSobel.hpp"
 #include "Filters/Average.hpp"
 #include "Filters/BrightDarkField.hpp"
+#include "Filters/Cartoon.hpp"
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"

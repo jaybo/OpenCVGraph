@@ -42,10 +42,14 @@ int main()
 
         // Add an image source (could be camera, single image, directory, noise, movie)
          CvFilter cap1(new CamDefault("CamDefault", graph1.gd));
+         string s = typeid(cap1).name();
          graph1.AddFilter(cap1);
 
-         CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
-         graph1.AddFilter(canny);
+         //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
+         //graph1.AddFilter(canny);
+
+         CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", graph1.gd));
+         graph1.AddFilter(cartoon);
 
          // Start the thread for that graph running
          graph1.StartThread();
