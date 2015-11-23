@@ -6,6 +6,7 @@
 #include "..\stdafx.h"
 
 using namespace cv;
+using namespace cuda;
 using namespace std;
 
 namespace openCVGraph
@@ -58,8 +59,8 @@ namespace openCVGraph
             }
 
             // Bright - Dark as 32F
-            cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imBrightMinusDarkFieldGpu32F);
-            m_imBrightMinusDarkFieldGpu32F.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
+            cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imTemp16UGpu);
+            m_imTemp16UGpu.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
 
             if (m_showView) {
                 // To write on the overlay, you must allocate it.
@@ -76,24 +77,15 @@ namespace openCVGraph
 
         ProcessResult BrightDarkFieldCorrection::process(GraphData& graphData) override
         {
-            Mat t;
             if (graphData.m_UseCuda) {
-                cuda::subtract(graphData.m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTempGpu);
-                
-                m_imDarkFieldGpu16U.download(t);
-                m_imTempGpu.download(t);
+                // sub darkfield
+                cuda::subtract(graphData.m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTemp16UGpu);
+                // make 32F
+                m_imTemp16UGpu.convertTo(m_imTemp32FGpu, CV_32F);
+                // image - dark / bright - dark
+                cuda::divide(m_imTemp32FGpu, m_imBrightMinusDarkFieldGpu32F, m_imTemp16UGpu);
 
-                m_imTempGpu.convertTo(m_imTempGpu, CV_32F);
-                m_imTempGpu.download(t);
-
-                
-                cuda::divide(m_imTempGpu, m_imBrightMinusDarkFieldGpu32F, m_imTempGpu);
-                m_imTempGpu.download(t);
-
-
-                m_imTempGpu.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
-
-                graphData.m_imOutGpu16UC1.download(t);
+                m_imTemp16UGpu.convertTo(graphData.m_imOutGpu16UC1, CV_16U, 65536);
 
                 if (graphData.m_NeedCV_8UC1) {
                     graphData.m_imOutGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
@@ -111,7 +103,24 @@ namespace openCVGraph
         void BrightDarkFieldCorrection::processView(GraphData & graphData) override
         {
             if (m_showView) {
-                graphData.m_imOutGpu8UC1.download(m_imView);
+                switch (m_FieldToView) {
+                case 0:
+                    graphData.m_imOutGpu8UC1.download(m_imView);
+                    break;
+                case 1:
+                    graphData.m_imCapGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    graphData.m_imOutGpu8UC1.download(m_imView);
+                    break;
+                case 2:
+                    m_imBrightFieldGpu16U.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    graphData.m_imOutGpu8UC1.download(m_imView);
+                    break;
+                case 3:
+                    m_imDarkFieldGpu16U.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    graphData.m_imOutGpu8UC1.download(m_imView);
+                    break;
+
+                }
                 Filter::processView(graphData);
             }
         }
@@ -137,7 +146,8 @@ namespace openCVGraph
         }
 
     private:
-        cv::cuda::GpuMat m_imTempGpu;                     // 32F
+        cv::cuda::GpuMat m_imTemp16UGpu;                     // 32F
+        cv::cuda::GpuMat m_imTemp32FGpu;                     // 32F
         cv::cuda::GpuMat m_imBrightFieldGpu16U;           // 16U
         cv::cuda::GpuMat m_imDarkFieldGpu16U;             // 16U
         cv::cuda::GpuMat m_imBrightMinusDarkFieldGpu32F;  // 32F
@@ -145,7 +155,7 @@ namespace openCVGraph
         std::string m_BrightFieldPath = "config/BrightField.tif";
         std::string m_DarkFieldPath = "config/DarkField.tif";
 
-        int m_FieldToView = 0;      // 0 is unprocessed, 1 is processed, 2 is darkfield, 3 is brightfield
+        int m_FieldToView = 0;      // 0 is processed, 1 is unprocessed, 2 is darkfield, 3 is brightfield
         bool m_showSlider = true;
 
     };
