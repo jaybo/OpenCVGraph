@@ -28,11 +28,9 @@ namespace openCVGraph
             Filter::init(graphData);
 
             // Advertise the format(s) we need
-            graphData.m_NeedCV_32FC1;
+            graphData.m_NeedCV_32FC1 = true;
 
-            // To write on the overlay, you must allocate it.
-            // This indicates to the renderer the need to merge it with the final output image.
-            m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+
 
             m_N = 0;
             return true;
@@ -130,7 +128,7 @@ namespace openCVGraph
             cv::Point ptMin, ptMax;
             if (graphData.m_imCapture.channels() > 1) {
                 cv::Mat gray;
-                cvtColor(graphData.m_imCapture, gray, CV_BGR2GRAY);
+                cv::cvtColor(graphData.m_imCapture, gray, CV_BGR2GRAY);
                 cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
             }
             else {
@@ -202,7 +200,13 @@ namespace openCVGraph
         void ImageStatistics::processView(GraphData& graphData)
         {
             if (m_showView) {
-                m_imView = graphData.m_imOut8UC1;
+                // Convert back to 8 bits for the view
+                if (graphData.m_imCapture.depth() == CV_16U) {
+                    graphData.m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                }
+                else {
+                    m_imView = graphData.m_imCapture;
+                }
                 if (m_N >= 2) {
                     DrawOverlay(graphData);
                 }
@@ -211,7 +215,8 @@ namespace openCVGraph
         }
 
         void ImageStatistics::DrawOverlay(GraphData graphData) {
-            m_imViewTextOverlay = 0;
+            ClearOverlayText();
+
             std::ostringstream str;
 
             int posLeft = 10;
@@ -219,23 +224,23 @@ namespace openCVGraph
 
             str.str("");
             str << "      min    mean   max";
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 50), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 100), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
 
             str.str("");
             str << "SD: " << std::setfill(' ') << setw(7) << (int)dStdDevMin << setw(7) << (int)dStdDevMean << setw(7) << (int)dStdDevMax;
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 150), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 150), scale);
 
             str.str("");
             str << "SPACE to reset";
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 400), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 400), scale);
 
             str.str("");
             str << m_N << "/" << graphData.m_FrameNumber;
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(20, 500), scale);
+            DrawOverlayTextMono(str.str(), Point(20, 500), scale);
 
             // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
         }

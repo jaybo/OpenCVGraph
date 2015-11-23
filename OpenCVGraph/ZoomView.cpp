@@ -13,7 +13,7 @@ namespace openCVGraph
 		ZoomView* view = (ZoomView*)param;
         g_LastActiveZoomView = view;
 
-		cout << view->m_ZoomViewName << endl;
+		// cout << view->m_ZoomViewName << endl;
 
         if (view->m_mouseCallback) {
             // call a user callback if supplied
@@ -69,7 +69,7 @@ namespace openCVGraph
 			break;
 
 		case cv::EVENT_MOUSEMOVE:
-			cout << x << ", " << y << endl;
+			// cout << x << ", " << y << endl;
             if (view->m_MouseLButtonDown) {
                 int absZoom = abs(view->m_ZoomFactor);
                 if (view->m_ZoomFactor < 0) {
@@ -107,7 +107,7 @@ namespace openCVGraph
 	ZoomView::ZoomView(const string &name)
 	{
         m_ZoomViewName = name;
-		cout << m_ZoomViewName << endl;
+		// cout << m_ZoomViewName << endl;
 	}
 
 	ZoomView::~ZoomView()
@@ -181,16 +181,16 @@ namespace openCVGraph
             Point(m_cx - m_dx, m_cy - m_dy),
             MatZoomed);
 
-        resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0 , INTER_NEAREST);
+        cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0 , INTER_NEAREST);
 
         // merge in the (usually) text overlay
         if (!matOverlay.empty()) {
             // make a black outline to the text
             matOverlay.copyTo(MatShadow);
-            dilate(MatShadow, MatShadow, dilateElement);
-            bitwise_not(MatShadow, MatShadow);
-            bitwise_and(MatShadow, MatZoomed, MatZoomed);
-            bitwise_or(matOverlay, MatZoomed, MatZoomed);
+            dilate(MatShadow, MatShadow, dilateElement, Point(-1,-1), 1);
+            cv::bitwise_not(MatShadow, MatShadow);
+            cv::bitwise_and(MatShadow, MatZoomed, MatZoomed);
+            cv::bitwise_or(matOverlay, MatZoomed, MatZoomed);
         }
         cv::imshow(m_ZoomViewName, MatZoomed);
 	}

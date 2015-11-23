@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 
+namespace spd = spdlog;
 
 namespace openCVGraph
 {
@@ -10,10 +11,27 @@ namespace openCVGraph
 
     GraphManager::GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
     {
+        // Set up logging
+        try
+        {
+            string logDir = "logs";
+            createDir(logDir);
+            std::vector<spdlog::sink_ptr> sinks;
+            sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
+            sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + "logfile", "txt", 23, 59));
+            m_Logger = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
+            spdlog::register_logger(m_Logger);
+        }
+        catch (const spdlog::spdlog_ex& ex)
+        {
+            std::cout << "Log failed: " << ex.what() << std::endl;
+        }
+
         m_Name = name;
         m_GraphData.m_GraphName = m_Name;
         m_GraphData.m_AbortOnESC = abortOnESC;
         m_GraphCallback = callback;
+        m_GraphData.m_Logger = m_Logger;
 
         // Other types may be requested by individual filters
         switch (primaryImageType) {
@@ -32,23 +50,17 @@ namespace openCVGraph
         }
 
         std::string config("config");
-        createDir();
+        createDir(config);
 
         // The settings file name combines both the GraphName and the Filter together
         m_persistFile = config + "/" + m_Name + ".yml";
 
-        //logging::core::get()->set_filter
-        //    (
-        //        logging::trivial::severity >= logging::trivial::info
-        //        );
-
-
-        std::cout << "GraphManager() file: " << m_persistFile << std::endl;
+        m_GraphData.m_Logger->info() << "GraphManager() file: " << m_persistFile;
     }
 
     GraphManager::~GraphManager()
     {
-        std::cout << "~GraphManager()" << std::endl;
+        m_GraphData.m_Logger->info() << "~GraphManager()";
         cv::destroyAllWindows();
     }
 
@@ -112,7 +124,7 @@ namespace openCVGraph
         for (int i = 0; i < m_Filters.size(); i++) {
             fOK &= m_Filters[i]->init(m_GraphData);
             if (!fOK) {
-                //BOOST_LOG_TRIVIAL(error) << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
+                m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
             }
         }
 
@@ -182,11 +194,14 @@ namespace openCVGraph
     void GraphManager::saveConfig()
     {
         FileStorage fs(m_persistFile, FileStorage::WRITE);
-        if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
+        if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
 
         // Save state for the graph manager
         fs << "GraphManager" << "{";
         // Persist the filter data
+        cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0 );
+
+        fs << "LogLevel" << m_LogLevel;
         fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
         fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
         fs << "UseCuda" << m_UseCuda;
@@ -195,7 +210,7 @@ namespace openCVGraph
         // Save state for each filter
         for (int i = 0; i < m_Filters.size(); i++) {
             Processor filter = m_Filters[i];
-            cout << filter->m_FilterName;
+            m_GraphData.m_Logger->info() << filter->m_FilterName;
             fs << filter->m_FilterName.c_str() << "{";
             // Persist the filter data
             filter->saveConfig(fs, m_GraphData);
@@ -207,11 +222,14 @@ namespace openCVGraph
     void GraphManager::loadConfig()
     {
         FileStorage fs(m_persistFile, FileStorage::READ);
-        if (!fs.isOpened()) { std::cout << "ERROR: unable to open file storage!" << m_persistFile << std::endl; return; }
+        if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
 
         auto node = fs["GraphManager"];
         node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
 
+        if (!node["LogLevel"].empty()) {
+            node["LogLevel"] >> m_LogLevel;
+        }
         if (!node["UseCuda"].empty()) {
             node["UseCuda"] >> m_UseCuda;
         }

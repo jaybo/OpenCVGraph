@@ -15,10 +15,10 @@ using namespace cv;
 
     bool dirExists(const std::string& path);
 
-    //void createDir(std::string& dir);
-    void createDir();
+    void createDir(std::string& dir);
+    // void createDir();
 
-    void DrawShadowTextMono(cv::Mat m, string str, cv::Point p, double scale);
+    void DrawOverlayTextMono(cv::Mat m, string str, cv::Point p, double scale);
 
     int getU16Pix(const cv::Mat& img, cv::Point pt);
 

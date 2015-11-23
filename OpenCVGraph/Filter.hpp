@@ -12,11 +12,11 @@ using namespace std;
 namespace openCVGraph
 {
 
-	class Filter
-	{
-	public:
+    class Filter
+    {
+    public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, int width = 512, int height=512)
+        Filter::Filter(std::string name, GraphData& data, int width = 512, int height = 512)
             : m_FilterName(name), m_width(width), m_height(height)
         {
             data.m_Logger->info("Filter() " + m_FilterName);
@@ -107,7 +107,7 @@ namespace openCVGraph
             std::string tmp;
             strT << fixed << setprecision(1);
 
-            strT << (m_DurationMSSum / (( data.m_FrameNumber == 0) ? 1 : data.m_FrameNumber));
+            strT << (m_DurationMSSum / ((data.m_FrameNumber == 0) ? 1 : data.m_FrameNumber));
             tmp = strT.str();
             fs << "Duration_MS_Mean" << tmp.c_str();
 
@@ -122,7 +122,7 @@ namespace openCVGraph
             fs << "Duration_MS_Max" << tmp.c_str();
 
             strT.str("");
-            strT <<  m_DurationMS;
+            strT << m_DurationMS;
             tmp = strT.str();
             fs << "Duration_MS_Last" << tmp.c_str();
 
@@ -134,8 +134,8 @@ namespace openCVGraph
             if (!en.empty()) {
                 en >> m_Enabled;
             }
-            fs ["ShowView"] >> m_showView;
-            fs ["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
+            fs["ShowView"] >> m_showView;
+            fs["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
             if (m_ZoomViewLockIndex >= MAX_ZOOMVIEW_LOCKS) {
                 m_ZoomViewLockIndex = -1;
             }
@@ -145,7 +145,7 @@ namespace openCVGraph
         {
             m_Enabled = enable;
         }
-        
+
         /// Can only be called before the graph is first started
         virtual void Filter::EnableZoomView(bool enable)
         {
@@ -153,6 +153,26 @@ namespace openCVGraph
                 m_showView = enable;
             }
         }
+
+        void Filter::DrawOverlayTextMono(string str, cv::Point p, double scale)
+        {
+            if (m_imViewTextOverlay.empty())
+            {
+                m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+            }
+
+            cv::putText(m_imViewTextOverlay, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(255, 255, 255));
+        }
+
+        void Filter::ClearOverlayText()
+        { 
+            if (m_imViewTextOverlay.empty())
+            {
+                m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+            }
+            m_imViewTextOverlay.setTo(0);
+        }
+
 
         bool Filter::IsEnabled() { return m_Enabled; }
 

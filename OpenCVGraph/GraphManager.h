@@ -7,6 +7,7 @@
 #include "stdafx.h"
 
 using namespace std;
+namespace spd = spdlog;
 
 namespace openCVGraph
 {
@@ -69,6 +70,8 @@ namespace openCVGraph
         int m_CudaEnabledDeviceCount;
         int m_CudaDeviceIndex = 1;
         bool m_UseCuda = true;
+        int m_LogLevel = spd::level::info;
+        std::shared_ptr<spdlog::logger> m_Logger;
 
         bool ProcessLoop();
 		ProcessResult ProcessOne(int key);

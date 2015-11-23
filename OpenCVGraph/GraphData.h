@@ -41,7 +41,6 @@ namespace openCVGraph
 	class  GraphData {
 	public:
         GraphData() {
-            m_Logger = spdlog::stdout_logger_mt("console");
         }
 
 		std::string m_GraphName;			// Name of the loop processor running this graph
@@ -56,6 +55,10 @@ namespace openCVGraph
         int m_PrimaryImageType;
 
 		cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
+
+        // Default view
+        bool m_NeedCV8UC1View = false;      // forces the m_imOut8UC1 (non-CUDA) to always be used
+        
 
         // Input Mats
         cv::Mat m_imCap8UC3;              
@@ -205,7 +208,7 @@ namespace openCVGraph
                     break;
                 case CV_8UC3:
                     if (m_NeedCV_8UC1 || m_NeedCV_16UC1 || m_NeedCV_32FC1) {
-                        cvtColor(m_imCapture, m_imCap8UC1, COLOR_RGB2GRAY);
+                        cv::cvtColor(m_imCapture, m_imCap8UC1, COLOR_RGB2GRAY);
                     }
                     if (m_NeedCV_16UC1) {
                         m_imCap8UC1.convertTo(m_imCap16UC1, CV_16UC1, 256.0);

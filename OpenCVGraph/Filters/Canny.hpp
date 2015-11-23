@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef INCLUDE_CANNY
-#define INCLUDE_CANNY
+#ifndef INCLUDE_OCVG_CANNY
+#define INCLUDE_OCVG_CANNY
 
 #include "..\stdafx.h"
 
@@ -47,7 +47,6 @@ namespace openCVGraph
                 Filter::processView(graphData);
             }
         }
-
 
     private:
         cv::cuda::GpuMat cannyOut8U;

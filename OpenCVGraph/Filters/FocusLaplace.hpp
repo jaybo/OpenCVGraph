@@ -28,9 +28,6 @@ namespace openCVGraph
             int width = 512, int height = 512)
             : Filter(name, graphData, width, height)
         {
-            // To write on the overlay, you must allocate it.
-            // This indicates to the renderer the need to merge it with the final output image.
-            m_imViewTextOverlay = Mat(height, width, CV_8U);
         }
 
         bool FocusLaplace::init(GraphData& graphData) override
@@ -90,11 +87,11 @@ namespace openCVGraph
 
             str.str("");
             str << "  meanXY    X      Y";
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 50), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << std::setfill(' ') << setw(7) << (int)meanXY << setw(7) << (int)meanX << setw(7) << (int)meanY;
-            DrawShadowTextMono(m_imViewTextOverlay, str.str(), Point(posLeft, 100), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
         }
 
         void FocusLaplace::KernelSize(int kernelSize) {

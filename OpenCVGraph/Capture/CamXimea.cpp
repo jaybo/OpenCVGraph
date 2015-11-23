@@ -74,6 +74,8 @@ namespace openCVGraph
         // call the base to read/write configs
         Filter::init(graphData);
 
+        graphData.m_NeedCV_16UC1 = true;
+
         // need 8 bit for our own view
         if (m_showView) {
             graphData.m_NeedCV_8UC1 = true;
@@ -133,7 +135,7 @@ namespace openCVGraph
             if (!graphData.m_imCapture.data)   // Check for invalid input
             {
                 fOK = false;
-                std::cout << "Could not open capture device #" << camera_index << std::endl;
+                graphData.m_Logger->error() << "Could not read from capture device #" << camera_index;
             }
             else {
                 source = Camera;
@@ -156,33 +158,9 @@ namespace openCVGraph
         if (graphData.m_imCapture.depth() == CV_16U) {
             // make 16bpp full range
             graphData.m_imCapture *= 16;
-            graphData.m_imCap16UC1 = graphData.m_imCapture;
-            if (graphData.m_NeedCV_8UC1) {
-                graphData.m_imCap16UC1.convertTo(graphData.m_imCap8UC1, CV_8U, 1.0 / 256);
-            }
-        }
-        else {
-            graphData.m_imCap8UC1 = graphData.m_imCapture;
-            if (graphData.m_NeedCV_16UC1) {
-                graphData.m_imCap8UC1.convertTo(graphData.m_imCap16UC1, CV_16U, 256);
-            }
         }
 
-        graphData.m_imOut8UC1 = graphData.m_imCap8UC1;
-        graphData.m_imOut16UC1 = graphData.m_imCap16UC1;
-
-
-        // Get the capture image onto the GPU
-        graphData.m_imCapGpu16UC1.upload(graphData.m_imCap16UC1);
-        graphData.m_imCapGpu16UC1.convertTo(graphData.m_imCapGpu32FC1, CV_32F);
-        graphData.m_imCapGpu16UC1.convertTo(graphData.m_imCapGpu8UC1, CV_8U, 0.00390625);  // 1/256 scale factor
-
-        // And update the Result images
-        graphData.m_imCapGpu16UC1.copyTo(graphData.m_imOutGpu16UC1);
-        if (graphData.m_NeedCV_32FC1) {
-            graphData.m_imCapGpu32FC1.copyTo(graphData.m_imOutGpu32FC1);
-        }
-        graphData.m_imCapGpu8UC1.copyTo(graphData.m_imOutGpu8UC1);
+        graphData.CopyCaptureToRequiredFormats();
 
         return ProcessResult::OK;
     }
@@ -190,7 +168,13 @@ namespace openCVGraph
     void CamXimea::processView(GraphData& graphData)
     {
         if (m_showView) {
-            m_imView = graphData.m_imCap8UC1;
+            // Convert back to 8 bits for the view
+            if (graphData.m_imCapture.depth() == CV_16U) {
+                graphData.m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+            }
+            else {
+                m_imView = graphData.m_imCapture;
+            }
             Filter::processView(graphData);
         }
     }

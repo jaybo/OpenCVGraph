@@ -38,10 +38,6 @@ namespace openCVGraph
             graphData.m_NeedCV_32FC1 = true;
 
             if (m_showView) {
-                // To write on the overlay, you must allocate it.
-                // This indicates to the renderer the need to merge it with the final output image.
-                // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
-
                 if (m_showSlider) {
                     createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 10, SliderCallback, this);
                 }

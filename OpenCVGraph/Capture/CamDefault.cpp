@@ -49,7 +49,7 @@ namespace openCVGraph
                 if (!graphData.m_imCapture.data)   // Check for invalid input
                 {
                     fOK = false;
-                    std::cout << "Could not read from capture device #" << camera_index << std::endl;
+                    graphData.m_Logger->error() << "Could not read from capture device #" << camera_index;
                 }
                 else {
                     source = Camera;
@@ -57,7 +57,7 @@ namespace openCVGraph
                 }
             }
             else {
-                std::cout << "Could not open capture device #" << camera_index << std::endl;
+                graphData.m_Logger->error() << "Could not open capture device #" << camera_index;
             }
         }
         
@@ -67,7 +67,7 @@ namespace openCVGraph
 
             if (!image.data)                              // Check for invalid input
             {
-                std::cout << "Could not open or find the image" << std::endl;
+                graphData.m_Logger->error() << "Could not open or find the image";
             }
             else {
                 graphData.m_imCapture = image;
