@@ -41,7 +41,7 @@ namespace openCVGraph
         ProcessResult Simple::process(GraphData& graphData)
         {
             // do something random to imResult
-            graphData.m_imResult8U = 2 *graphData.m_imResult8U;
+            graphData.m_imOut8UC1 = 2 *graphData.m_imOut8UC1;
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }
@@ -51,7 +51,7 @@ namespace openCVGraph
         void Simple::processView(GraphData& graphData)
         {
             if (m_showView) {
-                graphData.m_imResult8U.copyTo(m_imView);
+                graphData.m_imOut8UC1.copyTo(m_imView);
                 Filter::processView(graphData);
             }
         }

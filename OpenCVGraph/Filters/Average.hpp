@@ -56,17 +56,17 @@ namespace openCVGraph
 
             if (graphData.m_UseCuda) {
                 if (m_imGpuAverage32F.empty()) {
-                    m_imGpuAverage32F = cv::cuda::GpuMat(graphData.m_imResultGpu32F.size(), CV_32F);
+                    m_imGpuAverage32F = cv::cuda::GpuMat(graphData.m_imOutGpu32FC1.size(), CV_32F);
                     m_imGpuAverage32F.setTo(Scalar(0));
                 }
 
-                cuda::add(m_imGpuAverage32F, graphData.m_imResultGpu32F, m_imGpuAverage32F);
+                cuda::add(m_imGpuAverage32F, graphData.m_imOutGpu32FC1, m_imGpuAverage32F);
 
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
                     cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
-                    m_imGpuAverage32F.copyTo(graphData.m_imResultGpu32F);
-                    m_imGpuAverage32F.convertTo(graphData.m_imResultGpu16U, CV_16U);
-                    m_imGpuAverage32F.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0/256);
+                    m_imGpuAverage32F.copyTo(graphData.m_imOutGpu32FC1);
+                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
+                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0/256);
                     m_imGpuAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
@@ -85,7 +85,7 @@ namespace openCVGraph
         {
             if (m_showView) {
                 if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
-                    graphData.m_imResultGpu8U.download(m_imView);
+                    graphData.m_imOutGpu8UC1.download(m_imView);
                     Filter::processView(graphData);
                 }
             }

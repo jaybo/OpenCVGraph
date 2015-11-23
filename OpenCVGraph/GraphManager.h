@@ -25,7 +25,9 @@ namespace openCVGraph
         GraphManager(std::string name, int primaryImageType = CV_8UC3, bool abortOnESC = true, GraphCallback callback = NULL);
         ~GraphManager();
 
-		GraphData gd;
+		GraphData m_GraphData;
+        GraphData getGraphData() { return m_GraphData; }
+
 		std::vector<Processor> m_Filters;
 
 		void StartThread();

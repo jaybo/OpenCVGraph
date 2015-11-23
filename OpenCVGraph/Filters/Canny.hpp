@@ -31,11 +31,11 @@ namespace openCVGraph
         {
             if (graphData.m_UseCuda) {
                 auto canny = cuda::createCannyEdgeDetector(100, 200);
-                canny->detect(graphData.m_imCaptureGpu8U, cannyOut8U);
-                cannyOut8U.download(graphData.m_imResult8U);
+                canny->detect(graphData.m_imCapGpu8UC1, cannyOut8U);
+                cannyOut8U.download(graphData.m_imOut8UC1);
             }
             else {
-                cv::Canny(graphData.m_imCapture8U, graphData.m_imResult8U, 100, 200);
+                cv::Canny(graphData.m_imCap8UC1, graphData.m_imOut8UC1, 100, 200);
             }
             return ProcessResult::OK;  // if you return false, the graph stops
         }
@@ -43,7 +43,7 @@ namespace openCVGraph
         void Canny::processView(GraphData& graphData)
         {
             if (m_showView) {
-                graphData.m_imResult8U.copyTo(m_imView);
+                graphData.m_imOut8UC1.copyTo(m_imView);
                 Filter::processView(graphData);
             }
         }

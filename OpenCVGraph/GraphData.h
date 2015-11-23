@@ -53,32 +53,38 @@ namespace openCVGraph
         bool m_NeedCV_16UC1 = false;
         bool m_NeedCV_32FC1 = false;
 
-        // And what formats they need for Results
-        //bool m_NeedResult8U = false;
-        //bool m_NeedResult16U = false;
-        //bool m_NeedResult32F = false;
+        int m_PrimaryImageType;
 
-		cv::Mat m_imCapture;                // Raw Capture image.  Don't modify this except in capture filters.
+		cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
 
-        cv::Mat m_imCapture8U;              // 8 bit monochrome version if m_NeedCV_8UC1 is true
-        cv::Mat m_imCapture16U;             // 16 bit monochrome version
-        cv::Mat m_imCapture32F;             // 32 bit monochrome version
-        cv::Mat m_imCapture8UC3;            // 24 bit RGB version
+        // Input Mats
+        cv::Mat m_imCap8UC3;              
+        cv::Mat m_imCap8UC1;              
+        cv::Mat m_imCap16UC1;             
+        cv::Mat m_imCap32FC1;             
 
-        cv::Mat m_imResult8U;               // "Result" image.  Could be anything.  Capture filters just copy imCapture to imResult.
-        cv::Mat m_imResult16U;                 
-        cv::Mat m_imResult32F;                 
-        cv::Mat m_imResult8UC3;             // 24 bit RGB version
+        // Output Mats
+        cv::Mat m_imOut8UC3;              
+        cv::Mat m_imOut8UC1;              
+        cv::Mat m_imOut16UC1;             
+        cv::Mat m_imOut32FC1;             
 
         // Cuda!
         bool m_UseCuda = true;
-        cv::cuda::GpuMat m_imCaptureGpu8U;
-        cv::cuda::GpuMat m_imCaptureGpu16U;
-        cv::cuda::GpuMat m_imCaptureGpu32F;
 
-        cv::cuda::GpuMat m_imResultGpu8U;
-        cv::cuda::GpuMat m_imResultGpu16U;
-        cv::cuda::GpuMat m_imResultGpu32F;
+        cv::cuda::GpuMat m_imCaptureGpu;    // Raw Capture image.  Always keep this unmodified
+
+        // Cuda input Mats
+        cv::cuda::GpuMat m_imCapGpu8UC3;
+        cv::cuda::GpuMat m_imCapGpu8UC1;
+        cv::cuda::GpuMat m_imCapGpu16UC1;
+        cv::cuda::GpuMat m_imCapGpu32FC1;
+
+        // Cuda output Mats
+        cv::cuda::GpuMat m_imOutGpu8UC3;
+        cv::cuda::GpuMat m_imOutGpu8UC1;
+        cv::cuda::GpuMat m_imOutGpu16UC1;
+        cv::cuda::GpuMat m_imOutGpu32FC1;
 
         // Bag for random data
         GraphProperties m_Properties;
@@ -90,6 +96,152 @@ namespace openCVGraph
         ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
 
         std::shared_ptr<logger> m_Logger;
+
+        // A capture or source filter has already put an image into m_imCapture.
+        // Now convert it into formats needed by the rest of the graph.
+        void CopyCaptureToRequiredFormats()
+        {
+            int nChannels = m_imCapture.channels();
+            int nDepth = m_imCapture.depth();
+            int nType = m_imCapture.type();
+
+            if (m_UseCuda) {
+
+                m_imCaptureGpu.upload(m_imCapture);
+
+                switch (nType) {
+                case CV_8UC1:
+                    if (m_NeedCV_8UC1) {
+                        m_imCapGpu8UC1 = m_imCaptureGpu;
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu16UC1, CV_16UC1, 256.0);
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu8UC3, CV_8UC3);
+                    }
+                    break;
+                case CV_16UC1:
+                    if (m_NeedCV_8UC1) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCapGpu16UC1 = m_imCaptureGpu;
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu32FC1, CV_32FC1);
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCaptureGpu.convertTo(m_imCapGpu8UC3, CV_8UC3, 1.0 / 256);
+                    }
+                    break;
+                case CV_8UC3:
+                    if (m_NeedCV_8UC1 || m_NeedCV_16UC1 || m_NeedCV_32FC1) {
+                        cuda::cvtColor(m_imCaptureGpu, m_imCapGpu8UC1, COLOR_RGB2GRAY);
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCapGpu8UC1.convertTo(m_imCapGpu16UC1, CV_16UC1, 256.0);
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCapGpu8UC1.convertTo(m_imCapGpu32FC1, CV_32FC1); // Hmm scale up here?
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCapGpu8UC3 = m_imCaptureGpu;
+                    }
+                    break;
+                default:
+                    m_Logger->error("Source format unsupported");
+                }
+
+                // And copy to Out Mats
+                // ??? should just be reference to Cap Mats
+
+                if (m_NeedCV_8UC1) {
+                    m_imCapGpu8UC1.copyTo(m_imOutGpu8UC1);
+                }
+                if (m_NeedCV_16UC1) {
+                    m_imCapGpu16UC1.copyTo(m_imOutGpu16UC1);
+                }
+                if (m_NeedCV_32FC1) {
+                    m_imCapGpu32FC1.copyTo(m_imOutGpu32FC1);
+                }
+                if (m_NeedCV_8UC3) {
+                    m_imCapGpu8UC3.copyTo(m_imOutGpu8UC3);
+                }
+
+            }
+            else {
+                switch (nType) {
+                case CV_8UC1:
+                    if (m_NeedCV_8UC1) {
+                        m_imCap8UC1 = m_imCapture;
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCapture.convertTo(m_imCap16UC1, CV_16UC1, 256.0);
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCapture.convertTo(m_imCap32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCapture.convertTo(m_imCap8UC3, CV_8UC3);
+                    }
+                    break;
+                case CV_16UC1:
+                    if (m_NeedCV_8UC1) {
+                        m_imCapture.convertTo(m_imCap8UC1, CV_8UC1, 1.0 / 256);
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCap16UC1 = m_imCapture;
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCapture.convertTo(m_imCap32FC1, CV_32FC1);  
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCapture.convertTo(m_imCap8UC3, CV_8UC3, 1.0/256);
+                    }
+                    break;
+                case CV_8UC3:
+                    if (m_NeedCV_8UC1 || m_NeedCV_16UC1 || m_NeedCV_32FC1) {
+                        cvtColor(m_imCapture, m_imCap8UC1, COLOR_RGB2GRAY);
+                    }
+                    if (m_NeedCV_16UC1) {
+                        m_imCap8UC1.convertTo(m_imCap16UC1, CV_16UC1, 256.0);
+                    }
+                    if (m_NeedCV_32FC1) {
+                        m_imCap8UC1.convertTo(m_imCap32FC1, CV_32FC1); // Hmm scale up here?
+                    }
+                    if (m_NeedCV_8UC3) {
+                        m_imCap8UC3 = m_imCapture;
+                    }
+                    break;
+                default:
+                    m_Logger->error("Source format unsupported");
+                    break;
+                }
+
+                // And copy to Out Mats
+                // ??? should just be reference to Cap Mats
+
+                if (m_NeedCV_8UC1) {
+                    m_imCap8UC1.copyTo(m_imOut8UC1);
+                }
+                if (m_NeedCV_16UC1) {
+                    m_imCap16UC1.copyTo(m_imOut16UC1);
+                }
+                if (m_NeedCV_32FC1) {
+                    m_imCap32FC1.copyTo(m_imOut32FC1);
+                }
+                if (m_NeedCV_8UC3) {
+                    m_imCap8UC3.copyTo(m_imOut8UC3);
+                }
+            }
+
+        }
+
+
 
         // Return property or null if not found
         //void* GetProperty(const string name) {

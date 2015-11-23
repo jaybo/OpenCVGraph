@@ -78,7 +78,7 @@ namespace openCVGraph
         {
             Mat t;
             if (graphData.m_UseCuda) {
-                cuda::subtract(graphData.m_imCaptureGpu16U, m_imDarkFieldGpu16U, m_imTempGpu);
+                cuda::subtract(graphData.m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTempGpu);
                 
                 m_imDarkFieldGpu16U.download(t);
                 m_imTempGpu.download(t);
@@ -91,12 +91,12 @@ namespace openCVGraph
                 m_imTempGpu.download(t);
 
 
-                m_imTempGpu.convertTo(graphData.m_imResultGpu16U, CV_16U);
+                m_imTempGpu.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
 
-                graphData.m_imResultGpu16U.download(t);
+                graphData.m_imOutGpu16UC1.download(t);
 
                 if (graphData.m_NeedCV_8UC1) {
-                    graphData.m_imResultGpu16U.convertTo(graphData.m_imResultGpu8U, CV_8U, 1.0 / 256);
+                    graphData.m_imOutGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
                 }
             }
             else {
@@ -111,7 +111,7 @@ namespace openCVGraph
         void BrightDarkFieldCorrection::processView(GraphData & graphData) override
         {
             if (m_showView) {
-                graphData.m_imResultGpu8U.download(m_imView);
+                graphData.m_imOutGpu8UC1.download(m_imView);
                 Filter::processView(graphData);
             }
         }

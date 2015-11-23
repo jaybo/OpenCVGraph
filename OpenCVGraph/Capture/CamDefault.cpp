@@ -154,7 +154,7 @@ namespace openCVGraph
             if (graphData.m_NeedCV_16UC1) {
                 graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_16UC1);
             }
-            if (graphData.m_NeedCV_8UC3) {
+            else if (graphData.m_NeedCV_8UC3) {
                 graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_8UC3);
             }
             fOK = true;
@@ -194,32 +194,15 @@ namespace openCVGraph
 			 //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
             //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(255));
             //graphData.m_imCapture = Mat::zeros(512, 512, CV_16U);
-            cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
+            if (graphData.m_NeedCV_16UC1) {
+                cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
+            }
+
             break;
 		}
-        // Copy imCapture to imResult
-        graphData.m_imCapture.copyTo(graphData.m_imResult8U);
 
-        if (graphData.m_UseCuda) {
-            cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
-            graphData.m_imCaptureGpu8U.upload(graphData.m_imCapture8U);
-            cv::cuda::lshift(graphData.m_imCapture8U, 8, graphData.m_imCapture8U);
-        }
-        else {
-            if (graphData.m_NeedCV_16UC1) {
-                graphData.m_imCapture16U = graphData.m_imCapture;
-                graphData.m_imResult16U = graphData.m_imCapture;
-                graphData.m_imCapture.convertTo(graphData.m_imResult8U, CV_8U);
-            }
-            if (graphData.m_NeedCV_8UC3) {
-                cvtColor(graphData.m_imCapture, graphData.m_imCapture8U, CV_RGB2GRAY);
-                graphData.m_imCapture8UC3 = graphData.m_imCapture;
-                graphData.m_imResult8UC3 = graphData.m_imCapture;
-                m_imView = graphData.m_imCapture;
+        graphData.CopyCaptureToRequiredFormats();
 
-            }
-
-        }
 
         return ProcessResult::OK;
     }

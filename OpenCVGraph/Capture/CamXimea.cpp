@@ -156,33 +156,33 @@ namespace openCVGraph
         if (graphData.m_imCapture.depth() == CV_16U) {
             // make 16bpp full range
             graphData.m_imCapture *= 16;
-            graphData.m_imCapture16U = graphData.m_imCapture;
+            graphData.m_imCap16UC1 = graphData.m_imCapture;
             if (graphData.m_NeedCV_8UC1) {
-                graphData.m_imCapture16U.convertTo(graphData.m_imCapture8U, CV_8U, 1.0 / 256);
+                graphData.m_imCap16UC1.convertTo(graphData.m_imCap8UC1, CV_8U, 1.0 / 256);
             }
         }
         else {
-            graphData.m_imCapture8U = graphData.m_imCapture;
+            graphData.m_imCap8UC1 = graphData.m_imCapture;
             if (graphData.m_NeedCV_16UC1) {
-                graphData.m_imCapture8U.convertTo(graphData.m_imCapture16U, CV_16U, 256);
+                graphData.m_imCap8UC1.convertTo(graphData.m_imCap16UC1, CV_16U, 256);
             }
         }
 
-        graphData.m_imResult8U = graphData.m_imCapture8U;
-        graphData.m_imResult16U = graphData.m_imCapture16U;
+        graphData.m_imOut8UC1 = graphData.m_imCap8UC1;
+        graphData.m_imOut16UC1 = graphData.m_imCap16UC1;
 
 
         // Get the capture image onto the GPU
-        graphData.m_imCaptureGpu16U.upload(graphData.m_imCapture16U);
-        graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu32F, CV_32F);
-        graphData.m_imCaptureGpu16U.convertTo(graphData.m_imCaptureGpu8U, CV_8U, 0.00390625);  // 1/256 scale factor
+        graphData.m_imCapGpu16UC1.upload(graphData.m_imCap16UC1);
+        graphData.m_imCapGpu16UC1.convertTo(graphData.m_imCapGpu32FC1, CV_32F);
+        graphData.m_imCapGpu16UC1.convertTo(graphData.m_imCapGpu8UC1, CV_8U, 0.00390625);  // 1/256 scale factor
 
         // And update the Result images
-        graphData.m_imCaptureGpu16U.copyTo(graphData.m_imResultGpu16U);
+        graphData.m_imCapGpu16UC1.copyTo(graphData.m_imOutGpu16UC1);
         if (graphData.m_NeedCV_32FC1) {
-            graphData.m_imCaptureGpu32F.copyTo(graphData.m_imResultGpu32F);
+            graphData.m_imCapGpu32FC1.copyTo(graphData.m_imOutGpu32FC1);
         }
-        graphData.m_imCaptureGpu8U.copyTo(graphData.m_imResultGpu8U);
+        graphData.m_imCapGpu8UC1.copyTo(graphData.m_imOutGpu8UC1);
 
         return ProcessResult::OK;
     }
@@ -190,7 +190,7 @@ namespace openCVGraph
     void CamXimea::processView(GraphData& graphData)
     {
         if (m_showView) {
-            m_imView = graphData.m_imCapture8U;
+            m_imView = graphData.m_imCap8UC1;
             Filter::processView(graphData);
         }
     }

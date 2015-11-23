@@ -11,17 +11,19 @@ namespace openCVGraph
     GraphManager::GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
     {
         m_Name = name;
-        gd.m_GraphName = m_Name;
-        gd.m_AbortOnESC = abortOnESC;
+        m_GraphData.m_GraphName = m_Name;
+        m_GraphData.m_AbortOnESC = abortOnESC;
         m_GraphCallback = callback;
 
         // Other types may be requested by individual filters
         switch (primaryImageType) {
-        case CV_8UC1: gd.m_NeedCV_8UC1 = true; break;
-        case CV_8UC3: gd.m_NeedCV_8UC3 = true; break;
-        case CV_16UC1: gd.m_NeedCV_16UC1 = true; break;
-        case CV_32FC1: gd.m_NeedCV_32FC1 = true; break;
+        case CV_8UC1: m_GraphData.m_NeedCV_8UC1 = true; break;
+        case CV_8UC3: m_GraphData.m_NeedCV_8UC3 = true; break;
+        case CV_16UC1: m_GraphData.m_NeedCV_16UC1 = true; break;
+        case CV_32FC1: m_GraphData.m_NeedCV_32FC1 = true; break;
         }
+
+        m_GraphData.m_PrimaryImageType = primaryImageType;
 
         m_GraphState = GraphState::Stop;
         m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
@@ -69,7 +71,7 @@ namespace openCVGraph
         // first process keyhits
         if (key != -1) {
             for (int i = 0; i < m_Filters.size(); i++) {
-                fOK &= m_Filters[i]->processKeyboard(gd, key);
+                fOK &= m_Filters[i]->processKeyboard(m_GraphData, key);
             }
         }
 
@@ -81,16 +83,16 @@ namespace openCVGraph
             // Currently, complete the loop
             if (filter->IsEnabled())
             {
-                result = filter->process(gd);
+                result = filter->process(m_GraphData);
             }
             filter->toc();
             if (filter->IsEnabled())
             {
-                filter->processView(gd);
+                filter->processView(m_GraphData);
             }
             if (result != ProcessResult::OK) break;
         }
-        gd.m_FrameNumber++;
+        m_GraphData.m_FrameNumber++;
 
         return result;
     }
@@ -104,11 +106,11 @@ namespace openCVGraph
         loadConfig();
         
         // Let the filters know whether or not to use Cuda
-        gd.m_UseCuda = m_UseCuda;
+        m_GraphData.m_UseCuda = m_UseCuda;
 
         // Init everybody
         for (int i = 0; i < m_Filters.size(); i++) {
-            fOK &= m_Filters[i]->init(gd);
+            fOK &= m_Filters[i]->init(m_GraphData);
             if (!fOK) {
                 //BOOST_LOG_TRIVIAL(error) << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
             }
@@ -118,7 +120,7 @@ namespace openCVGraph
         while (fOK) {
             // This should be the only waitKey() in the entire graph
             int key = cv::waitKey(1);
-            if (gd.m_AbortOnESC && (key == 27)) {
+            if (m_GraphData.m_AbortOnESC && (key == 27)) {
                 fOK = false;
                 break;
             }
@@ -153,7 +155,7 @@ namespace openCVGraph
 
         // clean up
         for (int i = 0; i < m_Filters.size(); i++) {
-            m_Filters[i]->fini(gd);
+            m_Filters[i]->fini(m_GraphData);
         }
         destroyAllWindows();
 
@@ -196,7 +198,7 @@ namespace openCVGraph
             cout << filter->m_FilterName;
             fs << filter->m_FilterName.c_str() << "{";
             // Persist the filter data
-            filter->saveConfig(fs, gd);
+            filter->saveConfig(fs, m_GraphData);
             fs << "}";
         }
         fs.release();
@@ -218,7 +220,7 @@ namespace openCVGraph
             Processor filter = m_Filters[i];
             auto node = fs[filter->m_FilterName.c_str()];
             if (!node.empty()) {
-                filter->loadConfig(node, gd);
+                filter->loadConfig(node, m_GraphData);
             }
         }
         fs.release();

@@ -49,19 +49,19 @@ namespace openCVGraph
         {
             if (graphData.m_UseCuda) {
                 Scalar s;
-                graphData.m_imResultGpu16U = graphData.m_imCaptureGpu16U;
-                auto nPoints = graphData.m_imCaptureGpu16U.size().area();
+                graphData.m_imOutGpu16UC1 = graphData.m_imCapGpu16UC1;
+                auto nPoints = graphData.m_imCapGpu16UC1.size().area();
 
                 // X
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCaptureGpu16U.type(), graphData.m_imResultGpu16U.type(), 1, 0, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCaptureGpu16U, graphData.m_imResultGpu16U);
-                s = cv::cuda::sum(graphData.m_imResultGpu16U);
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
+                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 meanX = s[0] / nPoints;
 
                 // Y
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCaptureGpu16U.type(), graphData.m_imResultGpu16U.type(), 0, 1, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCaptureGpu16U, graphData.m_imResultGpu16U);
-                s = cv::cuda::sum(graphData.m_imResultGpu16U);
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
+                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 meanY = s[0] / nPoints;
 
                 meanXY = (meanX + meanY) / 2;
@@ -81,7 +81,7 @@ namespace openCVGraph
                 meanXY = (meanX + meanY) / 2;
             }
             if (m_showView) {
-                graphData.m_imCapture8U.copyTo(m_imView);
+                graphData.m_imCap8UC1.copyTo(m_imView);
                 DrawOverlay(graphData);
             }
             return ProcessResult::OK;  // if you return false, the graph stops

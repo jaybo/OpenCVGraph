@@ -80,7 +80,7 @@ namespace openCVGraph
 
 
         void ImageStatistics::Accumulate(GraphData& graphData) {
-            graphData.m_imResult8U.convertTo(m_capF, CV_32F);
+            graphData.m_imOut8UC1.convertTo(m_capF, CV_32F);
 
             // See Knuth TAOCP vol 2, 3rd edition, page 232
             if (m_N == 1)
@@ -105,14 +105,14 @@ namespace openCVGraph
         void ImageStatistics::AccumulateGpu(GraphData& graphData) {
             if (m_N == 1)
             {
-                graphData.m_imResultGpu32F.copyTo(m_newMGpu);
-                graphData.m_imResultGpu32F.copyTo(m_oldMGpu);
+                graphData.m_imOutGpu32FC1.copyTo(m_newMGpu);
+                graphData.m_imOutGpu32FC1.copyTo(m_oldMGpu);
                 cuda::multiply(m_oldMGpu, Scalar(0.0), m_oldSGpu);  // m_oldSGpu = m_oldMGpu * 0.0;
             }
             else
             {
-                cuda::subtract(graphData.m_imResultGpu32F, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
-                cuda::subtract(graphData.m_imResultGpu32F, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
+                cuda::subtract(graphData.m_imOutGpu32FC1, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
+                cuda::subtract(graphData.m_imOutGpu32FC1, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
 
                 cuda::divide(m_dOldGpu, Scalar(m_N), m_TGpu);   // Need a temp here m_TGpu
                 cuda::add(m_oldMGpu, m_TGpu, m_newMGpu);
@@ -156,13 +156,13 @@ namespace openCVGraph
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
             cv::Point ptMin, ptMax;
-            cv::cuda::minMaxLoc(graphData.m_imResultGpu32F, &dCapMin, &dCapMax, &ptMin, &ptMax);
+            cv::cuda::minMaxLoc(graphData.m_imOutGpu32FC1, &dCapMin, &dCapMax, &ptMin, &ptMax);
 
             cv::Scalar sMean, sStdDev;
             // argh, only works with 8pp!!!
             // cv::cuda::meanStdDev(m_newMGpu, imMean, imStdDev);   // stdDev here is across the mean image
             sMean = cv::cuda::sum(m_newMGpu);
-            auto nPoints = graphData.m_imResultGpu32F.size().area();
+            auto nPoints = graphData.m_imOutGpu32FC1.size().area();
             dMean = sMean[0] / nPoints;
 
             // Mean, and min and max of mean image
@@ -202,7 +202,7 @@ namespace openCVGraph
         void ImageStatistics::processView(GraphData& graphData)
         {
             if (m_showView) {
-                m_imView = graphData.m_imResult8U;
+                m_imView = graphData.m_imOut8UC1;
                 if (m_N >= 2) {
                     DrawOverlay(graphData);
                 }
