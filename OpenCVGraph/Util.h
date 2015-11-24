@@ -22,6 +22,6 @@ using namespace cv;
 
     int getU16Pix(const cv::Mat& img, cv::Point pt);
 
-    vector<Mat> createGrayHistogram(Mat& img, int bins, int width = 256, int height = 400);
+    Mat createGrayHistogram(Mat& img, int bins, int width = 256, int height = 400);
 //}
 #endif

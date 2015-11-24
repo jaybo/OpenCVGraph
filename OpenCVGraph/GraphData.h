@@ -133,6 +133,7 @@ namespace openCVGraph
                     }
                     if (m_NeedCV_16UC1) {
                         m_imCapGpu16UC1 = m_imCaptureGpu;
+                        m_imOut16UC1 = m_imCapture;
                     }
                     if (m_NeedCV_32FC1) {
                         m_imCaptureGpu.convertTo(m_imCapGpu32FC1, CV_32FC1);

@@ -117,10 +117,10 @@ namespace openCVGraph
 
                 if (m_showView) {
                     if (m_showExposureSlider) {
-                        createTrackbar("Exposure", m_CombinedName, &m_exposure, 200000, ExposureCallback, this);
+                        createTrackbar("Exposure", m_CombinedName, &m_exposure, m_exposureSliderMax, ExposureCallback, this);
                     }
                     if (m_showGainSlider) {
-                        createTrackbar("Gain", m_CombinedName, &m_gain, 10000, GainCallback, this);
+                        createTrackbar("Gain", m_CombinedName, &m_gain, m_gainSliderMax, GainCallback, this);
                     }
                     if (m_showFocusSlider) {
                         createTrackbar("Focus", m_CombinedName, &m_focalDistance, 1000000, FocusCallback, this);
@@ -200,7 +200,9 @@ namespace openCVGraph
         fs << "aperture" << m_aperture;
         fs << "focusMovementValue" << m_focusMovementValue;
         fs << "exposure" << m_exposure;
+        fs << "exposureSliderMax" << m_exposureSliderMax;
         fs << "gain" << m_gain;
+        fs << "gainSliderMax" << m_gainSliderMax;
         fs << "show_gain_slider" << m_showGainSlider;
         fs << "show_exposure_slider" << m_showExposureSlider;
         fs << "show_focus_slider" << m_showFocusSlider;
@@ -217,7 +219,9 @@ namespace openCVGraph
         fs["aperture"] >> m_aperture;
         fs["focusMovementValue"] >> m_focusMovementValue;
         fs["exposure"] >> m_exposure;
+        fs["exposureSliderMax"] >> m_exposureSliderMax;
         fs["gain"] >> m_gain;
+        fs["gainSliderMax"] >> m_gainSliderMax;
         fs["show_gain_slider"] >> m_showGainSlider;
         fs["show_exposure_slider"] >> m_showExposureSlider;
         fs["show_focus_slider"] >> m_showFocusSlider;

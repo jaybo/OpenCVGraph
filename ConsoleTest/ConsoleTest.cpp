@@ -88,8 +88,8 @@ int main()
         CvFilter cam2(new CamXimea("CamXimea", gd));
         graph1.AddFilter(cam2);
         
-        CvFilter faverage(new Average("Average", gd));
-        graph1.AddFilter(faverage);
+        //CvFilter faverage(new Average("Average", gd));
+        //graph1.AddFilter(faverage);
 
         CvFilter brightDark(new BrightDarkFieldCorrection("BrightDark", gd));
         graph1.AddFilter(brightDark);
@@ -105,6 +105,10 @@ int main()
 
         //CvFilter fpSimple(new Simple("Simple", gd));
         //graph1.AddFilter(fpSimple);
+
+        CvFilter fileWriter(new FileWriter("FileWriter", gd));
+        graph1.AddFilter(fileWriter);
+
 
         // Start the thread for that graph running
         graph1.StartThread();

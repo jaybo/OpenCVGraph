@@ -187,11 +187,13 @@ namespace openCVGraph
         bool m_isSquare = true;
         bool m_minimumBuffers = true;
         int m_gain = 1000;                  // * 1000
+        int m_gainSliderMax = 10000;        // * 1000
         int m_focalDistance = 1;            // * 1000
         int m_focalLength;                  // * 1000
         int m_aperture = 1200;              // * 1000
         double m_focusMovementValue;
         int m_exposure = 10000;             // in microseconds
+        int m_exposureSliderMax = 200000;         // for setting the slider max
         bool m_showGainSlider = false;
         bool m_showExposureSlider = false;
         bool m_showFocusSlider = false;

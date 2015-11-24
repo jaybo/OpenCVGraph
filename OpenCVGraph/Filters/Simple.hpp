@@ -30,10 +30,6 @@ namespace openCVGraph
             // Define the image formats we use:
             graphData.m_NeedCV_8UC1 = true;
 
-            // To write on the Text overlay, you must allocate it.
-            // This indicates to the renderer the need to merge it with the final output image.
-            // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
-
             return true;
         }
 

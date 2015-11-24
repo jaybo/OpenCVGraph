@@ -39,6 +39,7 @@
 #include "Filters/Average.hpp"
 #include "Filters/BrightDarkField.hpp"
 #include "Filters/Cartoon.hpp"
+#include "Filters/FileWriter.hpp"
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"

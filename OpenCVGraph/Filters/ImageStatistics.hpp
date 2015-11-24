@@ -12,6 +12,9 @@ namespace openCVGraph
 {
     // http://www.johndcook.com/blog/standard_deviation/
 
+
+    // This currently only works on m_imCapture.  It should be modified to use m_imOut...
+
     class ImageStatistics : public Filter
     {
     public:
@@ -29,8 +32,6 @@ namespace openCVGraph
 
             // Advertise the format(s) we need
             graphData.m_NeedCV_32FC1 = true;
-
-
 
             m_N = 0;
             return true;
@@ -236,13 +237,17 @@ namespace openCVGraph
 
             str.str("");
             str << "SPACE to reset";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 400), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 460), scale);
 
             str.str("");
             str << m_N << "/" << graphData.m_FrameNumber;
-            DrawOverlayTextMono(str.str(), Point(20, 500), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 500), scale);
 
-            // vector<Mat> histo = createHistogramImages(graphData.m_imCapture);
+            auto histSize = Size(512, 200);
+            Mat histo = createGrayHistogram(graphData.m_imCapture, 256, histSize.width, histSize.height);
+
+            Mat t = Mat(m_imViewTextOverlay, Rect(Point(0, 180), histSize));
+            cv::bitwise_or(t, histo, t);
         }
 
     };

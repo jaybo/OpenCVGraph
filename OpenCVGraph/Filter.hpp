@@ -188,7 +188,7 @@ namespace openCVGraph
 
 	protected:
 		bool m_firstTime = true;
-		bool m_showView = true;
+		bool m_showView = false;
         bool m_Enabled = true;
         bool m_IsInitialized = false;
         double m_TimeStart;

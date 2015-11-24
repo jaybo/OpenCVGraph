@@ -4,92 +4,91 @@
 
 using namespace std;
 
-//namespace OpenCVGraph {
 
-    bool fileExists(const std::string& name) {
-        struct stat buffer;
-        return (stat(name.c_str(), &buffer) == 0);
-    }
+bool fileExists(const std::string& name) {
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
+}
 
-    bool dirExists(const std::string& path)
-    {
-        struct stat info;
+bool dirExists(const std::string& path)
+{
+    struct stat info;
 
-        if (stat(path.c_str(), &info) != 0)
-            return false;
-        else if (info.st_mode & S_IFDIR)
-            return true;
-        else
-            return false;
-    }
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else if (info.st_mode & S_IFDIR)
+        return true;
+    else
+        return false;
+}
 
-    void createDir(std::string& dir) {
+void createDir(std::string& dir) {
 #if defined _MSC_VER
-        _mkdir(dir.c_str());
+    _mkdir(dir.c_str());
 #elif defined __GNUC__
-        mkdir(dir.c_str(), 0777);
+    mkdir(dir.c_str(), 0777);
 #endif
-    }
+}
 
 
 
-    int getU16Pix(const cv::Mat& img, cv::Point pt)
+int getU16Pix(const cv::Mat& img, cv::Point pt)
+{
+    cv::Mat patch;
+    cv::remap(img, patch, cv::Mat(1, 1, CV_16UC1, &pt), cv::noArray(),
+        cv::INTER_NEAREST, cv::BORDER_CONSTANT, Scalar(128, 128, 128));
+    return patch.at<int>(0, 0);
+    return 0;
+}
+
+// Returns a histogram image for 8 or 16BPP input image
+// The returned histogram image is CV_8UC1
+
+Mat createGrayHistogram(Mat& img, int bins, int width, int height)
+{
+    int nc = img.channels();
+    int depth = img.depth();
+    bool is16bpp = (depth == CV_16U);
+
+    if (!img.data)
     {
-        cv::Mat patch;
-        cv::remap(img, patch, cv::Mat(1, 1, CV_16UC1, &pt), cv::noArray(),
-            cv::INTER_NEAREST, cv::BORDER_CONSTANT, Scalar(128, 128, 128));
-        return patch.at<int>(0, 0);
-        return 0;
+        auto m = Mat(width, height, CV_8UC1);
+        m.setTo(0);
+        return m;
     }
 
-    //vector<Mat> createGrayHistogram(Mat& img, int bins, int width, int height)
-    //{
-    //    int nc = img.channels();    // number of channels
-    //    int depth = img.depth();
-    //    bool is16bpp = (depth == CV_16U);
+    /// Establish the number of bins
+    int histSize = bins;
 
-    //    //if (!img.data)
-    //    //{
-    //    //    return NULL;
-    //    //}
+    float range[] = { 0, (float)(is16bpp ? 65535 : 255) };
+    const float* histRange = { range };
 
+    bool uniform = true;
+    bool accumulate = false;
 
-    //    /// Establish the number of bins
-    //    int histSize = bins;
+    Mat hist;
 
-    //    /// Set the ranges ( for B,G,R) )
-    //    float range[] = { 0, (float)(is16bpp ? 65535 : 255) };
-    //    const float* histRange = { range };
+    /// Compute the histograms:
+    cv::calcHist(&img, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
 
-    //    bool uniform = true; bool accumulate = false;
+    // Draw the histogram
+    int hist_w = width; int hist_h = height;
+    int bin_w = cvRound((double)hist_w / histSize);
 
-    //    Mat hist;
+    Mat histImage(hist_h, hist_w, CV_8UC1);
+    histImage.setTo(0);
 
-    //    /// Compute the histograms:
-    //    calcHist(&img, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+    /// Normalize the result to [ 0, histImage.rows ]
+    cv::normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
 
-    //    // Draw the histogram
-    //    int hist_w = width; int hist_h = height;
-    //    int bin_w = cvRound((double)hist_w / histSize);
+    /// Draw for each channel
+    for (int i = 1; i < histSize; i++)
+    {
+        line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(hist.at<float>(i - 1))),
+            Point(bin_w*(i), hist_h - cvRound(hist.at<float>(i))),
+            Scalar(255, 255, 255), 2, 8, 0);
+    }
 
-    //    Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
+    return histImage;
+}
 
-    //    /// Normalize the result to [ 0, histImage.rows ]
-    //    normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-
-    //    /// Draw for each channel
-    //    for (int i = 1; i < histSize; i++)
-    //    {
-    //        line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(hist.at<float>(i - 1))),
-    //            Point(bin_w*(i), hist_h - cvRound(hist.at<float>(i))),
-    //            Scalar(255, 0, 0), 2, 8, 0);
-    //    }
-
-    //    /// Display
-    //    namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE);
-    //    imshow("calcHist Demo", histImage);
-
-    //    return histImage;
-    //}
-
-//}
