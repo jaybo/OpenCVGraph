@@ -21,6 +21,18 @@ namespace openCVGraph
         {
         }
 
+        bool FileWriter::processKeyboard(GraphData& data, int key) override
+        {
+            bool fOK = true;
+            char c[2];
+            c[0] = char(key);
+            c[1] = 0;
+            if (string(c) == m_WriteOnKeyHit) {
+                m_WriteNextImage = true;    // Trigger write
+            }
+            return fOK;
+        }
+
         //Allocate resources if needed, and specify the image formats required
         bool FileWriter::init(GraphData& graphData) override
         {
@@ -31,24 +43,36 @@ namespace openCVGraph
 
             createDir(m_Directory);
 
+            if (m_WriteOnKeyHit != "") {
+                m_WriteNextImage = false;
+            }
+
             return true;
         }
 
         // Do all of the work here.
         ProcessResult FileWriter::process(GraphData& graphData)
         {
-            string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
-            imwrite(fullName, graphData.m_imOut16UC1);
+            if (m_WriteNextImage) {
+                string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
+                imwrite(fullName, graphData.m_imOut16UC1);
+
+                if (m_WriteOnKeyHit != "") {
+                    m_WriteNextImage = false;
+                }
+
+            }
             return ProcessResult::OK;  // if you return false, the graph stops
         }
 
         void  FileWriter::saveConfig(FileStorage& fs, GraphData& data) override
         {
             Filter::saveConfig(fs, data);
-            cvWriteComment((CvFileStorage *)*fs, "Set camera_index to -1 to skip use of camera", 0);
             fs << "directory" << m_Directory.c_str();
             fs << "name" << m_Name.c_str();
             fs << "ext" << m_Ext.c_str();
+            cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit", 0);
+            fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
         }
 
         void  FileWriter::loadConfig(FileNode& fs, GraphData& data) override
@@ -57,13 +81,15 @@ namespace openCVGraph
             fs["directory"] >> m_Directory;
             fs["name"] >> m_Name;
             fs["ext"] >> m_Ext;
+            fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
         }
 
     private:
         string m_Directory = "C:/junk";
         string m_Name = "foo";
         string m_Ext = ".tif";
-
+        string m_WriteOnKeyHit = "";
+        bool m_WriteNextImage = true;
     };
 }
 #endif
