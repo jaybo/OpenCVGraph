@@ -37,7 +37,7 @@ namespace openCVGraph
                 auto filter = cuda::createBoxFilter(CV_8UC1, CV_8UC1, Size( MEDIAN_BLUR_FILTER_SIZE, MEDIAN_BLUR_FILTER_SIZE));
                 filter->apply(gray, gray);
                 GpuMat edges;
-                const int LAPLACIAN_FILTER_SIZE = 5;
+                const int LAPLACIAN_FILTER_SIZE = 3;
                 auto filterlp = cuda::createLaplacianFilter(CV_8UC1, CV_8UC1, LAPLACIAN_FILTER_SIZE);
                 filterlp->apply(gray, edges);
                 //cuda::Laplacian(gray, edges, CV_8U, LAPLACIAN_FILTER_SIZE);
@@ -53,11 +53,11 @@ namespace openCVGraph
                     int ksize = 9;     // Filter size. Has a large effect on speed.  
                     double sigmaColor = 9;    // Filter color strength.  
                     double sigmaSpace = 7;    // Spatial strength. Affects speed.  
-                    bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
-                    bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
+                    cuda::bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
+                    cuda::bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
                 }
-                graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC1);
-                graphData.m_imOutGpu8UC3.download(m_imView);
+                graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
+                graphData.m_imOut8UC3.copyTo(m_imView);
 
             }
             else {
@@ -91,16 +91,16 @@ namespace openCVGraph
                     Laplacian(gray, edges, CV_8U, LAPLACIAN_FILTER_SIZE);
 
                     Mat mask;
-                    const int EDGES_THRESHOLD = 80;
+                    const int EDGES_THRESHOLD = 180;
                     cv::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
 
                     Mat tmp;
                     graphData.m_imOut8UC3.copyTo(tmp);
-                    int repetitions = 7;  // Repetitions for strong cartoon effect. 
+                    int repetitions = 1;  // Repetitions for strong cartoon effect. 
                     for (int i = 0; i < repetitions; i++) {
                         int ksize = 9;     // Filter size. Has a large effect on speed.  
-                        double sigmaColor = 9;    // Filter color strength.  
-                        double sigmaSpace = 7;    // Spatial strength. Affects speed.  
+                        double sigmaColor = 5;    // Filter color strength.  
+                        double sigmaSpace = 3;    // Spatial strength. Affects speed.  
                         bilateralFilter(graphData.m_imOut8UC3, tmp, ksize, sigmaColor, sigmaSpace);
                         bilateralFilter(tmp, graphData.m_imOut8UC3, ksize, sigmaColor, sigmaSpace);
                     }
