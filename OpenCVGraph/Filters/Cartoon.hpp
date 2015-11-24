@@ -46,22 +46,30 @@ namespace openCVGraph
                 const int EDGES_THRESHOLD = 80;
                 cuda::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
 
+                auto ty = mask.type();
+                auto ch = mask.channels();
+                auto sz = mask.size();
+                auto ie = mask.empty();
+
                 GpuMat tmp;
                 graphData.m_imOutGpu8UC3.copyTo(tmp);
                 int repetitions = 7;  // Repetitions for strong cartoon effect. 
                 for (int i = 0; i < repetitions; i++) {
                     int ksize = 9;     // Filter size. Has a large effect on speed.  
-                    double sigmaColor = 9;    // Filter color strength.  
-                    double sigmaSpace = 7;    // Spatial strength. Affects speed.  
+                    float sigmaColor = 9;    // Filter color strength.  
+                    float sigmaSpace = 7;    // Spatial strength. Affects speed.  
                     cuda::bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
                     cuda::bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
                 }
+                tmp.setTo(0);
+                //cuda::bitwise_and(graphData.m_imOutGpu8UC3, graphData.m_imOutGpu8UC3, tmp, mask);
+                //tmp.copyTo(graphData.m_imOutGpu8UC3);
                 graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
                 graphData.m_imOut8UC3.copyTo(m_imView);
 
             }
             else {
-                if (true) {
+                if (false) {
                     cv::stylization(graphData.m_imOut8UC3,
                         graphData.m_imOut8UC3,
                         20.f, 0.2f);
@@ -81,7 +89,7 @@ namespace openCVGraph
                         0.02f
                         );
                 }
-                if (false) {
+                if (true) {
                     Mat gray;
                     cv::cvtColor(graphData.m_imOut8UC3, gray, CV_BGR2GRAY);
                     const int MEDIAN_BLUR_FILTER_SIZE = 7;
@@ -91,7 +99,7 @@ namespace openCVGraph
                     Laplacian(gray, edges, CV_8U, LAPLACIAN_FILTER_SIZE);
 
                     Mat mask;
-                    const int EDGES_THRESHOLD = 180;
+                    const int EDGES_THRESHOLD = 80;
                     cv::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
 
                     Mat tmp;
@@ -101,9 +109,12 @@ namespace openCVGraph
                         int ksize = 9;     // Filter size. Has a large effect on speed.  
                         double sigmaColor = 5;    // Filter color strength.  
                         double sigmaSpace = 3;    // Spatial strength. Affects speed.  
-                        bilateralFilter(graphData.m_imOut8UC3, tmp, ksize, sigmaColor, sigmaSpace);
-                        bilateralFilter(tmp, graphData.m_imOut8UC3, ksize, sigmaColor, sigmaSpace);
+                        cv::bilateralFilter(graphData.m_imOut8UC3, tmp, ksize, sigmaColor, sigmaSpace);
+                        cv::bilateralFilter(tmp, graphData.m_imOut8UC3, ksize, sigmaColor, sigmaSpace);
                     }
+                    tmp.setTo(0);
+                    cv::bitwise_and(graphData.m_imOut8UC3, graphData.m_imOut8UC3, tmp, mask);
+                    tmp.copyTo(graphData.m_imOut8UC3);
                 }
             }
             return ProcessResult::OK;  // if you return false, the graph stops
