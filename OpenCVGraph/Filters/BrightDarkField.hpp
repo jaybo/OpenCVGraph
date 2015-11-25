@@ -47,7 +47,8 @@ namespace openCVGraph
                 m_imBrightFieldGpu16U.upload(img);
             }
             else {
-                assert(false);
+                graphData.m_Logger->error ("Unable to load BrightField: " + m_BrightFieldPath);
+                return false;
             }
 
             img = imread(m_DarkFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
@@ -55,7 +56,8 @@ namespace openCVGraph
                 m_imDarkFieldGpu16U.upload(img);
             }
             else {
-                assert(false);
+                graphData.m_Logger->error("Unable to load DarkField: " + m_DarkFieldPath);
+                return false;
             }
 
             // Bright - Dark as 32F
