@@ -1,0 +1,60 @@
+%YAML:1.0
+GraphManager:
+   # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
+   LogLevel: 2
+   CudaEnabledDeviceCount: 1
+   CudaDeviceIndex: 1
+   UseCuda: 1
+CamXimea:
+   IsEnabled: 1
+   ShowView: 0
+   ZoomViewLockIndex: -1
+   Duration_MS_Mean: "0.0"
+   Duration_MS_Min: "9999.0"
+   Duration_MS_Max: "0.0"
+   Duration_MS_Last: "0.0"
+   camera_index: 0
+   minimum_buffers: 1
+   aperture: 1200
+   minFocusMovementValue: 2
+   exposure: 10000
+   exposureSliderMax: 200000
+   gain: 1000
+   gainSliderMax: 10000
+   show_gain_slider: 0
+   show_exposure_slider: 0
+   show_focus_slider: 0
+   show_aperature_slider: 0
+BrightDark:
+   IsEnabled: 1
+   ShowView: 0
+   ZoomViewLockIndex: -1
+   Duration_MS_Mean: "0.0"
+   Duration_MS_Min: "9999.0"
+   Duration_MS_Max: "0.0"
+   Duration_MS_Last: "0.0"
+   bright_field_path: "config/BrightField.tif"
+   dark_field_path: "config/DarkField.tif"
+   show_slider: 1
+Stats:
+   IsEnabled: 1
+   ShowView: 0
+   ZoomViewLockIndex: -1
+   Duration_MS_Mean: "0.0"
+   Duration_MS_Min: "9999.0"
+   Duration_MS_Max: "0.0"
+   Duration_MS_Last: "0.0"
+   use_Cuda: 1
+FileWriter:
+   IsEnabled: 1
+   ShowView: 0
+   ZoomViewLockIndex: -1
+   Duration_MS_Mean: "0.0"
+   Duration_MS_Min: "9999.0"
+   Duration_MS_Max: "0.0"
+   Duration_MS_Last: "0.0"
+   directory: "C:/junk"
+   name: foo
+   ext: ".tif"
+   # Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.
+   writeOnKeyHit: ""
