@@ -8,7 +8,7 @@
 
 namespace openCVGraph
 {
-#define MAX_MIMEA_FOCUS 
+#define MAX_MIMEA_FOCUS_STEPS 4  // Defines size of slider and size of steps, plus or minus
 
     class CamXimea : public CamDefault
     {
@@ -166,11 +166,20 @@ namespace openCVGraph
             }
         }
 
-        void Focus(int v) {
+        bool FocusStep() {
             bool fOK = true;
-            m_focalDistance = v;
-            fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE, m_focalDistance / 1000);
-            Log(fOK, "Focus " + std::to_string(m_focalDistance));
+            fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVE, 0);                    // do the move
+            Log(fOK, "Focus stepped");
+            return fOK;
+        }
+
+        // v is pos or neg offset from zero
+        void FocusViaSlider(int v) {
+            bool fOK = true;
+            m_focusMovementStepSize = m_minFocusMovementValue * v;
+            fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, m_focusMovementStepSize);   // may be pos or net
+            fOK = FocusStep();
+            Log(fOK, "Focus moved: " + std::to_string(m_focusMovementStepSize));
         }
 
         void Aperature(int v) {
@@ -188,10 +197,10 @@ namespace openCVGraph
         bool m_minimumBuffers = true;
         int m_gain = 1000;                  // * 1000
         int m_gainSliderMax = 10000;        // * 1000
-        int m_focalDistance = 1;            // * 1000
-        int m_focalLength;                  // * 1000
         int m_aperture = 1200;              // * 1000
-        double m_focusMovementValue;
+        int m_focusMovementSliderPos = MAX_MIMEA_FOCUS_STEPS;
+        int m_focusMovementStepSize = 0;
+        int m_minFocusMovementValue = 2;       
         int m_exposure = 10000;             // in microseconds
         int m_exposureSliderMax = 200000;         // for setting the slider max
         bool m_showGainSlider = false;

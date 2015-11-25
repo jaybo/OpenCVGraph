@@ -71,7 +71,7 @@ namespace openCVGraph
             fs << "directory" << m_Directory.c_str();
             fs << "name" << m_Name.c_str();
             fs << "ext" << m_Ext.c_str();
-            cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit", 0);
+            cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
         }
 

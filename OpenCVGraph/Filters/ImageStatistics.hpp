@@ -224,16 +224,16 @@ namespace openCVGraph
             double scale = 1.0;
 
             str.str("");
-            str << "      min    mean   max";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
+            str << "         min   mean   max";
+            DrawOverlayTextMono(str.str(), Point(posLeft, 30), scale);
 
             str.str("");
             str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 70), scale);
 
             str.str("");
             str << "SD: " << std::setfill(' ') << setw(7) << (int)dStdDevMin << setw(7) << (int)dStdDevMean << setw(7) << (int)dStdDevMax;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 150), scale);
+            DrawOverlayTextMono(str.str(), Point(posLeft, 120), scale);
 
             str.str("");
             str << "SPACE to reset";

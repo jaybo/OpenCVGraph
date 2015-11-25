@@ -60,7 +60,8 @@ namespace openCVGraph
 
     void CamXimea::FocusCallback(int pos, void * userData) {
         CamXimea* camXimea = (CamXimea *)userData;
-        camXimea->Focus(pos);
+        camXimea->m_focusMovementSliderPos = pos;
+        camXimea->FocusViaSlider(pos - MAX_MIMEA_FOCUS_STEPS);
     }
 
     void CamXimea::ApertureCallback(int pos, void * userData) {
@@ -104,14 +105,13 @@ namespace openCVGraph
                 fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
 
                 // Enable aperature and focus
-                //cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
+                cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
                 //m_focalDistance = (int) (1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE));
                 //m_focalLength = (int)(1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH));
                 //m_aperatureValue = (int)(1000 * (cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE));
 
-                fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, 10);
-                m_focusMovementValue = cap.get(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE);
-
+                
+               
                 fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
                 fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
 
@@ -123,7 +123,7 @@ namespace openCVGraph
                         createTrackbar("Gain", m_CombinedName, &m_gain, m_gainSliderMax, GainCallback, this);
                     }
                     if (m_showFocusSlider) {
-                        createTrackbar("Focus", m_CombinedName, &m_focalDistance, 1000000, FocusCallback, this);
+                        createTrackbar("Focus", m_CombinedName, &m_focusMovementSliderPos, MAX_MIMEA_FOCUS_STEPS * 2, FocusCallback, this);
                     }
                     if (m_showApertureSlider) {
                         createTrackbar("Aperture", m_CombinedName, &m_aperture, 22000, ApertureCallback, this);
@@ -161,6 +161,10 @@ namespace openCVGraph
         }
 
         graphData.CopyCaptureToRequiredFormats();
+        
+        if (m_focusMovementStepSize != 0) {
+            FocusStep();
+        }
 
         return ProcessResult::OK;
     }
@@ -195,10 +199,8 @@ namespace openCVGraph
         Filter::saveConfig(fs, data);
         fs << "camera_index" << camera_index;
         fs << "minimum_buffers" << m_minimumBuffers;
-        fs << "focus" << m_focalDistance;
-        fs << "focalLength" << m_focalLength;
         fs << "aperture" << m_aperture;
-        fs << "focusMovementValue" << m_focusMovementValue;
+        fs << "minFocusMovementValue" << m_minFocusMovementValue;
         fs << "exposure" << m_exposure;
         fs << "exposureSliderMax" << m_exposureSliderMax;
         fs << "gain" << m_gain;
@@ -214,10 +216,8 @@ namespace openCVGraph
         Filter::loadConfig(fs, data);
         fs["camera_index"] >> camera_index;
         fs["minimum_buffers"] >> m_minimumBuffers;
-        fs["focus"] >> m_focalDistance;
-        fs["focalLength"] >> m_focalLength;
         fs["aperture"] >> m_aperture;
-        fs["focusMovementValue"] >> m_focusMovementValue;
+        fs["minFocusMovementValue"] >> m_minFocusMovementValue;
         fs["exposure"] >> m_exposure;
         fs["exposureSliderMax"] >> m_exposureSliderMax;
         fs["gain"] >> m_gain;
