@@ -31,27 +31,23 @@ namespace openCVGraph
         ProcessResult Cartoon::process(GraphData& graphData)
         {
             if (graphData.m_UseCuda) {
+                Mat mDebug;
+
                 GpuMat gray;
                 cuda::cvtColor(graphData.m_imOutGpu8UC3, gray, CV_BGR2GRAY);
-                const int MEDIAN_BLUR_FILTER_SIZE = 7;
-                auto filter = cuda::createBoxFilter(CV_8UC1, CV_8UC1, Size( MEDIAN_BLUR_FILTER_SIZE, MEDIAN_BLUR_FILTER_SIZE));
-                filter->apply(gray, gray);
-                GpuMat edges;
-                const int LAPLACIAN_FILTER_SIZE = 3;
-                auto filterlp = cuda::createLaplacianFilter(CV_8UC1, CV_8UC1, LAPLACIAN_FILTER_SIZE);
-                filterlp->apply(gray, edges);
-                //cuda::Laplacian(gray, edges, CV_8U, LAPLACIAN_FILTER_SIZE);
-
-                GpuMat mask;
-                const int EDGES_THRESHOLD = 80;
-                cuda::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
-
-                auto ty = mask.type();
-                auto ch = mask.channels();
-                auto sz = mask.size();
-                auto ie = mask.empty();
 
                 GpuMat tmp;
+                Mat tmp3;
+
+                gray.download(tmp3);
+
+                GpuMat cannyOut8U;
+                auto canny = cuda::createCannyEdgeDetector(50, 200);
+                canny->detect(gray, cannyOut8U);
+                cuda::bitwise_not(cannyOut8U, cannyOut8U);
+                
+
+
                 graphData.m_imOutGpu8UC3.copyTo(tmp);
                 int repetitions = 7;  // Repetitions for strong cartoon effect. 
                 for (int i = 0; i < repetitions; i++) {
@@ -61,9 +57,11 @@ namespace openCVGraph
                     cuda::bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
                     cuda::bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
                 }
-                tmp.setTo(0);
-                //cuda::bitwise_and(graphData.m_imOutGpu8UC3, graphData.m_imOutGpu8UC3, tmp, mask);
-                //tmp.copyTo(graphData.m_imOutGpu8UC3);
+                //mask.download(mDebug);
+                cuda::cvtColor(cannyOut8U, tmp, CV_GRAY2RGB);
+                //mask.convertTo(tmp2, CV_8UC3);
+                tmp.download(tmp3);
+                cuda::bitwise_and(graphData.m_imOutGpu8UC3, tmp, graphData.m_imOutGpu8UC3);
                 graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
                 graphData.m_imOut8UC3.copyTo(m_imView);
 

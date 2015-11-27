@@ -34,7 +34,7 @@ bool graphCallback(GraphManager* graphManager) {
 
 int main()
 {
-    if (false) {
+    if (true) {
         // Create a graph
         GraphManager graph1("GraphWebCam", CV_8UC3, true,  graphCallback);
         GraphData gd = graph1.getGraphData();
@@ -46,8 +46,8 @@ int main()
          string s = typeid(cap1).name();
          graph1.AddFilter(cap1);
 
-         //CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd));
-         //graph1.AddFilter(canny);
+         CvFilter canny(new openCVGraph::Canny("Canny", gd));
+         graph1.AddFilter(canny);
 
          CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
          graph1.AddFilter(cartoon);
