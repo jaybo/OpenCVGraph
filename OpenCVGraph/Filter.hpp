@@ -99,6 +99,7 @@ namespace openCVGraph
         {
             fs << "IsEnabled" << m_Enabled;
             fs << "ShowView" << m_showView;
+            fs << "ShowViewControls" << m_showViewControls;
             fs << "ZoomViewLockIndex" << m_ZoomViewLockIndex;
 
             // Save how long the filter took to process its last sample, mean, min, max
@@ -135,6 +136,7 @@ namespace openCVGraph
                 en >> m_Enabled;
             }
             fs["ShowView"] >> m_showView;
+            fs["ShowViewControls"] >> m_showViewControls;
             fs["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
             if (m_ZoomViewLockIndex >= MAX_ZOOMVIEW_LOCKS) {
                 m_ZoomViewLockIndex = -1;
@@ -189,6 +191,7 @@ namespace openCVGraph
 	protected:
 		bool m_firstTime = true;
 		bool m_showView = false;
+        bool m_showViewControls = false;    // view sliders
         bool m_Enabled = true;
         bool m_IsInitialized = false;
         double m_TimeStart;

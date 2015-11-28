@@ -11,18 +11,11 @@ using namespace std;
 namespace openCVGraph
 {
     // Creates an average frame of N frames.
+    // Currently source and result must be 32F using Cuda
 
     class Average : public Filter
     {
     public:
-
-        static void Average::SliderCallback(int pos, void * userData) {
-            Average* filter = (Average *)userData;
-            if (pos == 0) {
-                pos = 1;
-            }
-            filter->FramesToAverage(pos);
-        }
 
         Average::Average(std::string name, GraphData& graphData,
             int width = 512, int height = 512)
@@ -31,6 +24,7 @@ namespace openCVGraph
 
         }
 
+
         bool Average::init(GraphData& graphData) override
         {
             Filter::init(graphData);
@@ -38,8 +32,8 @@ namespace openCVGraph
             graphData.m_NeedCV_32FC1 = true;
 
             if (m_showView) {
-                if (m_showSlider) {
-                    createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 10, SliderCallback, this);
+                if (m_showViewControls) {
+                    createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
                 }
             }
 
@@ -51,6 +45,7 @@ namespace openCVGraph
             ProcessResult result = ProcessResult::Continue;  // Averaging filters return this to skip the rest of the loop
 
             if (graphData.m_UseCuda) {
+#ifdef WITH_CUDA
                 if (m_imGpuAverage32F.empty()) {
                     m_imGpuAverage32F = cv::cuda::GpuMat(graphData.m_imOutGpu32FC1.size(), CV_32F);
                     m_imGpuAverage32F.setTo(Scalar(0));
@@ -66,10 +61,27 @@ namespace openCVGraph
                     m_imGpuAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
+#else
+                assert(false);
+#endif
             }
             else {
                 //todo
-                assert(false);
+                if (m_imAverage32F.empty()) {
+                    m_imAverage32F = cv::Mat(graphData.m_imOut32FC1.size(), CV_32F);
+                    m_imAverage32F.setTo(Scalar(0));
+                }
+
+                cuda::add(m_imAverage32F, graphData.m_imOut32FC1, m_imAverage32F);
+
+                if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
+                    cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
+                    m_imAverage32F.copyTo(graphData.m_imOut32FC1);
+                    m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
+                    m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
+                    m_imAverage32F.setTo(Scalar(0));
+                    result = ProcessResult::OK;  // Let this sample continue onto the graph
+                }
 
             }
             m_FramesAveraged++;
@@ -81,8 +93,13 @@ namespace openCVGraph
         {
             if (m_showView) {
                 if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
+#ifdef WITH_CUDA
                     graphData.m_imOutGpu8UC1.download(m_imView);
+#else
+                    m_imView = graphData.m_imOut8UC1;
+#endif
                     Filter::processView(graphData);
+
                 }
             }
         }
@@ -96,22 +113,30 @@ namespace openCVGraph
         {
             Filter::saveConfig(fs, data);
             fs << "frames_to_average" << m_FramesToAverage;
-            fs << "show_slider" << m_showSlider;
         }
 
         void  Average::loadConfig(FileNode& fs, GraphData& data)
         {
             Filter::loadConfig(fs, data);
             fs["frames_to_average"] >> m_FramesToAverage;
-            fs["show_slider"] >> m_showSlider;
         }
 
     private:
+#ifdef WITH_CUDA
         cv::cuda::GpuMat m_imGpuAverage32F;
+#endif
+        Mat m_imAverage32F;
         int m_FramesToAverage = 3;
         int m_FramesAveraged = 0;
-        bool m_showSlider = true;
-        // bool m_RunningAverage = true;
+
+        static void Average::SliderCallback(int pos, void * userData) {
+            Average* filter = (Average *)userData;
+            if (pos == 0) {
+                pos = 1;
+            }
+            filter->FramesToAverage(pos);
+        }
+
 
     };
 }

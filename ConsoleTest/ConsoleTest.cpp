@@ -39,18 +39,19 @@ int main()
         GraphManager graph1("GraphWebCam", CV_8UC3, true,  graphCallback);
         GraphData gd = graph1.getGraphData();
 
-        graph1.UseCuda(true);
-
         // Add an image source (could be camera, single image, directory, noise, movie)
          CvFilter cap1(new CamDefault("CamDefault", gd));
-         string s = typeid(cap1).name();
          graph1.AddFilter(cap1);
+         //string s = typeid(cap1).name();
+
+         CvFilter faverage(new Average("Average", gd));
+         graph1.AddFilter(faverage);
 
          CvFilter canny(new openCVGraph::Canny("Canny", gd));
          graph1.AddFilter(canny);
 
-         CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
-         graph1.AddFilter(cartoon);
+         //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
+         //graph1.AddFilter(cartoon);
 
          // Start the thread for that graph running
          graph1.StartThread();
@@ -58,6 +59,7 @@ int main()
 
          graph1.JoinThread();
     }
+#if false
     else if (false) {
         // Create a graph
         GraphManager graph1("GraphImageDir", CV_16UC1, true,  graphCallback);
@@ -117,7 +119,7 @@ int main()
         graph1.JoinThread();
     }
 
-
+#endif
 
  
     return 0;

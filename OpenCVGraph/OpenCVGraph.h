@@ -30,17 +30,23 @@
 #include "ZoomView.h"
 #include "Filter.hpp"
 #include "GraphManager.h"
-#include "Capture/CamDefault.h"
 
+
+#include "Capture/CamDefault.h"
+#include "Filters/Canny.hpp"
+#include "Filters/Average.hpp"
+
+#if false
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
-#include "Filters/Canny.hpp"
+
 #include "Filters/FocusSobel.hpp"
-#include "Filters/Average.hpp"
 #include "Filters/BrightDarkField.hpp"
 #include "Filters/Cartoon.hpp"
 #include "Filters/FileWriter.hpp"
+#endif
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"
 #include "Capture/CamXimea.h"
+

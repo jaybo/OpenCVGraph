@@ -75,6 +75,7 @@ namespace openCVGraph
         // Cuda!
         bool m_UseCuda = true;
 
+#ifdef WITH_CUDA
         cv::cuda::GpuMat m_imCaptureGpu;    // Raw Capture image.  Always keep this unmodified
 
         // Cuda input Mats
@@ -88,7 +89,7 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imOutGpu8UC1;
         cv::cuda::GpuMat m_imOutGpu16UC1;
         cv::cuda::GpuMat m_imOutGpu32FC1;
-
+#endif
         // Bag for random data
         GraphProperties m_Properties;
         
@@ -109,7 +110,7 @@ namespace openCVGraph
             int nType = m_imCapture.type();
 
             if (m_UseCuda) {
-
+#ifdef WITH_CUDA
                 m_imCaptureGpu.upload(m_imCapture);
 
                 switch (nType) {
@@ -175,7 +176,7 @@ namespace openCVGraph
                 if (m_NeedCV_8UC3) {
                     m_imCapGpu8UC3.copyTo(m_imOutGpu8UC3);
                 }
-
+#endif
             }
             else {
                 switch (nType) {

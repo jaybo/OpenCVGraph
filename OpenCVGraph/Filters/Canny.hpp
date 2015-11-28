@@ -11,6 +11,7 @@ using namespace std;
 namespace openCVGraph
 {
     // Canny filter
+
     class Canny : public Filter
     {
     public:
@@ -19,28 +20,51 @@ namespace openCVGraph
             bool showView = true, int width = 512, int height = 512)
             : Filter(name, graphData, width, height)
         {
+            graphData.m_NeedCV_8UC1 = true;
         }
 
-        bool Canny::init(GraphData graphData) {
+        static void Canny::Slider1Callback(int pos, void * userData) {
+            Canny* filter = (Canny *)userData;
+            filter->m_Threshold1 = pos;
+        }
+
+        static void Canny::Slider2Callback(int pos, void * userData) {
+            Canny* filter = (Canny *)userData;
+            filter->m_Threshold2 = pos;
+        }
+
+        bool Canny::init(GraphData& graphData)  override
+        {
             bool fOK = Filter::init(graphData);
             graphData.m_NeedCV_8UC1 = true;
+
+            if (m_showView) {
+                if (m_showViewControls) {
+                    createTrackbar("Th 1", m_CombinedName, &m_Threshold1, 255, Slider1Callback, this);
+                    createTrackbar("Th 2", m_CombinedName, &m_Threshold2, 255, Slider2Callback, this);
+                }
+            }
             return fOK;
         }
 
-        ProcessResult Canny::process(GraphData& graphData)
+        ProcessResult Canny::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
-                auto canny = cuda::createCannyEdgeDetector(100, 200);
+#ifdef WITH_CUDA
+                auto canny = cuda::createCannyEdgeDetector(m_Threshold1, m_Threshold2);
                 canny->detect(graphData.m_imCapGpu8UC1, cannyOut8U);
                 cannyOut8U.download(graphData.m_imOut8UC1);
+#else
+                assert(false);
+#endif
             }
             else {
-                cv::Canny(graphData.m_imCap8UC1, graphData.m_imOut8UC1, 100, 200);
+                cv::Canny(graphData.m_imCap8UC1, graphData.m_imOut8UC1, m_Threshold1, m_Threshold2);
             }
             return ProcessResult::OK;  // if you return false, the graph stops
         }
 
-        void Canny::processView(GraphData& graphData)
+        void Canny::processView(GraphData& graphData) override
         {
             if (m_showView) {
                 graphData.m_imOut8UC1.copyTo(m_imView);
@@ -48,8 +72,26 @@ namespace openCVGraph
             }
         }
 
+        void  Canny::saveConfig(FileStorage& fs, GraphData& data) override
+        {
+            Filter::saveConfig(fs, data);
+            fs << "threshold1" << m_Threshold1;
+            fs << "threshold2" << m_Threshold2;
+        }
+
+        void  Canny::loadConfig(FileNode& fs, GraphData& data) override
+        {
+            Filter::loadConfig(fs, data);
+            fs["threshold1"] >> m_Threshold1;
+            fs["threshold2"] >> m_Threshold2;
+        }
+
     private:
+#ifdef WITH_CUDA
         cv::cuda::GpuMat cannyOut8U;
+#endif
+        int m_Threshold1 = 100;
+        int m_Threshold2 = 200;
     };
 }
 #endif
