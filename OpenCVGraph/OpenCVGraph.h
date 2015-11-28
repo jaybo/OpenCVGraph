@@ -1,5 +1,7 @@
 #pragma once
 
+#define WITH_CUDA
+
 #include <cstring>
 #include <sstream>
 #include <iostream>
@@ -18,11 +20,15 @@
 // OpenCV
 #include <opencv2/opencv.hpp>
 #include "opencv2/core.hpp"
+
+#ifdef WITH_CUDA
 #include "opencv2/core/cuda.hpp"
 #include <opencv2/cudaimgproc.hpp>
 #include "opencv2/cudaarithm.hpp"
 #include "opencv2/cudafilters.hpp"
 #include "opencv2/cudawarping.hpp"
+#endif
+
 
 // Local
 #include "util.h"

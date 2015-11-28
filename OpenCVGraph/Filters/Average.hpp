@@ -21,7 +21,6 @@ namespace openCVGraph
             int width = 512, int height = 512)
             : Filter(name, graphData, width, height)
         {
-
         }
 
 
@@ -29,9 +28,11 @@ namespace openCVGraph
         {
             Filter::init(graphData);
 
+            // Tell the graph the format(s) we need
             graphData.m_NeedCV_32FC1 = true;
 
             if (m_showView) {
+                graphData.m_NeedCV_8UC1 = true;
                 if (m_showViewControls) {
                     createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
                 }
@@ -57,7 +58,7 @@ namespace openCVGraph
                     cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
                     m_imGpuAverage32F.copyTo(graphData.m_imOutGpu32FC1);
                     m_imGpuAverage32F.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
-                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0/256);
+                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
                     m_imGpuAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
@@ -72,13 +73,19 @@ namespace openCVGraph
                     m_imAverage32F.setTo(Scalar(0));
                 }
 
-                cuda::add(m_imAverage32F, graphData.m_imOut32FC1, m_imAverage32F);
+                cv::add(m_imAverage32F, graphData.m_imOut32FC1, m_imAverage32F);
 
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
-                    cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
+                    if (m_FramesToAverage > 1) {
+                        cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
+                    }
                     m_imAverage32F.copyTo(graphData.m_imOut32FC1);
-                    m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
-                    m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
+                    if (graphData.m_NeedCV_16UC1) {
+                        m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
+                    }
+                    if (graphData.m_NeedCV_8UC1) {
+                        m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
+                    }
                     m_imAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
@@ -92,12 +99,15 @@ namespace openCVGraph
         void Average::processView(GraphData & graphData) override
         {
             if (m_showView) {
-                if (graphData.m_FrameNumber % m_FramesToAverage == 0) {
+                if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
+                    if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
-                    graphData.m_imOutGpu8UC1.download(m_imView);
-#else
-                    m_imView = graphData.m_imOut8UC1;
+                        graphData.m_imOutGpu8UC1.download(m_imView);
 #endif
+                    }
+                    else {
+                        m_imView = graphData.m_imOut8UC1;
+                    }
                     Filter::processView(graphData);
 
                 }
@@ -109,13 +119,13 @@ namespace openCVGraph
             m_FramesAveraged = 0;
         }
 
-        void  Average::saveConfig(FileStorage& fs, GraphData& data)
+        void  Average::saveConfig(FileStorage& fs, GraphData& data) override
         {
             Filter::saveConfig(fs, data);
             fs << "frames_to_average" << m_FramesToAverage;
         }
 
-        void  Average::loadConfig(FileNode& fs, GraphData& data)
+        void  Average::loadConfig(FileNode& fs, GraphData& data) override
         {
             Filter::loadConfig(fs, data);
             fs["frames_to_average"] >> m_FramesToAverage;
@@ -136,8 +146,6 @@ namespace openCVGraph
             }
             filter->FramesToAverage(pos);
         }
-
-
     };
 }
 #endif

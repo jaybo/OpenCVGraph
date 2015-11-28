@@ -8,68 +8,71 @@ namespace openCVGraph
 {
     ZoomView * g_LastActiveZoomView = NULL;
 
-	void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
-	{
-		ZoomView* view = (ZoomView*)param;
+    void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
+    {
+        ZoomView* view = (ZoomView*)param;
         g_LastActiveZoomView = view;
 
-		// cout << view->m_ZoomViewName << endl;
+        // cout << view->m_ZoomViewName << endl;
 
         if (view->m_mouseCallback) {
             // call a user callback if supplied
             (*view->m_mouseCallback)(event, x, y, flags, param);
         }
-		int d;
+        int d;
 
-		switch (event)
-		{
-		case cv::EVENT_RBUTTONDOWN:
-			break;
-		case cv::EVENT_RBUTTONUP:
-			break;
+        switch (event)
+        {
+        case cv::EVENT_RBUTTONDOWN:
+            break;
+        case cv::EVENT_RBUTTONUP:
+            break;
 
-		case cv::EVENT_MOUSEWHEEL:
+        case cv::EVENT_MOUSEWHEEL:
+        {
             view->m_mx = x;
             view->m_my = y;
 
-			if (flags & EVENT_FLAG_CTRLKEY)
-			{
-				//sx = 1;
-			}
+            if (flags & EVENT_FLAG_CTRLKEY)
+            {
+                //sx = 1;
+            }
 
-			if (flags & EVENT_FLAG_SHIFTKEY)
-			{
-				//sy = 1;
-			}
+            if (flags & EVENT_FLAG_SHIFTKEY)
+            {
+                //sy = 1;
+            }
 
-			if (!(flags & EVENT_FLAG_CTRLKEY) && !(flags & EVENT_FLAG_SHIFTKEY))
-			{
-				//sx = 1;
-				//sy = 1;
-			}
+            if (!(flags & EVENT_FLAG_CTRLKEY) && !(flags & EVENT_FLAG_SHIFTKEY))
+            {
+                //sx = 1;
+                //sy = 1;
+            }
+            // zoom faster on big images
+            int zoomInc = (view->MatView.size().width >= 1024) ? 2 : 1;
+            d = getMouseWheelDelta(flags);
+            cout << d << endl;
+            if (d > 0)
+            {
+                view->m_ZoomFactor += zoomInc;
+            }
+            else
+            {
+                view->m_ZoomFactor -= zoomInc;
+            }
+        }
+        break;
 
-			d = getMouseWheelDelta(flags);
-			cout << d << endl;
-			if (d>0)
-			{
-				view->m_ZoomFactor+= 2; 
-			}
-			else
-			{
-				view->m_ZoomFactor-=2;
-			}
-			break;
-
-		case cv::EVENT_LBUTTONDOWN:
+        case cv::EVENT_LBUTTONDOWN:
             view->m_MouseLButtonDown = true;
             view->m_sx = x;
             view->m_sy = y;
             view->m_dx = 0;
             view->m_dy = 0;
-			break;
+            break;
 
-		case cv::EVENT_MOUSEMOVE:
-			// cout << x << ", " << y << endl;
+        case cv::EVENT_MOUSEMOVE:
+            // cout << x << ", " << y << endl;
             if (view->m_MouseLButtonDown) {
                 int absZoom = abs(view->m_ZoomFactor);
                 if (view->m_ZoomFactor < 0) {
@@ -77,44 +80,44 @@ namespace openCVGraph
                     view->m_dy = (y - view->m_sy) * absZoom;
                 }
                 else  if (view->m_ZoomFactor > 0) {
-                    view->m_dx = (int) ((x - view->m_sx) / (float) absZoom);
-                    view->m_dy = (int) ((y - view->m_sy) / (float) absZoom);
+                    view->m_dx = (int)((x - view->m_sx) / (float)absZoom);
+                    view->m_dy = (int)((y - view->m_sy) / (float)absZoom);
                 }
                 else {
                     view->m_dx = (x - view->m_sx);
                     view->m_dy = (y - view->m_sy);
                 }
             }
-           // view->m_SampledPixelU16 = getU16Pix(view->MatView, P`oint(view->m_cx, view->m_cy));
+            // view->m_SampledPixelU16 = getU16Pix(view->MatView, P`oint(view->m_cx, view->m_cy));
 
-			break;
-		case cv::EVENT_LBUTTONUP:
+            break;
+        case cv::EVENT_LBUTTONUP:
             view->m_MouseLButtonDown = false;
             view->m_cx -= view->m_dx;
             view->m_cy -= view->m_dy;
             view->m_dx = 0;
             view->m_dy = 0;
 
-			break;
-		}
+            break;
+        }
 
-	}
+    }
 
-	ZoomView::ZoomView() {
+    ZoomView::ZoomView() {
 
-	}
+    }
 
-	ZoomView::ZoomView(const string &name)
-	{
+    ZoomView::ZoomView(const string &name)
+    {
         m_ZoomViewName = name;
-		// cout << m_ZoomViewName << endl;
-	}
+        // cout << m_ZoomViewName << endl;
+    }
 
-	ZoomView::~ZoomView()
-	{
-	}
+    ZoomView::~ZoomView()
+    {
+    }
 
-    void ZoomView::Init(int width = 512, int height = 512, 
+    void ZoomView::Init(int width = 512, int height = 512,
         cv::MouseCallback mouseCallback = NULL)
     {
         m_winWidth = width;
@@ -126,17 +129,17 @@ namespace openCVGraph
         }
         cv::setMouseCallback(m_ZoomViewName, (cv::MouseCallback) DefaultMouseProcessor, this);
     }
-    
+
     bool ZoomView::KeyboardProcessor(int key)
-	{
+    {
         bool fOK = true;
- 
+
         return fOK;
-	}
+    }
 
 
-	void ZoomView::processView(Mat mat, Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex)
-	{
+    void ZoomView::processView(Mat mat, Mat matOverlay, GraphData& graphData, int zoomWindowLockIndex)
+    {
         if (zoomWindowLockIndex >= 0) {
             if (this == g_LastActiveZoomView) {
                 // We are the active view, so save our coords
@@ -177,23 +180,23 @@ namespace openCVGraph
             srcWidth = m_winWidth * abs(m_ZoomFactor);
         }
 
-        getRectSubPix(MatView, Size(srcWidth, srcHeight), 
+        getRectSubPix(MatView, Size(srcWidth, srcHeight),
             Point(m_cx - m_dx, m_cy - m_dy),
             MatZoomed);
 
-        cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0 , INTER_NEAREST);
+        cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0, INTER_NEAREST);
 
         // merge in the (usually) text overlay
         if (!matOverlay.empty()) {
             // make a black outline to the text
             matOverlay.copyTo(MatShadow);
-            dilate(MatShadow, MatShadow, dilateElement, Point(-1,-1), 1);
+            dilate(MatShadow, MatShadow, dilateElement, Point(-1, -1), 1);
             cv::bitwise_not(MatShadow, MatShadow);
             cv::bitwise_and(MatShadow, MatZoomed, MatZoomed);
             cv::bitwise_or(matOverlay, MatZoomed, MatZoomed);
         }
         cv::imshow(m_ZoomViewName, MatZoomed);
-	}
+    }
 
 
 }
