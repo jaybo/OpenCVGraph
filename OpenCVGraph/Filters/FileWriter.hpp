@@ -38,20 +38,22 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
-            
-            graphData.m_NeedCV_16UC1 = true;
 
-            createDir(m_Directory);
+            if (m_Enabled) {
 
-            if (m_WriteOnKeyHit != "") {
-                m_WriteNextImage = false;
+                graphData.m_NeedCV_16UC1 = true;
+
+                createDir(m_Directory);
+
+                if (m_WriteOnKeyHit != "") {
+                    m_WriteNextImage = false;
+                }
             }
-
             return true;
         }
 
         // Do all of the work here.
-        ProcessResult FileWriter::process(GraphData& graphData)
+        ProcessResult FileWriter::process(GraphData& graphData) override
         {
             if (m_WriteNextImage) {
                 string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
@@ -86,7 +88,7 @@ namespace openCVGraph
 
     private:
         string m_Directory = "C:/junk";
-        string m_Name = "foo";
+        string m_Name = "test";
         string m_Ext = ".tif";
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;

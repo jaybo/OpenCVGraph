@@ -22,15 +22,28 @@ namespace openCVGraph
         {
         }
 
-        bool Cartoon::init(GraphData graphData) {
+        bool Cartoon::init(GraphData& graphData) override
+        {
             bool fOK = Filter::init(graphData);
-            graphData.m_NeedCV_8UC3 = true;
+            
+            if (m_Enabled) {
+                graphData.m_NeedCV_8UC1 = true;
+
+                if (m_showView) {
+                    if (m_showViewControls) {
+                        createTrackbar("Algo", m_CombinedName, &m_Algorithm, 4, NULL, this);
+                        createTrackbar("r", m_CombinedName, &m_r, 1000, NULL, this);
+                        createTrackbar("s", m_CombinedName, &m_s, 1000, NULL, this);
+                    }
+                }
+            }
             return fOK;
         }
 
-        ProcessResult Cartoon::process(GraphData& graphData)
+        ProcessResult Cartoon::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
+#ifdef WITH_CUDA
                 Mat mDebug;
 
                 GpuMat gray;
@@ -64,30 +77,29 @@ namespace openCVGraph
                 cuda::bitwise_and(graphData.m_imOutGpu8UC3, tmp, graphData.m_imOutGpu8UC3);
                 graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
                 graphData.m_imOut8UC3.copyTo(m_imView);
-
+#endif
             }
             else {
-                if (false) {
+                switch (m_Algorithm)
+                {
+                case 0:
                     cv::stylization(graphData.m_imOut8UC3,
                         graphData.m_imOut8UC3,
-                        20.f, 0.2f);
-                }
-
-                if (false) {
+                        (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
+                    break;
+                case 1:
                     cv::edgePreservingFilter(graphData.m_imOut8UC3,
-                        graphData.m_imOut8UC3
-                                              );
-                }
-                if (false) {
+                        graphData.m_imOut8UC3,
+                        1, 
+                        (float) (m_r / 5.0f), (float) (m_s / 1000.0f));
+                    break;
+                case 2:
                     cv::pencilSketch(graphData.m_imOut8UC3,
                         graphData.m_imOut8UC1,
                         graphData.m_imOut8UC3,
-                        60,
-                        0.07f,
-                        0.02f
-                        );
-                }
-                if (true) {
+                        (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
+                    break;
+                case 3:
                     Mat gray;
                     cv::cvtColor(graphData.m_imOut8UC3, gray, CV_BGR2GRAY);
                     const int MEDIAN_BLUR_FILTER_SIZE = 7;
@@ -113,12 +125,13 @@ namespace openCVGraph
                     tmp.setTo(0);
                     cv::bitwise_and(graphData.m_imOut8UC3, graphData.m_imOut8UC3, tmp, mask);
                     tmp.copyTo(graphData.m_imOut8UC3);
+                    break;
                 }
             }
             return ProcessResult::OK;  // if you return false, the graph stops
         }
 
-        void Cartoon::processView(GraphData& graphData)
+        void Cartoon::processView(GraphData& graphData) override
         {
             if (m_showView) {
                 graphData.m_imOut8UC3.copyTo(m_imView);
@@ -126,9 +139,30 @@ namespace openCVGraph
             }
         }
 
+        void  Cartoon::saveConfig(FileStorage& fs, GraphData& data) override
+        {
+            Filter::saveConfig(fs, data);
+            fs << "algorithm" << m_Algorithm;
+            fs << "r" << m_r;
+            fs << "s" << m_s;
+        }
+
+        void  Cartoon::loadConfig(FileNode& fs, GraphData& data) override
+        {
+            Filter::loadConfig(fs, data);
+            fs["algorithm"] >> m_Algorithm;
+            fs["r"] >> m_r;
+            fs["s"] >> m_s;
+        }
 
     private:
+        int m_Algorithm = 0;
+        int m_r = 100;    // range 0 - 200 for most filters
+        int m_s = 500;    // range 0 - 1 for most filters
+#ifdef WITH_CUDA
         cv::cuda::GpuMat CartoonOut8U;
+#endif
+
     };
 }
 #endif

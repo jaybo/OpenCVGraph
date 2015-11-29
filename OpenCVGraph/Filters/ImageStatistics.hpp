@@ -29,11 +29,12 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
+            if (m_Enabled) {
+                // Advertise the format(s) we need
+                graphData.m_NeedCV_32FC1 = true;
 
-            // Advertise the format(s) we need
-            graphData.m_NeedCV_32FC1 = true;
-
-            m_N = 0;
+                m_N = 0;
+            }
             return true;
         }
 

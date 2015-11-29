@@ -31,7 +31,7 @@ namespace openCVGraph
             // Tell the graph the format(s) we need
             graphData.m_NeedCV_32FC1 = true;
 
-            if (m_showView) {
+            if (m_Enabled && m_showView) {
                 graphData.m_NeedCV_8UC1 = true;
                 if (m_showViewControls) {
                     createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);

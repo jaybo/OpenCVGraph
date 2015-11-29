@@ -36,12 +36,15 @@ namespace openCVGraph
         bool Canny::init(GraphData& graphData)  override
         {
             bool fOK = Filter::init(graphData);
-            graphData.m_NeedCV_8UC1 = true;
 
-            if (m_showView) {
-                if (m_showViewControls) {
-                    createTrackbar("Th 1", m_CombinedName, &m_Threshold1, 255, Slider1Callback, this);
-                    createTrackbar("Th 2", m_CombinedName, &m_Threshold2, 255, Slider2Callback, this);
+            if (m_Enabled) {
+                graphData.m_NeedCV_8UC1 = true;
+
+                if (m_showView) {
+                    if (m_showViewControls) {
+                        createTrackbar("Th 1", m_CombinedName, &m_Threshold1, 255, Slider1Callback, this);
+                        createTrackbar("Th 2", m_CombinedName, &m_Threshold2, 255, Slider2Callback, this);
+                    }
                 }
             }
             return fOK;

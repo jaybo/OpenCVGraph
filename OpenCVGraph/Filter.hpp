@@ -37,11 +37,14 @@ namespace openCVGraph
         // Register mouse callback
         virtual bool Filter::init(GraphData& data)
         {
-            if (m_showView) {
-                m_ZoomView = ZoomView(m_CombinedName);
-                m_ZoomView.Init(m_width, m_height, m_MouseCallback);
+            if (m_Enabled) {
+                if (m_showView) {
+                    m_ZoomView = ZoomView(m_CombinedName);
+                    m_ZoomView.Init(m_width, m_height, m_MouseCallback);
+                }
+
+                m_IsInitialized = true;
             }
-            m_IsInitialized = true;
             return true;
         }
 
@@ -186,7 +189,7 @@ namespace openCVGraph
         double m_DurationMSMin = 9999;             
         double m_DurationMSMax = 0;
 
-        int m_ZoomViewLockIndex = -1;
+        int m_ZoomViewLockIndex = 0;
 
 	protected:
 		bool m_firstTime = true;

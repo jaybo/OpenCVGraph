@@ -1,6 +1,6 @@
 #pragma once
 
-#define WITH_CUDA
+//#define WITH_CUDA
 
 #include <cstring>
 #include <sstream>
@@ -21,8 +21,9 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/core.hpp"
 
-#ifdef WITH_CUDA
 #include "opencv2/core/cuda.hpp"
+
+#ifdef WITH_CUDA
 #include <opencv2/cudaimgproc.hpp>
 #include "opencv2/cudaarithm.hpp"
 #include "opencv2/cudafilters.hpp"
@@ -41,6 +42,7 @@
 #include "Capture/CamDefault.h"
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"
+#include "Filters/Cartoon.hpp"
 
 #if false
 #include "Filters/ImageStatistics.hpp"
@@ -48,7 +50,7 @@
 
 #include "Filters/FocusSobel.hpp"
 #include "Filters/BrightDarkField.hpp"
-#include "Filters/Cartoon.hpp"
+
 #include "Filters/FileWriter.hpp"
 #endif
 

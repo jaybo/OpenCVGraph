@@ -34,46 +34,47 @@ namespace openCVGraph
         {
             Filter::init(graphData);
 
-            graphData.m_NeedCV_16UC1 = true;
-            // Need 8 bit if we're viewing it
-            if (m_showView) {
-                graphData.m_NeedCV_8UC1 = true;
-            }
+            if (m_Enabled) {
+                graphData.m_NeedCV_16UC1 = true;
+                // Need 8 bit if we're viewing it
+                if (m_showView) {
+                    graphData.m_NeedCV_8UC1 = true;
+                }
 
-            // get the Bright Dark images from file
+                // get the Bright Dark images from file
 
-            Mat img = imread(m_BrightFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
-            if (!img.empty()) {
-                m_imBrightFieldGpu16U.upload(img);
-            }
-            else {
-                graphData.m_Logger->error ("Unable to load BrightField: " + m_BrightFieldPath);
-                return false;
-            }
+                Mat img = imread(m_BrightFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
+                if (!img.empty()) {
+                    m_imBrightFieldGpu16U.upload(img);
+                }
+                else {
+                    graphData.m_Logger->error("Unable to load BrightField: " + m_BrightFieldPath);
+                    return false;
+                }
 
-            img = imread(m_DarkFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
-            if (!img.empty()) {
-                m_imDarkFieldGpu16U.upload(img);
-            }
-            else {
-                graphData.m_Logger->error("Unable to load DarkField: " + m_DarkFieldPath);
-                return false;
-            }
+                img = imread(m_DarkFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
+                if (!img.empty()) {
+                    m_imDarkFieldGpu16U.upload(img);
+                }
+                else {
+                    graphData.m_Logger->error("Unable to load DarkField: " + m_DarkFieldPath);
+                    return false;
+                }
 
-            // Bright - Dark as 32F
-            cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imTemp16UGpu);
-            m_imTemp16UGpu.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
+                // Bright - Dark as 32F
+                cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imTemp16UGpu);
+                m_imTemp16UGpu.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
 
-            if (m_showView) {
-                // To write on the overlay, you must allocate it.
-                // This indicates to the renderer the need to merge it with the final output image.
-                // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+                if (m_showView) {
+                    // To write on the overlay, you must allocate it.
+                    // This indicates to the renderer the need to merge it with the final output image.
+                    // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
 
-                if (m_showSlider) {
-                    createTrackbar("BrightDarkFieldCorrection", m_CombinedName, &m_FieldToView, 4, SliderCallback, this);
+                    if (m_showSlider) {
+                        createTrackbar("BrightDarkFieldCorrection", m_CombinedName, &m_FieldToView, 4, SliderCallback, this);
+                    }
                 }
             }
-
             return true;
         }
 

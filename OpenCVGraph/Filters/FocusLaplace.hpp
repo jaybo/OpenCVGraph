@@ -33,12 +33,13 @@ namespace openCVGraph
         bool FocusLaplace::init(GraphData& graphData) override
         {
             Filter::init(graphData);
-            if (m_showView) {
-                if (m_showSlider) {
-                    createTrackbar("Kernel", m_CombinedName, &m_kSize, 3, SliderCallback, this);
+            if (m_Enabled) {
+                if (m_showView) {
+                    if (m_showSlider) {
+                        createTrackbar("Kernel", m_CombinedName, &m_kSize, 3, SliderCallback, this);
+                    }
                 }
             }
-
             return true;
         }
 

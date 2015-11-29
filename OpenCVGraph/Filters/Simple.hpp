@@ -10,7 +10,8 @@ using namespace std;
 
 namespace openCVGraph
 {
-    // Simplest possible filter
+    // Simplest possible filter with a view
+
     class Simple : public Filter
     {
     public:
@@ -26,25 +27,25 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
-
-            // Define the image formats we use:
-            graphData.m_NeedCV_8UC1 = true;
-
+            if (m_Enabled) {
+                // Define the image formats we use:
+                graphData.m_NeedCV_8UC1 = true;
+            }
             return true;
         }
 
         // Do all of the work here.
-        ProcessResult Simple::process(GraphData& graphData)
+        ProcessResult Simple::process(GraphData& graphData) override
         {
-            // do something random to imResult
+            // do something the one of the Out images
             graphData.m_imOut8UC1 = 2 *graphData.m_imOut8UC1;
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }
 
         // View updates are a separate function so they don't 
-        // affect timing of the main processing loop
-        void Simple::processView(GraphData& graphData)
+        // affect timing of the main process function
+        void Simple::processView(GraphData& graphData) override
         {
             if (m_showView) {
                 graphData.m_imOut8UC1.copyTo(m_imView);

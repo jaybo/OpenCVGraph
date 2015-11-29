@@ -50,8 +50,8 @@ int main()
          CvFilter canny(new openCVGraph::Canny("Canny", gd));
          graph1.AddFilter(canny);
 
-         //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
-         //graph1.AddFilter(cartoon);
+         CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
+         graph1.AddFilter(cartoon);
 
          // Start the thread for that graph running
          graph1.StartThread();
