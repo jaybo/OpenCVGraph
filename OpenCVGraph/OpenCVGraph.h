@@ -1,6 +1,6 @@
 #pragma once
 
-//#define WITH_CUDA
+#define WITH_CUDA
 
 #include <cstring>
 #include <sstream>

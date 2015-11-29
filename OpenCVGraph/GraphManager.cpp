@@ -78,18 +78,22 @@ namespace openCVGraph
     ProcessResult GraphManager::ProcessOne(int key)
     {
         bool fOK = true;
+        Processor filter;
         ProcessResult result = ProcessResult::OK;
 
         // first process keyhits
         if (key != -1) {
             for (int i = 0; i < m_Filters.size(); i++) {
-                fOK &= m_Filters[i]->processKeyboard(m_GraphData, key);
+                filter = m_Filters[i];
+                if (filter->IsEnabled()) {
+                    fOK &= filter->processKeyboard(m_GraphData, key);
+                }
             }
         }
 
         // MAKE ONE PASS THROUGH THE GRAPH
         for (int i = 0; i < m_Filters.size(); i++) {
-            Processor filter = m_Filters[i];
+            filter = m_Filters[i];
             filter->tic();
             // Q: Bail only at end of loop or partway through?
             // Currently, complete the loop
@@ -113,6 +117,7 @@ namespace openCVGraph
     {
         bool fOK = true;
         m_Stepping = false;
+        Processor filter;
         ProcessResult result;
 
         loadConfig();
@@ -122,9 +127,12 @@ namespace openCVGraph
 
         // Init everybody
         for (int i = 0; i < m_Filters.size(); i++) {
-            fOK &= m_Filters[i]->init(m_GraphData);
-            if (!fOK) {
-                m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
+            filter = m_Filters[i];
+            if (filter->IsEnabled()) {
+                fOK &= filter->init(m_GraphData);
+                if (!fOK) {
+                    m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
+                }
             }
         }
 
@@ -167,7 +175,10 @@ namespace openCVGraph
 
         // clean up
         for (int i = 0; i < m_Filters.size(); i++) {
-            m_Filters[i]->fini(m_GraphData);
+            filter = m_Filters[i];
+            if (filter->IsEnabled()) {
+                filter->fini(m_GraphData);
+            }
         }
         destroyAllWindows();
 
