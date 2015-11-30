@@ -163,7 +163,7 @@ namespace openCVGraph
         {
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+                m_imViewTextOverlay = Mat(m_height, m_width, CV_8U);
             }
 
             cv::putText(m_imViewTextOverlay, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(255, 255, 255));
@@ -173,7 +173,7 @@ namespace openCVGraph
         { 
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+                m_imViewTextOverlay = Mat(m_height, m_width, CV_8U);
             }
             m_imViewTextOverlay.setTo(0);
         }

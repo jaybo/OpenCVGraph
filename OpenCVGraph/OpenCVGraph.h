@@ -44,7 +44,7 @@
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
 
-#if false
+#if true
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
 
@@ -52,6 +52,7 @@
 #include "Filters/BrightDarkField.hpp"
 
 #include "Filters/FileWriter.hpp"
+#include "Filters/FileWriterTIFF.hpp"
 #endif
 
 // Camera specific includes

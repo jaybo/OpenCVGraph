@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
+    <ClInclude Include="Filters\FileWriterTIFF.hpp" />
     <ClInclude Include="include\spdlog\async_logger.h" />
     <ClInclude Include="include\spdlog\common.h" />
     <ClInclude Include="include\spdlog\formatter.h" />

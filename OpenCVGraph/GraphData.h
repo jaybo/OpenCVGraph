@@ -140,7 +140,7 @@ namespace openCVGraph
                         m_imCaptureGpu.convertTo(m_imCapGpu32FC1, CV_32FC1);
                     }
                     if (m_NeedCV_8UC3) {
-                        m_imCaptureGpu.convertTo(m_imCapGpu8UC3, CV_8UC3, 1.0 / 256);
+                        cuda::cvtColor(m_imCapGpu8UC1, m_imCapGpu8UC3, COLOR_GRAY2RGB);
                     }
                     break;
                 case CV_8UC3:
