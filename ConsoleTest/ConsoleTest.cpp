@@ -113,6 +113,8 @@ void GraphXimea()
     CvFilter fileWriter(new FileWriter("FileWriter", gd));
     graph1.AddFilter(fileWriter);
 
+    //CvFilter fileWriter(new FileWriterTIFF("FileWriterTIFF", gd));
+    //graph1.AddFilter(fileWriter);
 
     // Start the thread for that graph running
     graph1.StartThread();

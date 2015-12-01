@@ -4,6 +4,7 @@
 #define INCLUDE_OCVG_FILEWRITERTIFF
 
 #include "..\stdafx.h"
+#include "..\..\TIFF\include\tiffio.h"
 
 using namespace cv;
 using namespace std;
@@ -57,7 +58,40 @@ namespace openCVGraph
         {
             if (m_WriteNextImage) {
                 string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
-                imwrite(fullName, graphData.m_imOut16UC1);
+                
+                int w, h;
+                uint16 samplesperpixel;
+                uint16 bitspersample;
+                uint32 rowsperstrip = (uint32)-1;
+
+                w = graphData.m_imOut16UC1.size().width;
+                h = graphData.m_imOut16UC1.size().height;
+                samplesperpixel = 1;
+                bitspersample = 16;
+                unsigned char *outbuf;
+
+                TIFF* out = TIFFOpen(fullName.c_str(), "w");
+
+                TIFFSetField(out, TIFFTAG_IMAGEWIDTH, w);
+                TIFFSetField(out, TIFFTAG_IMAGELENGTH, h);
+                TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitspersample);
+                TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
+                TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+                TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+                TIFFSetField(out, TIFFTAG_IMAGEDESCRIPTION, "test");
+                TIFFSetField(out, TIFFTAG_SOFTWARE, "openCVGraph");
+                outbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(out));
+                TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
+                    TIFFDefaultStripSize(out, rowsperstrip));
+
+                // inbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(in));
+                for (int row = 0; row < h; row++) {
+                    if (TIFFWriteScanline(out, outbuf, row, 0) < 0)
+                        break;
+                }
+
+                _TIFFfree(outbuf);
+                TIFFClose(out);
 
                 if (m_WriteOnKeyHit != "") {
                     m_WriteNextImage = false;
