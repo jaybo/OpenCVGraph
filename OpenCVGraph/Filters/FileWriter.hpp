@@ -56,7 +56,7 @@ namespace openCVGraph
         ProcessResult FileWriter::process(GraphData& graphData) override
         {
             if (m_WriteNextImage) {
-                string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
+                string fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
                 imwrite(fullName, graphData.m_imOut16UC1);
 
                 if (m_WriteOnKeyHit != "") {
@@ -71,7 +71,7 @@ namespace openCVGraph
         {
             Filter::saveConfig(fs, data);
             fs << "directory" << m_Directory.c_str();
-            fs << "name" << m_Name.c_str();
+            fs << "baseFileName" << m_BaseFileName.c_str();
             fs << "ext" << m_Ext.c_str();
             cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
@@ -81,14 +81,14 @@ namespace openCVGraph
         {
             Filter::loadConfig(fs, data);
             fs["directory"] >> m_Directory;
-            fs["name"] >> m_Name;
+            fs["baseFileName"] >> m_BaseFileName;
             fs["ext"] >> m_Ext;
             fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
         }
 
     private:
         string m_Directory = "C:/junk";
-        string m_Name = "test";
+        string m_BaseFileName = "test";
         string m_Ext = ".tif";
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;

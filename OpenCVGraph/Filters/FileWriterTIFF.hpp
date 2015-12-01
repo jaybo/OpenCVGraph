@@ -57,7 +57,7 @@ namespace openCVGraph
         ProcessResult FileWriterTIFF::process(GraphData& graphData) override
         {
             if (m_WriteNextImage) {
-                string fullName = m_Directory + '/' + m_Name + std::to_string(graphData.m_FrameNumber) + m_Ext;
+                string fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
                 
                 int w, h;
                 uint16 samplesperpixel;
@@ -68,7 +68,7 @@ namespace openCVGraph
                 h = graphData.m_imOut16UC1.size().height;
                 samplesperpixel = 1;
                 bitspersample = 16;
-                unsigned char *outbuf;
+                unsigned short *outbuf;
 
                 TIFF* out = TIFFOpen(fullName.c_str(), "w");
 
@@ -80,17 +80,18 @@ namespace openCVGraph
                 TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
                 TIFFSetField(out, TIFFTAG_IMAGEDESCRIPTION, "test");
                 TIFFSetField(out, TIFFTAG_SOFTWARE, "openCVGraph");
-                outbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(out));
-                TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
-                    TIFFDefaultStripSize(out, rowsperstrip));
+                // outbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(out));
+                //TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
+                //    TIFFDefaultStripSize(out, rowsperstrip));
 
                 // inbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(in));
                 for (int row = 0; row < h; row++) {
+                    outbuf = graphData.m_imOut16UC1.ptr<unsigned short>(row);
                     if (TIFFWriteScanline(out, outbuf, row, 0) < 0)
                         break;
                 }
 
-                _TIFFfree(outbuf);
+                // _TIFFfree(outbuf);
                 TIFFClose(out);
 
                 if (m_WriteOnKeyHit != "") {
@@ -105,7 +106,7 @@ namespace openCVGraph
         {
             Filter::saveConfig(fs, data);
             fs << "directory" << m_Directory.c_str();
-            fs << "name" << m_Name.c_str();
+            fs << "baseFileName" << m_BaseFileName.c_str();
             fs << "ext" << m_Ext.c_str();
             cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
@@ -115,14 +116,14 @@ namespace openCVGraph
         {
             Filter::loadConfig(fs, data);
             fs["directory"] >> m_Directory;
-            fs["name"] >> m_Name;
+            fs["baseFileName"] >> m_BaseFileName;
             fs["ext"] >> m_Ext;
             fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
         }
 
     private:
         string m_Directory = "C:/junk";
-        string m_Name = "test";
+        string m_BaseFileName = "testTIFF";
         string m_Ext = ".tif";
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;
