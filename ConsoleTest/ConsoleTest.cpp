@@ -104,6 +104,9 @@ void GraphXimea()
     CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, 512, 150));
     graph1.AddFilter(fFocusSobel);
 
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, 512, 512));
+    graph1.AddFilter(fFocusFFT);
+
     //CvFilter canny(new openCVGraph::Canny("Canny", gd));
     //graph1.AddFilter(canny);
 

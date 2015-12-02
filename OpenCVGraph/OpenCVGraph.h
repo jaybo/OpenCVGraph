@@ -49,6 +49,7 @@
 #include "Filters/Simple.hpp"
 
 #include "Filters/FocusSobel.hpp"
+#include "Filters/FocusFFT.hpp"
 #include "Filters/BrightDarkField.hpp"
 
 #include "Filters/FileWriter.hpp"
