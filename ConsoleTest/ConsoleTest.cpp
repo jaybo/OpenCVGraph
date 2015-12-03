@@ -89,11 +89,11 @@ void GraphXimea()
     GraphManager graph1("GraphXimea", CV_16UC1, true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", gd));
+    CvFilter cam2(new CamXimea("CamXimea", gd, 1024, 1024));
     graph1.AddFilter(cam2);
 
-    //CvFilter faverage(new Average("Average", gd));
-    //graph1.AddFilter(faverage);
+    CvFilter faverage(new Average("Average", gd));
+    graph1.AddFilter(faverage);
 
     CvFilter brightDark(new BrightDarkFieldCorrection("BrightDark", gd));
     graph1.AddFilter(brightDark);

@@ -202,7 +202,7 @@ namespace openCVGraph
         int m_focusMovementStepSize = 0;
         int m_minFocusMovementValue = 2;       
         int m_exposure = 10000;             // in microseconds
-        int m_exposureSliderMax = 200000;         // for setting the slider max
+        int m_exposureSliderMax = 260000;         // for setting the slider max
         bool m_showGainSlider = false;
         bool m_showExposureSlider = false;
         bool m_showFocusSlider = false;
