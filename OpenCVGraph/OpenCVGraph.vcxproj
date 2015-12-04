@@ -162,6 +162,7 @@
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
     <ClInclude Include="Filters\FileWriterTIFF.hpp" />
+    <ClInclude Include="GraphManager.hpp" />
     <ClInclude Include="include\spdlog\async_logger.h" />
     <ClInclude Include="include\spdlog\common.h" />
     <ClInclude Include="include\spdlog\formatter.h" />
@@ -185,7 +186,6 @@
     <ClInclude Include="Property.h" />
     <ClInclude Include="GraphData.h" />
     <ClInclude Include="ZoomView.h" />
-    <ClInclude Include="GraphManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -209,7 +209,6 @@
     <ClCompile Include="Filters\Simple.hpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="ZoomView.cpp" />
-    <ClCompile Include="GraphManager.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

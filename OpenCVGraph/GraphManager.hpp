@@ -5,11 +5,23 @@ namespace spd = spdlog;
 
 namespace openCVGraph
 {
+    class GraphManager;
+    typedef bool(*GraphCallback)(GraphManager* graphManager);
+    typedef std::shared_ptr < openCVGraph::Filter> Processor;
+
     // Keep a vector of Filters and call each in turn to crunch images
     // (or perform other work)
     // States: Stop, Pause (can only Step if Paused), and Run
 
-    GraphManager::GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
+    class  GraphManager {
+    public:
+        enum GraphState {
+            Stop,
+            Pause,      // Can only "step" in the Pause state
+            Run
+        };
+
+    GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
     {
         // Set up logging
         try
@@ -18,7 +30,7 @@ namespace openCVGraph
             createDir(logDir);
             std::vector<spdlog::sink_ptr> sinks;
             sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
-            sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + "logfile", "txt", 23, 59));
+            sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + name + "logfile", "txt", 23, 59));
             m_Logger = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
             spdlog::register_logger(m_Logger);
         }
@@ -61,7 +73,6 @@ namespace openCVGraph
     GraphManager::~GraphManager()
     {
         m_GraphData.m_Logger->info() << "~GraphManager()";
-        cv::destroyAllWindows();
     }
 
 
@@ -145,19 +156,30 @@ namespace openCVGraph
                 break;
             }
 
+            if (m_GraphState != GraphState::Run)
+            {
+                std::unique_lock<std::mutex> lk(m_mtx);
+                m_cv.wait_for(lk, std::chrono::milliseconds(30), [=]() {return m_GraphState == GraphState::Stop; });
+            }
+
             switch (m_GraphState) {
             case GraphState::Stop:
                 // Snooze.  But this should be a mutex or awaitable object
-                std::this_thread::sleep_for(std::chrono::milliseconds(33));
+                //std::this_thread::sleep_for(std::chrono::milliseconds(33));
                 break;
             case GraphState::Pause:
                 if (m_Stepping) {
                     result = ProcessOne(key);
                     fOK = fOK && (result != ProcessResult::Abort);
-                    m_Stepping = false;
+                    {
+                        std::unique_lock<std::mutex> lk(m_mtx);
+                        m_CompletedStep = true;
+                        m_Stepping = false;
+                        m_cv.notify_all();
+                    }
                 }
                 // Snooze.  But this should be a mutex or awaitable object
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                //std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 break;
             case GraphState::Run:
                 result = ProcessOne(key);
@@ -180,16 +202,21 @@ namespace openCVGraph
                 filter->fini(m_GraphData);
             }
         }
-        destroyAllWindows();
+
+        cv::destroyAllWindows();
 
         return fOK;
     }
 
     bool GraphManager::Step()
     {
+        std::unique_lock<std::mutex> lck(m_mtx);
+
         if (m_GraphState == GraphState::Pause)
         {
+            m_CompletedStep = false;
             m_Stepping = true;
+            m_cv.notify_all();
             return true;
         }
         return false;
@@ -197,10 +224,37 @@ namespace openCVGraph
 
     bool GraphManager::GotoState(GraphState newState)
     {
-        m_GraphState = newState;
+        std::unique_lock<std::mutex> lck(m_mtx);
 
+        m_GraphState = newState;
+        m_cv.notify_all();
         return true;
     }
+
+    bool AddFilter(Processor filter) {
+        if (m_GraphState == GraphState::Stop) {
+            m_Filters.push_back(filter);
+            return true;
+        }
+        else return false;
+    }
+
+    bool RemoveFilter(Processor filter) {
+        if (m_GraphState == GraphState::Stop) {
+            m_Filters.erase(std::remove(m_Filters.begin(), m_Filters.end(), filter), m_Filters.end());
+            m_Filters.push_back(filter);
+            return true;
+        }
+        else return false;
+    }
+
+    void UseCuda(bool useCuda) {
+        if (m_GraphState == GraphState::Stop) {
+            m_UseCuda = useCuda;
+        }
+    }
+
+    GraphData& getGraphData() { return m_GraphData; }
 
     void GraphManager::saveConfig()
     {
@@ -210,7 +264,7 @@ namespace openCVGraph
         // Save state for the graph manager
         fs << "GraphManager" << "{";
         // Persist the filter data
-        cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0 );
+        cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
 
         fs << "LogLevel" << m_LogLevel;
         fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
@@ -254,4 +308,35 @@ namespace openCVGraph
         }
         fs.release();
     }
+
+    std::mutex& getWaitMutex() { return m_mtx; }
+    std::condition_variable& getConditionalVariable () { return m_cv; }
+    bool CompletedStep() { return m_CompletedStep; }
+
+    private:
+        std::string m_Name;                 
+        string m_persistFile;
+        GraphCallback m_GraphCallback;
+
+        std::thread thread;
+        GraphState m_GraphState;
+        bool m_Stepping = false;
+
+        std::mutex m_mtx;
+        std::condition_variable m_cv;           // 
+        bool m_CompletedStep = false;           // Has the step finished?
+        bool m_CompletedRun = false;            // Has the run finished?
+
+        GraphData m_GraphData;                  // data package sent to all members of the graph
+
+        std::vector<Processor> m_Filters;       // filters in the graph
+
+        int m_CudaEnabledDeviceCount;
+        int m_CudaDeviceIndex = 1;
+        bool m_UseCuda = true;
+        int m_LogLevel = spd::level::info;
+        std::shared_ptr<spdlog::logger> m_Logger;
+
+    };
+
 }

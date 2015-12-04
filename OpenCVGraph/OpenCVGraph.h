@@ -1,6 +1,6 @@
 #pragma once
 
-#define WITH_CUDA
+//#define WITH_CUDA
 
 #include <cstring>
 #include <sstream>
@@ -11,6 +11,9 @@
 #include <numeric>
 #include <chrono>
 #include <thread>
+#include <mutex>              
+#include <condition_variable> 
+
 #include <list>
 
 // SpdLog
@@ -36,7 +39,7 @@
 #include "GraphData.h"
 #include "ZoomView.h"
 #include "Filter.hpp"
-#include "GraphManager.h"
+#include "GraphManager.hpp"
 
 
 #include "Capture/CamDefault.h"
@@ -44,7 +47,10 @@
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
 
-#if true
+#include "Filters/FileWriter.hpp"
+#include "Filters/FileWriterTIFF.hpp"
+
+#ifdef WITH_CUDA
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/Simple.hpp"
 
@@ -52,8 +58,7 @@
 #include "Filters/FocusFFT.hpp"
 #include "Filters/BrightDarkField.hpp"
 
-#include "Filters/FileWriter.hpp"
-#include "Filters/FileWriterTIFF.hpp"
+
 #endif
 
 // Camera specific includes

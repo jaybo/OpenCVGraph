@@ -282,6 +282,7 @@ namespace openCVGraph
         //        std::cout << "item divisible by 17 found at position " << pos << std::endl;
         //    }
         //}
+        private:
 
 
 	};
