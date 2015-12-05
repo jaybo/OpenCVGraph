@@ -8,11 +8,6 @@ using namespace spdlog;
 
 namespace openCVGraph
 {
-
-
-    // Property bag for sharing results
-    typedef std::map<string, void *> GraphProperties;
-
     // Result of calling "process()" on each filter
     enum ProcessResult {
         OK,             // Normal result, continue through the processing loop
@@ -20,8 +15,10 @@ namespace openCVGraph
         Continue,       // GoTo beginning of the loop.  Averaging filters will issue this result until they've accumulated enough images.
     };
 
+    // Property bag for sharing results
+    typedef std::map<string, void *> GraphProperties;
 
-#define MAX_ZOOMVIEW_LOCKS 10
+
 
 	class  GraphData {
 	public:
@@ -30,6 +27,7 @@ namespace openCVGraph
 
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
+        bool m_Aborting = false;
 
         // Filters tell everybody what formats they need
         bool m_NeedCV_8UC1 = false;
@@ -40,10 +38,6 @@ namespace openCVGraph
         int m_PrimaryImageType;
 
 		cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
-
-        // Default view
-        bool m_NeedCV8UC1View = false;      // forces the m_imOut8UC1 (non-CUDA) to always be used
-        
 
         // Input Mats
         cv::Mat m_imCap8UC3;              

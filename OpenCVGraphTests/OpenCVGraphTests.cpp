@@ -10,8 +10,10 @@ bool graphCallback(GraphManager* graphManager) {
     //cin.sync_with_stdio(false);
     //auto count = std::cin.rdbuf()->in_avail();
     //if (count > 0) {
-    if (_kbhit()) {
-        int key = _getch();
+    int key = cv::waitKey(1);
+    if (key != -1) {
+    // if (_kbhit()) {
+       // int key = _getch();
         if (key == 'r' || key == 'R') {
             graphManager->GotoState(GraphManager::GraphState::Run);
         }
@@ -60,7 +62,7 @@ GraphManager* GraphCamXimea()
 GraphManager* GraphFileWriter()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager ("GraphFileWriter", CV_8UC3, true, graphCallback);
+    GraphManager *graph = new GraphManager ("GraphFileWriter", CV_16UC1, true, graphCallback);
     GraphData gd = graph->getGraphData();
 
     CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd));
@@ -77,7 +79,7 @@ GraphManager* GraphCanny()
 
     CvFilter canny (new openCVGraph::Canny("Canny", gd));
     graph->AddFilter(canny);
-    graph->UseCuda(false);
+    //graph->UseCuda(false);
 
     return graph;
 }
@@ -156,15 +158,18 @@ class Temca
 private:
     GraphManager* cap = GraphCamXimea();
     GraphManager *can = GraphCanny();
+    GraphManager *fw = GraphFileWriter();
 
 public:
     void Run()
     {
         cap->StartThread();
         can->StartThread();
+        fw->StartThread();
 
         GraphData& gdCap = cap->getGraphData();
         GraphData& gdCan = can->getGraphData();
+        GraphData& gdFW = fw->getGraphData();
 
         //char* b = new char[80];
         //char* c = "abcdefghijk";
@@ -177,11 +182,14 @@ public:
 
         cap->GotoState(GraphManager::GraphState::Pause);
         can->GotoState(GraphManager::GraphState::Pause);
-        
+        fw->GotoState(GraphManager::GraphState::Pause);
+
         std::mutex& capMtx = cap->getWaitMutex();
         std::condition_variable& capCV = cap->getConditionalVariable();
         std::mutex& canMtx = can->getWaitMutex();
         std::condition_variable& canCV = can->getConditionalVariable();
+        std::mutex& fwMtx = fw->getWaitMutex();
+        std::condition_variable& fwCV = fw->getConditionalVariable();
 
         bool fOK = true;
         while (fOK) {
@@ -194,16 +202,29 @@ public:
 
             gdCan.m_imCapture = gdCap.m_imCapture;
             gdCan.CopyCaptureToRequiredFormats();
+            
+            gdFW.m_imCapture = gdCap.m_imCapture;
+            gdFW.CopyCaptureToRequiredFormats();
+
             fOK &= can->Step();
+            fOK &= fw->Step();
+            
             {
                 std::unique_lock<std::mutex> lk(capMtx);
                 while (!can->CompletedStep())
                     canCV.wait(lk);
             }
+            {
+                std::unique_lock<std::mutex> lk(fwMtx);
+                while (!fw->CompletedStep())
+                    fwCV.wait(lk);
+            }
+
         }
 
         cap->JoinThread();
         can->JoinThread();
+        fw->JoinThread();
     }
 };
 

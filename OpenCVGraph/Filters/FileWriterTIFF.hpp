@@ -56,6 +56,8 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult FileWriterTIFF::process(GraphData& graphData) override
         {
+            ProcessResult result = ProcessResult::OK;
+
             if (m_WriteNextImage) {
                 string fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
                 
@@ -84,13 +86,24 @@ namespace openCVGraph
                 //TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
                 //    TIFFDefaultStripSize(out, rowsperstrip));
 
-                // inbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(in));
-                for (int row = 0; row < h; row++) {
-                    outbuf = graphData.m_imOut16UC1.ptr<unsigned short>(row);
-                    if (TIFFWriteScanline(out, outbuf, row, 0) < 0)
-                        break;
+                if (m_WriteTile)
+                {
+                    outbuf = graphData.m_imOut16UC1.ptr<unsigned short>(0);
+                    if (TIFFWriteTile(out, outbuf, w, h, 0, 0) < 0)
+                    {
+                        result = ProcessResult::Abort;
+                    }
                 }
-
+                else {
+                    // inbuf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(in));
+                    for (int row = 0; row < h; row++) {
+                        outbuf = graphData.m_imOut16UC1.ptr<unsigned short>(row);
+                        if (TIFFWriteScanline(out, outbuf, row, 0) < 0) {
+                            result = ProcessResult::Abort;
+                            break;
+                        }
+                    }
+                }
                 // _TIFFfree(outbuf);
                 TIFFClose(out);
 
@@ -99,7 +112,7 @@ namespace openCVGraph
                 }
 
             }
-            return ProcessResult::OK;  // if you return false, the graph stops
+            return result;  // if you return false, the graph stops
         }
 
         void  FileWriterTIFF::saveConfig(FileStorage& fs, GraphData& data) override
@@ -108,6 +121,7 @@ namespace openCVGraph
             fs << "directory" << m_Directory.c_str();
             fs << "baseFileName" << m_BaseFileName.c_str();
             fs << "ext" << m_Ext.c_str();
+            fs << "writeTile" << m_WriteTile;
             cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
         }
@@ -118,6 +132,7 @@ namespace openCVGraph
             fs["directory"] >> m_Directory;
             fs["baseFileName"] >> m_BaseFileName;
             fs["ext"] >> m_Ext;
+            fs["writeTile"] >> m_WriteTile;
             fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
         }
 
@@ -127,6 +142,7 @@ namespace openCVGraph
         string m_Ext = ".tif";
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;
+        bool m_WriteTile = false;
     };
 }
 #endif

@@ -17,6 +17,7 @@ namespace openCVGraph
         int zoomFactor = 0;
     };
 
+
     // Lock zoom and scroll positions of different filters
     static ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
 

@@ -183,7 +183,6 @@
     <ClInclude Include="Filters\FocusSobel.hpp" />
     <ClInclude Include="Filters\ImageStatistics.hpp" />
     <ClInclude Include="OpenCVGraph.h" />
-    <ClInclude Include="Property.h" />
     <ClInclude Include="GraphData.h" />
     <ClInclude Include="ZoomView.h" />
     <ClInclude Include="stdafx.h" />

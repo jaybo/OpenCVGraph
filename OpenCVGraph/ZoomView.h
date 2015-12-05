@@ -10,6 +10,7 @@ using namespace std;
 
 namespace openCVGraph
 {
+#define MAX_ZOOMVIEW_LOCKS 10
 
     typedef bool (*KeyboardCallback)(int key);
 
