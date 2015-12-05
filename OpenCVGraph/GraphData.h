@@ -8,25 +8,10 @@ using namespace spdlog;
 
 namespace openCVGraph
 {
-    struct ZoomWindowPosition
-    {
-        int x = 0;              // center of image
-        int y = 0;
-        int dx = 0;             // delta from center due to mouse dragging
-        int dy = 0;
-        int zoomFactor = 0;
-    };
 
-    struct GraphProperty
-    {
-        GraphProperty();
-        GraphProperty(const std::string &, const void *);
 
-        std::string Name;
-        void * Value;
-    };
-
-    typedef std::list<GraphProperty> GraphProperties;
+    // Property bag for sharing results
+    typedef std::map<string, void *> GraphProperties;
 
     // Result of calling "process()" on each filter
     enum ProcessResult {
@@ -96,8 +81,7 @@ namespace openCVGraph
 		// std::vector<cv::Mat> m_imStack;      // "Stack" of images used by cooperating filters.
 		int m_FrameNumber = 0;                  // Current frame being processed.
 
-        // Lock zoom and scroll positions of different filters
-        ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
+
 
         std::shared_ptr<logger> m_Logger;
 
@@ -246,42 +230,20 @@ namespace openCVGraph
 
         }
 
-
+        // Return property or null if not found
+        void* GetProperty(const string name) {
+            return m_Properties[name];
+        }
 
         // Return property or null if not found
-        //void* GetProperty(const string name) {
-        //    auto it = std::find_if(std::begin(m_Properties),
-        //        std::end(m_Properties),
-        //        [&](const GraphProperty prop) { return prop.Name == name; });
+        void SetProperty(const string name, void * value ) {
+            void * existingData = m_Properties[name];
+            if (existingData) {
+                delete existingData;
+            }
+            m_Properties[name] = value;
+        }
 
-        //    if (m_Properties.end() == it)
-        //    {
-        //        return NULL;
-        //    }
-        //    else
-        //    {
-        //        const int pos = std::distance(m_Properties.begin(), it) + 1;
-        //        std::cout << "item found at position " << pos << std::endl;
-        //        return (void *) (((GraphProperty*)*it)->value);
-        //    }
-        //}
-
-        // Return property or null if not found
-        //void* SetProperty(const string name, ) {
-        //    auto it = std::find_if(std::begin(m_Properties),
-        //        std::end(m_Properties),
-        //        [&](const GraphProperty prop) { return prop.Name == name; });
-
-        //    if (m_Properties.end() == it)
-        //    {
-        //        return NULL;
-        //    }
-        //    else
-        //    {
-        //        const int pos = std::distance(m_Properties.begin(), it) + 1;
-        //        std::cout << "item divisible by 17 found at position " << pos << std::endl;
-        //    }
-        //}
         private:
 
 

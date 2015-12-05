@@ -44,6 +44,19 @@ GraphManager* GraphWebCam()
     return graph;
 }
 
+
+GraphManager* GraphCamXimea()
+{
+    // Create a graph
+    GraphManager *graph = new GraphManager("GraphCamXimea2", CV_16UC1, true, graphCallback);
+    GraphData gd = graph->getGraphData();
+
+    CvFilter camera(new CamXimea("CamXimea", gd));
+    graph->AddFilter(camera);
+
+    return graph;
+}
+
 GraphManager* GraphFileWriter()
 {
     // Create a graph
@@ -141,7 +154,7 @@ void GraphXimea()
 class Temca
 {
 private:
-    GraphManager* cap = GraphWebCam();
+    GraphManager* cap = GraphCamXimea();
     GraphManager *can = GraphCanny();
 
 public:
@@ -152,6 +165,15 @@ public:
 
         GraphData& gdCap = cap->getGraphData();
         GraphData& gdCan = can->getGraphData();
+
+        //char* b = new char[80];
+        //char* c = "abcdefghijk";
+
+        //gdCap.SetProperty("foo", b);
+        //gdCap.SetProperty("f33", c);
+        //
+        //char * d = (char *) gdCap.GetProperty("f33");
+
 
         cap->GotoState(GraphManager::GraphState::Pause);
         can->GotoState(GraphManager::GraphState::Pause);
@@ -188,6 +210,7 @@ public:
 
 int main()
 {
+
     Temca t;
     t.Run();
 

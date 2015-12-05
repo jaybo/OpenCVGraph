@@ -6,7 +6,19 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    ZoomView * g_LastActiveZoomView = NULL;
+    static ZoomView * g_LastActiveZoomView = NULL;
+
+    struct ZoomWindowPosition
+    {
+        int x = 0;              // center of image
+        int y = 0;
+        int dx = 0;             // delta from center due to mouse dragging
+        int dy = 0;
+        int zoomFactor = 0;
+    };
+
+    // Lock zoom and scroll positions of different filters
+    static ZoomWindowPosition ZoomWindowPositions[MAX_ZOOMVIEW_LOCKS];     // Lock ZoomWindows
 
     void ZoomView::DefaultMouseProcessor(int event, int x, int y, int flags, void* param)
     {
@@ -143,19 +155,19 @@ namespace openCVGraph
         if (zoomWindowLockIndex >= 0) {
             if (this == g_LastActiveZoomView) {
                 // We are the active view, so save our coords
-                graphData.ZoomWindowPositions[zoomWindowLockIndex].x = m_cx;
-                graphData.ZoomWindowPositions[zoomWindowLockIndex].y = m_cy;
-                graphData.ZoomWindowPositions[zoomWindowLockIndex].dx = m_dx;
-                graphData.ZoomWindowPositions[zoomWindowLockIndex].dy = m_dy;
-                graphData.ZoomWindowPositions[zoomWindowLockIndex].zoomFactor = m_ZoomFactor;
+                ZoomWindowPositions[zoomWindowLockIndex].x = m_cx;
+                ZoomWindowPositions[zoomWindowLockIndex].y = m_cy;
+                ZoomWindowPositions[zoomWindowLockIndex].dx = m_dx;
+                ZoomWindowPositions[zoomWindowLockIndex].dy = m_dy;
+                ZoomWindowPositions[zoomWindowLockIndex].zoomFactor = m_ZoomFactor;
             }
             else {
                 // We aren't the active view, so sync to somebody else
-                m_cx = graphData.ZoomWindowPositions[zoomWindowLockIndex].x;
-                m_cy = graphData.ZoomWindowPositions[zoomWindowLockIndex].y;
-                m_dx = graphData.ZoomWindowPositions[zoomWindowLockIndex].dx;
-                m_dy = graphData.ZoomWindowPositions[zoomWindowLockIndex].dy;
-                m_ZoomFactor = graphData.ZoomWindowPositions[zoomWindowLockIndex].zoomFactor;
+                m_cx = ZoomWindowPositions[zoomWindowLockIndex].x;
+                m_cy = ZoomWindowPositions[zoomWindowLockIndex].y;
+                m_dx = ZoomWindowPositions[zoomWindowLockIndex].dx;
+                m_dy = ZoomWindowPositions[zoomWindowLockIndex].dy;
+                m_ZoomFactor = ZoomWindowPositions[zoomWindowLockIndex].zoomFactor;
             }
         }
 

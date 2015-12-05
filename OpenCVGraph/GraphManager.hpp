@@ -132,7 +132,7 @@ namespace openCVGraph
         ProcessResult result;
 
         loadConfig();
-        
+
         // Let the filters know whether or not to use Cuda
         m_GraphData.m_UseCuda = m_UseCuda;
 
@@ -153,6 +153,7 @@ namespace openCVGraph
             int key = cv::waitKey(1);
             if (m_GraphData.m_AbortOnESC && (key == 27)) {
                 fOK = false;
+                m_GraphState = GraphState::Stop;
                 break;
             }
 
@@ -205,6 +206,12 @@ namespace openCVGraph
 
         cv::destroyAllWindows();
 
+        {
+            std::unique_lock<std::mutex> lk(m_mtx);
+            m_CompletedStep = true;
+            m_Stepping = false;
+            m_cv.notify_all();
+        }
         return fOK;
     }
 

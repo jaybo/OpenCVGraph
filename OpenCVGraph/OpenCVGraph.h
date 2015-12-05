@@ -1,6 +1,7 @@
 #pragma once
 
-//#define WITH_CUDA
+// Comment out the following to disable all CUDA processing
+#define WITH_CUDA
 
 #include <cstring>
 #include <sstream>
@@ -12,13 +13,12 @@
 #include <chrono>
 #include <thread>
 #include <mutex>              
-#include <condition_variable> 
-
 #include <list>
+#include <map>
+#include <condition_variable> 
 
 // SpdLog
 #include "include/spdlog/spdlog.h"
-
 
 // OpenCV
 #include <opencv2/opencv.hpp>

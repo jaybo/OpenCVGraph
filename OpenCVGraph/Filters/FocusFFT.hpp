@@ -64,7 +64,10 @@ namespace openCVGraph
             }
             else {
                 // See: http://docs.opencv.org/master/d8/d01/tutorial_discrete_fourier_transform.html#gsc.tab=0 
-
+                if (graphData.m_imCap16UC1.empty())
+                {
+                    graphData.m_imCap16UC1 = graphData.m_imCapture;
+                }
                 int w = graphData.m_imCap16UC1.size().width;
                 int h = graphData.m_imCap16UC1.size().height;
                 Rect rCropped = Rect(Point(w - m_DFTSize, h - m_DFTSize), Size(m_DFTSize, m_DFTSize));
