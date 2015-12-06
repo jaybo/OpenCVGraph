@@ -15,7 +15,6 @@ namespace openCVGraph
     class Canny : public Filter
     {
     public:
-
         Canny::Canny(std::string name, GraphData& graphData,
             bool showView = true, 
             int sourceFormat = CV_8UC1,

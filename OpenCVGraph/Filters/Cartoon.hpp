@@ -12,10 +12,11 @@ using namespace cuda;
 namespace openCVGraph
 {
     // Cartoon filter
+    // If CUDA is disabled, can show 3 different cartoon effects.  Use slider to select algo and parameters.
+
     class Cartoon : public Filter
     {
     public:
-
         Cartoon::Cartoon(std::string name, GraphData& graphData,
             int sourceFormat = CV_8UC3,
             int width = 512, int height = 512)
@@ -133,7 +134,7 @@ namespace openCVGraph
                 }
                 else
                 {
-                    graphData.m_imOut8UC3.copyTo(m_imView);
+                    m_imView = graphData.m_imOut8UC3;
                 }
                 Filter::processView(graphData);
             }

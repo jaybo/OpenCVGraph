@@ -16,14 +16,12 @@ namespace openCVGraph
     class Average : public Filter
     {
     public:
-
         Average::Average(std::string name, GraphData& graphData,
             int sourceFormat = CV_32FC1,
             int width = 512, int height = 512)
             : Filter(name, graphData, sourceFormat, width, height)
         {
         }
-
 
         bool Average::init(GraphData& graphData) override
         {
@@ -40,14 +38,12 @@ namespace openCVGraph
                     }
                 }
             }
-
             return true;
         }
 
         ProcessResult Average::process(GraphData& graphData) override
         {
             ProcessResult result = ProcessResult::Continue;  // Averaging filters return this to skip the rest of the loop
-
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 if (m_imGpuAverage32F.empty()) {
@@ -61,7 +57,9 @@ namespace openCVGraph
                     cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
                     m_imGpuAverage32F.copyTo(graphData.m_imOutGpu32FC1);
                     m_imGpuAverage32F.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
-                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    if (m_showView) {
+                        m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    }
                     m_imGpuAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
@@ -139,7 +137,7 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imGpuAverage32F;
 #endif
         Mat m_imAverage32F;
-        int m_FramesToAverage = 3;
+        int m_FramesToAverage = 4;
         int m_FramesAveraged = 0;
 
         static void Average::SliderCallback(int pos, void * userData) {
