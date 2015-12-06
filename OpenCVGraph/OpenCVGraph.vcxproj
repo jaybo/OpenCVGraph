@@ -165,6 +165,7 @@
     <ClInclude Include="Filters\FileWriter.hpp" />
     <ClInclude Include="Filters\FileWriterTIFF.hpp" />
     <ClInclude Include="GraphManager.hpp" />
+    <ClInclude Include="GraphParallelStep.hpp" />
     <ClInclude Include="include\spdlog\async_logger.h" />
     <ClInclude Include="include\spdlog\common.h" />
     <ClInclude Include="include\spdlog\formatter.h" />

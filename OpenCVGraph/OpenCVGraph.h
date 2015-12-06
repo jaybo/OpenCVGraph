@@ -40,6 +40,7 @@
 #include "ZoomView.h"
 #include "Filter.hpp"
 #include "GraphManager.hpp"
+#include "GraphParallelStep.hpp"
 
 
 #include "Capture/CamDefault.hpp"

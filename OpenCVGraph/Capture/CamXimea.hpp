@@ -10,8 +10,8 @@ namespace openCVGraph
     class CamXimea : public CamDefault {
     public:
         CamXimea(std::string name, GraphData& graphData,
-            int sourceFormat,
-            int width, int height)
+            int sourceFormat = CV_16UC1,
+            int width = 512, int height = 512)
             : CamDefault(name, graphData, sourceFormat, width, height)
         {
             m_Logger = graphData.m_Logger;

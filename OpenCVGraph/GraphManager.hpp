@@ -114,6 +114,9 @@ namespace openCVGraph
         return result;
     }
 
+    // The main loop for the graph
+    // Controls loading and saving config data, and running, pausing, stepping, and stopping the graph
+
     bool GraphManager::ProcessLoop()
     {
         bool fOK = true;
@@ -150,13 +153,16 @@ namespace openCVGraph
             if (m_GraphState != GraphState::Run)
             {
                 std::unique_lock<std::mutex> lk(m_mtx);
+
+                // wake up immedediately if signaled, 
+                // otherwise periodically to check for keyboard input when debugging / developing
+
                 m_cv.wait_for(lk, std::chrono::milliseconds(30), [=]() {return m_GraphState == GraphState::Stop; });
             }
 
             switch (m_GraphState) {
             case GraphState::Stop:
-                // Snooze.  But this should be a mutex or awaitable object
-                //std::this_thread::sleep_for(std::chrono::milliseconds(33));
+                // nothing to do
                 break;
             case GraphState::Pause:
                 if (m_Stepping) {
@@ -169,8 +175,6 @@ namespace openCVGraph
                         m_cv.notify_all();
                     }
                 }
-                // Snooze.  But this should be a mutex or awaitable object
-                //std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 break;
             case GraphState::Run:
                 result = ProcessOne(key);
@@ -260,7 +264,10 @@ namespace openCVGraph
 
         // Save state for the graph manager
         fs << "GraphManager" << "{";
+
         // Persist the filter data
+        fs << "Enabled" << m_Enabled;
+
         cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
 
         fs << "LogLevel" << m_LogLevel;
@@ -295,7 +302,9 @@ namespace openCVGraph
         if (!node["UseCuda"].empty()) {
             node["UseCuda"] >> m_UseCuda;
         }
-
+        if (!node["Enabled"].empty()) {
+            node["Enabled"] >> m_Enabled;
+        }
         for (int i = 0; i < m_Filters.size(); i++) {
             Processor filter = m_Filters[i];
             auto node = fs[filter->m_FilterName.c_str()];
@@ -309,11 +318,13 @@ namespace openCVGraph
     std::mutex& getWaitMutex() { return m_mtx; }
     std::condition_variable& getConditionalVariable () { return m_cv; }
     bool CompletedStep() { return m_CompletedStep; }
+    bool IsEnabled() { return m_Enabled; }
 
     private:
         std::string m_Name;                 
         string m_persistFile;
         GraphCallback m_GraphCallback;
+        bool m_Enabled = true;
 
         std::thread thread;
         GraphState m_GraphState;

@@ -16,7 +16,6 @@ namespace openCVGraph
     {
     public:
         Canny::Canny(std::string name, GraphData& graphData,
-            bool showView = true, 
             int sourceFormat = CV_8UC1,
             int width = 512, int height = 512)
             : Filter(name, graphData, sourceFormat, width, height)
