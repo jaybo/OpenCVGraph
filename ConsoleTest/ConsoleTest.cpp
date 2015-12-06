@@ -45,8 +45,11 @@ void GraphWebCam()
     CvFilter faverage(new Average("Average", gd));
     graph1.AddFilter(faverage);
 
-    CvFilter canny(new openCVGraph::Canny("Canny", gd));
-    graph1.AddFilter(canny);
+    CvFilter canny1(new openCVGraph::Canny("Canny1", gd));
+    graph1.AddFilter(canny1);
+
+    CvFilter canny2(new openCVGraph::Canny("Canny2", gd));
+    graph1.AddFilter(canny2);
 
     CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
     graph1.AddFilter(cartoon);
