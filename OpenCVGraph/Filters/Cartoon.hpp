@@ -17,8 +17,9 @@ namespace openCVGraph
     public:
 
         Cartoon::Cartoon(std::string name, GraphData& graphData,
+            int sourceFormat = CV_8UC3,
             int width = 512, int height = 512)
-            : Filter(name, graphData, width, height)
+            : Filter(name, graphData, sourceFormat, width, height)
         {
         }
 
@@ -56,11 +57,11 @@ namespace openCVGraph
                 cuda::bitwise_not(cannyOut8U, cannyOut8U);
                 
                 graphData.m_imOutGpu8UC3.copyTo(tmp);
-                int repetitions = 7;  // Repetitions for strong cartoon effect. 
+                int repetitions = 13;  // Repetitions for strong cartoon effect. 
                 for (int i = 0; i < repetitions; i++) {
                     int ksize = 9;     // Filter size. Has a large effect on speed.  
-                    float sigmaColor = 9;    // Filter color strength.  
-                    float sigmaSpace = 7;    // Spatial strength. Affects speed.  
+                    float sigmaColor = 11;    // Filter color strength.  
+                    float sigmaSpace = 9;    // Spatial strength. Affects speed.  
                     cuda::bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
                     cuda::bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
                 }

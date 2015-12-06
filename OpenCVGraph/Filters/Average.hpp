@@ -11,15 +11,16 @@ using namespace std;
 namespace openCVGraph
 {
     // Creates an average frame of N frames.
-    // Currently source and result must be 32F using Cuda
+    // Currently source and result must be CV_32FC1
 
     class Average : public Filter
     {
     public:
 
         Average::Average(std::string name, GraphData& graphData,
+            int sourceFormat = CV_32FC1,
             int width = 512, int height = 512)
-            : Filter(name, graphData, width, height)
+            : Filter(name, graphData, sourceFormat, width, height)
         {
         }
 
@@ -28,13 +29,15 @@ namespace openCVGraph
         {
             Filter::init(graphData);
 
-            // Tell the graph the format(s) we need
-            graphData.m_NeedCV_32FC1 = true;
+            if (m_Enabled) {
+                // Tell the graph the format(s) we need
+                graphData.m_NeedCV_32FC1 = true;
 
-            if (m_Enabled && m_showView) {
-                graphData.m_NeedCV_8UC1 = true;
-                if (m_showViewControls) {
-                    createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
+                if (m_showView) {
+                    graphData.m_NeedCV_8UC1 = true;
+                    if (m_showViewControls) {
+                        createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
+                    }
                 }
             }
 

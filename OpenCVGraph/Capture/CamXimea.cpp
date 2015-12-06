@@ -6,8 +6,10 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    CamXimea::CamXimea(std::string name, GraphData& graphData, int width, int height)
-        : CamDefault(name, graphData, width, height)
+    CamXimea::CamXimea(std::string name, GraphData& graphData, 
+        int sourceFormat,
+        int width, int height)
+        : CamDefault(name, graphData, sourceFormat, width, height)
     {
     }
 

@@ -16,8 +16,8 @@ namespace openCVGraph
     {
     public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, int width = 512, int height = 512)
-            : m_FilterName(name), m_width(width), m_height(height)
+        Filter::Filter(std::string name, GraphData& data, int sourceFormat = -1, int width = 512, int height = 512)
+            : m_FilterName(name), m_SourceFormat(sourceFormat), m_width(width), m_height(height)
         {
             data.m_Logger->info("Filter() " + m_FilterName);
 
@@ -192,6 +192,7 @@ namespace openCVGraph
         int m_ZoomViewLockIndex = 0;
 
 	protected:
+        int m_SourceFormat;                       // source format (CV_8UC1, CV8UC3, ...)
 		bool m_firstTime = true;
 		bool m_showView = false;
         bool m_showViewControls = false;    // view sliders

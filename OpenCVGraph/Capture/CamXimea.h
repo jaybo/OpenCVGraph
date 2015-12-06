@@ -13,7 +13,7 @@ namespace openCVGraph
     class CamXimea : public CamDefault
     {
     public:
-        CamXimea(std::string name, GraphData& data, int width = 512, int height = 512);
+        CamXimea(std::string name, GraphData& data, int sourceFormat = CV_16UC1, int width = 512, int height = 512);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool fini(GraphData& graphData) override;

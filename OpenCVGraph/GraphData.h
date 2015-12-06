@@ -35,8 +35,6 @@ namespace openCVGraph
         bool m_NeedCV_16UC1 = false;
         bool m_NeedCV_32FC1 = false;
 
-        int m_PrimaryImageType;
-
 		cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
 
         // Input Mats

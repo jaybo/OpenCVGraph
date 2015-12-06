@@ -159,6 +159,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Capture\CamDefault.hpp" />
+    <ClInclude Include="Capture\CamXimea.hpp" />
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
     <ClInclude Include="Filters\FileWriterTIFF.hpp" />
@@ -172,8 +174,6 @@
     <ClInclude Include="Util.h" />
     <ClInclude Include="include\dirent.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="Capture\CamXimea.h" />
-    <ClInclude Include="Capture\CamDefault.h" />
     <ClInclude Include="Filter.hpp" />
     <ClInclude Include="Filters\Average.hpp" />
     <ClInclude Include="Filters\Canny.hpp" />
@@ -203,8 +203,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Capture\CamXimea.cpp" />
-    <ClCompile Include="Capture\CamDefault.cpp" />
     <ClCompile Include="Filters\Simple.hpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="ZoomView.cpp" />

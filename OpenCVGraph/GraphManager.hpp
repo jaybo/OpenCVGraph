@@ -21,7 +21,7 @@ namespace openCVGraph
             Run
         };
 
-    GraphManager(const std::string name, int primaryImageType, bool abortOnESC, GraphCallback callback)
+    GraphManager(const std::string name, bool abortOnESC, GraphCallback callback)
     {
         // Set up logging
         try
@@ -44,16 +44,6 @@ namespace openCVGraph
         m_GraphData.m_AbortOnESC = abortOnESC;
         m_GraphCallback = callback;
         m_GraphData.m_Logger = m_Logger;
-
-        // Other types may be requested by individual filters
-        switch (primaryImageType) {
-        case CV_8UC1: m_GraphData.m_NeedCV_8UC1 = true; break;
-        case CV_8UC3: m_GraphData.m_NeedCV_8UC3 = true; break;
-        case CV_16UC1: m_GraphData.m_NeedCV_16UC1 = true; break;
-        case CV_32FC1: m_GraphData.m_NeedCV_32FC1 = true; break;
-        }
-
-        m_GraphData.m_PrimaryImageType = primaryImageType;
 
         m_GraphState = GraphState::Stop;
         m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();

@@ -16,7 +16,7 @@ namespace openCVGraph
     class CamDefault : public openCVGraph::Filter
     {
     public:
-        CamDefault(std::string name, GraphData& data, int width = 512, int height= 512);
+        CamDefault(std::string name, GraphData& data, int sourceFormat = -1, int width = 512, int height= 512);
 
         virtual bool init(GraphData& graphData) override;
         virtual bool fini(GraphData& graphData) override;

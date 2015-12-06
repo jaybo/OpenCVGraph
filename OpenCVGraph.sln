@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVGraph", "OpenCVGraph\OpenCVGraph.vcxproj", "{F2EDD354-3C52-444F-BDBF-76824DBC70CE}"
 EndProject
@@ -14,6 +14,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVGraphTests", "OpenCVG
 	ProjectSection(ProjectDependencies) = postProject
 		{F2EDD354-3C52-444F-BDBF-76824DBC70CE} = {F2EDD354-3C52-444F-BDBF-76824DBC70CE}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{82BC1148-5DEF-48AC-80AC-8C2170445B86}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

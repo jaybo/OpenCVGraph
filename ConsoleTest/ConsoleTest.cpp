@@ -35,7 +35,7 @@ bool graphCallback(GraphManager* graphManager) {
 void GraphWebCam()
 {
     // Create a graph
-    GraphManager graph1("GraphWebCam", CV_8UC3, true, graphCallback);
+    GraphManager graph1("GraphWebCam", true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
@@ -45,8 +45,8 @@ void GraphWebCam()
     //CvFilter faverage(new Average("Average", gd));
     //graph1.AddFilter(faverage);
 
-    //CvFilter canny(new openCVGraph::Canny("Canny", gd));
-    //graph1.AddFilter(canny);
+    CvFilter canny(new openCVGraph::Canny("Canny", gd));
+    graph1.AddFilter(canny);
 
     //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
     //graph1.AddFilter(cartoon);
@@ -62,7 +62,7 @@ void GraphWebCam()
 void GraphImageDir()
 {
     // Create a graph
-    GraphManager graph1("GraphImageDir", CV_16UC1, true, graphCallback);
+    GraphManager graph1("GraphImageDir", true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
     graph1.UseCuda(false);
@@ -86,10 +86,10 @@ void GraphImageDir()
 void GraphXimea()
 {
     // Create a graph
-    GraphManager graph1("GraphXimea", CV_16UC1, true, graphCallback);
+    GraphManager graph1("GraphXimea", true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", gd, 1024, 1024));
+    CvFilter cam2(new CamXimea("CamXimea", gd, CV_16UC1, 1024, 1024));
     graph1.AddFilter(cam2);
 
     CvFilter faverage(new Average("Average", gd));
@@ -101,10 +101,10 @@ void GraphXimea()
     CvFilter fpRunningStats(new ImageStatistics("Stats", gd));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, 512, 150));
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
     graph1.AddFilter(fFocusSobel);
 
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, 512, 512));
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
     CvFilter canny(new openCVGraph::Canny("Canny", gd));
@@ -113,10 +113,10 @@ void GraphXimea()
     //CvFilter fpSimple(new Simple("Simple", gd));
     //graph1.AddFilter(fpSimple);
 
-    CvFilter fileWriter(new FileWriter("FileWriter", gd));
+    CvFilter fileWriter(new FileWriter("FileWriter", gd, CV_16UC1));
     graph1.AddFilter(fileWriter);
 
-    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd));
+    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd, CV_16UC1));
     graph1.AddFilter(fileWriterTIFF);
 
     // Start the thread for that graph running
@@ -129,10 +129,10 @@ void GraphXimea()
 int main()
 {
 
-    // GraphWebCam();
+    GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
-    GraphXimea();
+    // GraphXimea();
 #endif
     return 0;
 }

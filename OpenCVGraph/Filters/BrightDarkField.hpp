@@ -24,10 +24,10 @@ namespace openCVGraph
         }
 
         BrightDarkFieldCorrection::BrightDarkFieldCorrection(std::string name, GraphData& graphData,
+            int sourceFormat = CV_16UC1,
             int width = 512, int height = 512)
-            : Filter(name, graphData, width, height)
+            : Filter(name, graphData, sourceFormat, width, height)
         {
-
         }
 
         bool BrightDarkFieldCorrection::init(GraphData& graphData) override

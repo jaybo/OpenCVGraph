@@ -37,7 +37,7 @@ bool graphCallback(GraphManager* graphManager) {
 GraphManager* GraphWebCam()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphWebCam", CV_8UC3, true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
     CvFilter camera (new CamDefault("WebCam", gd));
@@ -50,10 +50,10 @@ GraphManager* GraphWebCam()
 GraphManager* GraphCamXimea()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimea2", CV_16UC1, true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphCamXimea2", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter camera(new CamXimea("CamXimea", gd));
+    CvFilter camera(new CamXimea("CamXimea", gd, CV_16UC1));
     graph->AddFilter(camera);
 
     return graph;
@@ -62,10 +62,10 @@ GraphManager* GraphCamXimea()
 GraphManager* GraphFileWriter()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager ("GraphFileWriter", CV_16UC1, true, graphCallback);
+    GraphManager *graph = new GraphManager ("GraphFileWriter", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd));
+    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd, CV_16UC1));
     graph->AddFilter(fileWriterTIFF);
 
     return graph;
@@ -74,10 +74,10 @@ GraphManager* GraphFileWriter()
 GraphManager* GraphCanny()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCanny", CV_8UC3, true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphCanny",  true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter canny (new openCVGraph::Canny("Canny", gd));
+    CvFilter canny (new openCVGraph::Canny("Canny", gd, CV_8UC3));
     graph->AddFilter(canny);
     //graph->UseCuda(false);
 
@@ -88,7 +88,7 @@ GraphManager* GraphCanny()
 void GraphImageDir()
 {
     // Create a graph
-    GraphManager graph1("GraphImageDir", CV_16UC1, true, graphCallback);
+    GraphManager graph1("GraphImageDir", true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
     graph1.UseCuda(false);
@@ -112,10 +112,10 @@ void GraphImageDir()
 void GraphXimea()
 {
     // Create a graph
-    GraphManager graph1("GraphXimea", CV_16UC1, true, graphCallback);
+    GraphManager graph1("GraphXimea", true, graphCallback);
     GraphData gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", gd, 1024, 1024));
+    CvFilter cam2(new CamXimea("CamXimea", gd, CV_16UC1, 1024, 1024));
     graph1.AddFilter(cam2);
 
     CvFilter faverage(new Average("Average", gd));
@@ -127,10 +127,10 @@ void GraphXimea()
     CvFilter fpRunningStats(new ImageStatistics("Stats", gd));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, 512, 150));
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
     graph1.AddFilter(fFocusSobel);
 
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, 512, 512));
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
     //CvFilter canny(new openCVGraph::Canny("Canny", gd));
@@ -156,7 +156,8 @@ void GraphXimea()
 class Temca
 {
 private:
-    GraphManager* cap = GraphCamXimea();
+    //GraphManager* cap = GraphCamXimea();
+    GraphManager* cap = GraphWebCam();
     GraphManager *can = GraphCanny();
     GraphManager *fw = GraphFileWriter();
 

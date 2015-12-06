@@ -17,20 +17,11 @@ namespace openCVGraph
     public:
 
         Canny::Canny(std::string name, GraphData& graphData,
-            bool showView = true, int width = 512, int height = 512)
-            : Filter(name, graphData, width, height)
+            bool showView = true, 
+            int sourceFormat = CV_8UC1,
+            int width = 512, int height = 512)
+            : Filter(name, graphData, sourceFormat, width, height)
         {
-            graphData.m_NeedCV_8UC1 = true;
-        }
-
-        static void Canny::Slider1Callback(int pos, void * userData) {
-            Canny* filter = (Canny *)userData;
-            filter->m_Threshold1 = pos;
-        }
-
-        static void Canny::Slider2Callback(int pos, void * userData) {
-            Canny* filter = (Canny *)userData;
-            filter->m_Threshold2 = pos;
         }
 
         bool Canny::init(GraphData& graphData)  override
@@ -90,6 +81,17 @@ namespace openCVGraph
         }
 
     private:
+
+        static void Canny::Slider1Callback(int pos, void * userData) {
+            Canny* filter = (Canny *)userData;
+            filter->m_Threshold1 = pos;
+        }
+
+        static void Canny::Slider2Callback(int pos, void * userData) {
+            Canny* filter = (Canny *)userData;
+            filter->m_Threshold2 = pos;
+        }
+
 #ifdef WITH_CUDA
         cv::cuda::GpuMat cannyOut8U;
 #endif

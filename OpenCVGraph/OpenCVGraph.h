@@ -42,7 +42,7 @@
 #include "GraphManager.hpp"
 
 
-#include "Capture/CamDefault.h"
+#include "Capture/CamDefault.hpp"
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
@@ -63,5 +63,5 @@
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"
-#include "Capture/CamXimea.h"
+#include "Capture/CamXimea.hpp"
 
