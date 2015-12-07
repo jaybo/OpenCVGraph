@@ -127,8 +127,11 @@ namespace openCVGraph
         loadConfig();
 
         // Let the filters know whether or not to use Cuda
+#ifdef WITH_CUDA
         m_GraphData.m_UseCuda = m_UseCuda;
-
+#else
+        m_GraphData.m_UseCuda = false;
+#endif
         // Init everybody
         for (int i = 0; i < m_Filters.size(); i++) {
             filter = m_Filters[i];
