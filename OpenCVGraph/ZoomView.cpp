@@ -177,6 +177,8 @@ namespace openCVGraph
             firstTime = false;
             m_cx = MatView.cols / 2;
             m_cy = MatView.rows / 2;
+            m_dx = 0;
+            m_dy = 0;
         }
 
         int srcHeight, srcWidth;
