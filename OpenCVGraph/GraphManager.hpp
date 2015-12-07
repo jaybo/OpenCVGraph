@@ -141,7 +141,7 @@ namespace openCVGraph
         }
 
         // main processing loop
-        while (fOK) {
+        while (fOK && !m_Aborting) {
             // This should be the only waitKey() in the entire graph
             int key = cv::waitKey(1);
             if (m_GraphData.m_AbortOnESC && (key == 27)) {
@@ -319,12 +319,16 @@ namespace openCVGraph
     std::condition_variable& getConditionalVariable () { return m_cv; }
     bool CompletedStep() { return m_CompletedStep; }
     bool IsEnabled() { return m_Enabled; }
+    void Abort() { m_Aborting = true; }
+    bool IsAborted() { return m_Aborting; }
+    bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }
 
     private:
         std::string m_Name;                 
         string m_persistFile;
         GraphCallback m_GraphCallback;
         bool m_Enabled = true;
+        bool m_Aborting = false;
 
         std::thread thread;
         GraphState m_GraphState;

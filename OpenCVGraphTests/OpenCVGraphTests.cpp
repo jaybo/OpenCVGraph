@@ -6,28 +6,19 @@
 using namespace std;
 using namespace openCVGraph;
 
-bool graphCallback(GraphManager* graphManager) {
-    //cin.sync_with_stdio(false);
-    //auto count = std::cin.rdbuf()->in_avail();
-    //if (count > 0) {
+// This function is called at the completion of each loop through a graph to check for 
+// user input.
+bool graphCallback(GraphManager* graphManager) 
+{
+    // waitKey is required in OpenCV to make graphs display, 
+    // so this funtion call is required.
+
     int key = cv::waitKey(1);
-    if (key != -1) {
-    // if (_kbhit()) {
-       // int key = _getch();
-        if (key == 'r' || key == 'R') {
-            graphManager->GotoState(GraphManager::GraphState::Run);
-        }
-        else if (key == 's' || key == 'S') {
-            graphManager->GotoState(GraphManager::GraphState::Stop);
-        }
-        else if (key == 'p' || key == 'P') {
-            graphManager->GotoState(GraphManager::GraphState::Pause);
-        }
-        else if (key == ' ') {
-            graphManager->Step();
-        }
-        else if (key == 27)
+    if (graphManager->AbortOnEscape())
+    {
+        if (key == 27) // ESCAPE
         {
+            graphManager->Abort();
             return false;
         }
     }
@@ -40,7 +31,7 @@ GraphManager* GraphWebCam()
     GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter camera (new CamDefault("WebCam", gd));
+    CvFilter camera(new CamDefault("WebCam", gd, CV_8UC3));
     graph->AddFilter(camera);
 
     return graph;
@@ -62,27 +53,41 @@ GraphManager* GraphCamXimea()
 GraphManager* GraphFileWriter()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager ("GraphFileWriter", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
     CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd, CV_16UC1));
     graph->AddFilter(fileWriterTIFF);
 
     return graph;
-} 
+}
 
 GraphManager* GraphCanny()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCanny",  true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphCanny", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter canny (new openCVGraph::Canny("Canny", gd, CV_8UC3));
+    CvFilter canny(new openCVGraph::Canny("Canny", gd, CV_8UC3));
     graph->AddFilter(canny);
     //graph->UseCuda(false);
 
     return graph;
 }
+
+GraphManager* GraphCartoon()
+{
+    // Create a graph
+    GraphManager *graph = new GraphManager("GraphCartoon", true, graphCallback);
+    GraphData gd = graph->getGraphData();
+
+    CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd, CV_8UC3));
+    graph->AddFilter(cartoon);
+    //graph->UseCuda(false);
+
+    return graph;
+}
+
 
 
 void GraphImageDir()
@@ -160,79 +165,70 @@ private:
     GraphManager* cap = GraphWebCam();
     GraphManager *can = GraphCanny();
     GraphManager *fw = GraphFileWriter();
+    GraphManager *car = GraphCartoon();
 
 public:
     void Run()
     {
-        cap->StartThread();
-        can->StartThread();
-        fw->StartThread();
+        bool fOK = true;
+
+        list<GraphManager*> capParallel = { cap };
+        GraphParallelStep capStep(capParallel);
+        fOK &= capStep.init();
+
+        list<GraphManager*> postCapParallel1 = { can, fw };
+        GraphParallelStep postCapStep1(postCapParallel1);
+        fOK &= postCapStep1.init();
+
+
+        list<GraphManager*> postCapParallel2 = { car};
+        GraphParallelStep postCapStep2(postCapParallel2);
+        fOK &= postCapStep2.init();
 
         GraphData& gdCap = cap->getGraphData();
         GraphData& gdCan = can->getGraphData();
         GraphData& gdFW = fw->getGraphData();
+        GraphData& gdCar = car->getGraphData();
 
-        //char* b = new char[80];
-        //char* c = "abcdefghijk";
-
-        //gdCap.SetProperty("foo", b);
-        //gdCap.SetProperty("f33", c);
-        //
-        //char * d = (char *) gdCap.GetProperty("f33");
-
-
-        cap->GotoState(GraphManager::GraphState::Pause);
-        can->GotoState(GraphManager::GraphState::Pause);
-        fw->GotoState(GraphManager::GraphState::Pause);
-
-        std::mutex& capMtx = cap->getWaitMutex();
-        std::condition_variable& capCV = cap->getConditionalVariable();
-        std::mutex& canMtx = can->getWaitMutex();
-        std::condition_variable& canCV = can->getConditionalVariable();
-        std::mutex& fwMtx = fw->getWaitMutex();
-        std::condition_variable& fwCV = fw->getConditionalVariable();
-
-        bool fOK = true;
         while (fOK) {
-            fOK &= cap->Step();
-            {
-                std::unique_lock<std::mutex> lk(capMtx);
-                while (!cap->CompletedStep())
-                    capCV.wait(lk);
+            fOK &= capStep.Step();
+            fOK &= capStep.WaitStepCompletion();
+
+            if (!fOK) {
+                break;
             }
 
             gdCan.m_imCapture = gdCap.m_imCapture;
             gdCan.CopyCaptureToRequiredFormats();
-            
+
             gdFW.m_imCapture = gdCap.m_imCapture;
             gdFW.CopyCaptureToRequiredFormats();
 
-            fOK &= can->Step();
-            fOK &= fw->Step();
-            
-            {
-                std::unique_lock<std::mutex> lk(capMtx);
-                while (!can->CompletedStep())
-                    canCV.wait(lk);
-            }
-            {
-                std::unique_lock<std::mutex> lk(fwMtx);
-                while (!fw->CompletedStep())
-                    fwCV.wait(lk);
-            }
+            gdCar.m_imCapture = gdCap.m_imCapture;
+            gdCar.CopyCaptureToRequiredFormats();
+
+            fOK &= postCapStep1.Step();
+            fOK &= postCapStep2.Step();
+
+            fOK &= postCapStep1.WaitStepCompletion();
+            fOK &= postCapStep2.WaitStepCompletion();
 
         }
+
+        capStep.fini();
+        postCapStep1.fini();
+        postCapStep2.fini();
 
         cap->JoinThread();
         can->JoinThread();
         fw->JoinThread();
+        car->JoinThread();
     }
 };
 
 
 int main()
 {
-
     Temca t;
     t.Run();
 
