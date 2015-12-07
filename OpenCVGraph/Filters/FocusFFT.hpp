@@ -13,6 +13,7 @@ namespace openCVGraph
     // Scores an image using its fft.  Omega is high frequency pixels to sum.  
     // Lowomegas are too effected by noise, and high omega values are too
     // effected by low - frequency effects.
+    // See: http://www.csl.cornell.edu/~cbatten/pdfs/batten-image-processing-sem-ucthesis2000.pdf 
 
     class FocusFFT : public Filter
     {
@@ -64,7 +65,9 @@ namespace openCVGraph
                 //meanXY = (meanX + meanY) / 2;
             }
             else {
-                // See: http://docs.opencv.org/master/d8/d01/tutorial_discrete_fourier_transform.html#gsc.tab=0 
+                
+                // http://docs.opencv.org/master/d8/d01/tutorial_discrete_fourier_transform.html#gsc.tab=0 
+
                 if (graphData.m_imCap16UC1.empty())
                 {
                     graphData.m_imCap16UC1 = graphData.m_imCapture;
@@ -74,8 +77,11 @@ namespace openCVGraph
                 Rect rCropped = Rect(Point(w - m_DFTSize, h - m_DFTSize), Size(m_DFTSize, m_DFTSize));
                 Mat IC = Mat(graphData.m_imCap16UC1, rCropped);
                 
-                Mat I = Mat_<float>(IC);
-                Mat planes[] = { Mat_<float>(I), Mat::zeros(I.size(), CV_32F) };
+                /*Mat I = Mat_<float>(IC);*/
+                Mat I;
+                IC.convertTo(I, CV_32FC1, 1/65536.f);
+
+                Mat planes[] = { I, Mat::zeros(I.size(), CV_32F) };
                 Mat complexI;   
                 cv::merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
                 cv::dft(complexI, complexI);            // this way the result may fit in the source matrix
@@ -115,6 +121,17 @@ namespace openCVGraph
 
                 m_PowerSpectrum = magI;
 
+                // adaptive_filter in python
+                cv::bilateralFilter(magI, tmp, 5, 50, 50);
+
+                Mat polar;
+                // polar transform
+                cv::linearPolar(tmp, polar, Point (rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
+
+                Mat roiPowerSpectrum = polar (Range::all(), Range(rCropped.width - m_Omega, rCropped.width - 4));
+                auto s = cv::mean(roiPowerSpectrum);
+                m_FocusScore = s[0];
+                 
 
             }
 
@@ -139,13 +156,13 @@ namespace openCVGraph
             int posLeft = 10;
             double scale = 1.0;
 
-            //str.str("");
-            //str << "  meanXY    X      Y";
-            //DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
+            str.str("");
+            str << "  focus    astig    angle";
+            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
-            //str.str("");
-            //str << std::setfill(' ') << setw(7) << (int)meanXY << setw(7) << (int)meanX << setw(7) << (int)meanY;
-            //DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
+            str.str("");
+            str << std::setfill(' ') << setw(10) << m_FocusScore  << m_AstigmatismScore << m_AstigmatismAngle;
+            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
         }
@@ -155,12 +172,14 @@ namespace openCVGraph
             Filter::saveConfig(fs, data);
             cvWriteComment((CvFileStorage *)*fs, "Power of 2 (256, 512, 1024, 2048)", 0);
             fs << "dft_size" << m_DFTSize;
+            fs << "omega" << m_Omega;
         }
 
         void  FocusFFT::loadConfig(FileNode& fs, GraphData& data) override
         {
             Filter::loadConfig(fs, data);
             fs["dft_size"] >> m_DFTSize;
+            fs["omega"] >> m_Omega;
         }
 
         void FocusFFT::DFTSize(int dftSize) {
@@ -168,11 +187,14 @@ namespace openCVGraph
         }
 
     private:
-        Mat m_imSx;
-        Mat m_imSy;
-        double meanX, meanY, meanXY;
-        cv::Ptr<cv::cuda::Filter> m_cudaFilter;
         int m_DFTSize = 512;
+        int m_Omega = 50;           // number of high frequency components to consider
+        double m_FocusScore;
+        double m_AstigmatismScore;
+        double m_AstigmatismAngle;
+
+        cv::Ptr<cv::cuda::Filter> m_cudaFilter;
+
         Mat m_PowerSpectrum;
 
         static void FocusFFT::SliderCallback(int pos, void * userData) {

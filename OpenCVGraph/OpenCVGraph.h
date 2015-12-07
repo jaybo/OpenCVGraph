@@ -56,6 +56,7 @@
 #include "Filters/Simple.hpp"
 
 #include "Filters/FocusSobel.hpp"
+#include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
 #include "Filters/BrightDarkField.hpp"
 

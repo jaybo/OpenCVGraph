@@ -41,37 +41,30 @@ namespace openCVGraph
         ProcessResult FocusLaplace::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
-                Scalar s;
                 graphData.m_imOutGpu16UC1 = graphData.m_imCapGpu16UC1;
                 auto nPoints = graphData.m_imCapGpu16UC1.size().area();
 
-                // X
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
-                s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
-                meanX = s[0] / nPoints;
+                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 
+                    (m_kSize == 1 || m_kSize == 3) ? m_kSize : 3);  // only 1 or 3 in cuda
+                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, m_imGpuLaplace);
 
-                // Y
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
-                s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
-                meanY = s[0] / nPoints;
-
-                meanXY = (meanX + meanY) / 2;
+                Scalar mean, std;
+                m_imGpuLaplace.convertTo(m_imGpuTemp, CV_8UC1, 1/256.0f);
+                m_imGpuLaplace = m_imGpuTemp;
+                cv::cuda::meanStdDev(m_imGpuTemp, mean, std);
+                m_var = sqrt(std[0]);
             }
             else {
-                cv::Sobel(graphData.m_imCapture, m_imSx,
+                cv::Laplacian(graphData.m_imCapture, m_imLaplace,
                     graphData.m_imCapture.depth(),
-                    1, 0,
-                    m_kSize);
-                cv::Sobel(graphData.m_imCapture, m_imSy,
-                    graphData.m_imCapture.depth(),
-                    0, 1,
-                    m_kSize);
-
-                meanX = cv::mean(m_imSx)[0];
-                meanY = cv::mean(m_imSy)[0];
-                meanXY = (meanX + meanY) / 2;
+                    m_kSize,
+                    1, 0
+                    );
+                m_imLaplace.convertTo(m_imLaplace, CV_8UC1, 1/256.0);
+                cv::meanStdDev(m_imLaplace, m_imMean, m_imStdDev);
+                double sd = m_imStdDev.at<double> (0,0);
+                m_var = sqrt(sd);
+                
             }
 
             return ProcessResult::OK;  // if you return false, the graph stops
@@ -82,12 +75,14 @@ namespace openCVGraph
             ClearOverlayText();
 
             if (graphData.m_UseCuda) {
-                graphData.m_imCapGpu8UC1.download(m_imView);
+                m_imGpuLaplace.download(m_imView);
             }
             else
             {
-                m_imView = graphData.m_imCap8UC1;
+                m_imView = m_imLaplace;
             }
+
+
 
             std::ostringstream str;
 
@@ -95,11 +90,11 @@ namespace openCVGraph
             double scale = 1.0;
 
             str.str("");
-            str << "  meanXY    X      Y";
+            str << "Laplacian";
             DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
-            str << std::setfill(' ') << setw(7) << (int)meanXY << setw(7) << (int)meanX << setw(7) << (int)meanY;
+            str << std::setfill(' ') << m_var;
             DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
@@ -122,9 +117,13 @@ namespace openCVGraph
         }
 
     private:
-        Mat m_imSx;
-        Mat m_imSy;
-        double meanX, meanY, meanXY;
+        Mat m_imLaplace;
+        Mat m_imMean;
+        Mat m_imStdDev;
+        GpuMat m_imGpuLaplace;
+        GpuMat m_imGpuTemp;
+
+        double m_var;
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
         int m_kSize = 3;
 

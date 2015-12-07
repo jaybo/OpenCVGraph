@@ -110,6 +110,9 @@ void GraphXimea()
     CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
+    CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", gd, CV_16UC1, 512, 512));
+    graph1.AddFilter(fFocusLaplace);
+
     CvFilter canny(new openCVGraph::Canny("Canny", gd));
     graph1.AddFilter(canny);
 
@@ -132,10 +135,10 @@ void GraphXimea()
 int main()
 {
 
-    GraphWebCam();
+    // GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
-    // GraphXimea();
+    GraphXimea();
 #endif
     return 0;
 }
