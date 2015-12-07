@@ -66,11 +66,16 @@ namespace openCVGraph
                 uint16 samplesperpixel;
                 uint16 bitspersample;
                 uint32 rowsperstrip = (uint32)-1;
+                uint32 channels;
+                uint32 type;
 
                 w = graphData.m_imOut16UC1.size().width;
                 h = graphData.m_imOut16UC1.size().height;
-                samplesperpixel = 1;
-                bitspersample = 16;
+                channels = graphData.m_imOut16UC1.channels();
+                type = graphData.m_imOut16UC1.type();
+
+                samplesperpixel = channels;
+                bitspersample = type <= 1 ?  8 : type <= 3 ? 16 : type <= 5 ? 32 : 64;
                 unsigned short *outbuf;
 
                 TIFF* out = TIFFOpen(fullName.c_str(), "w");

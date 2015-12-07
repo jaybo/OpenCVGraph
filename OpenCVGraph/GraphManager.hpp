@@ -201,14 +201,16 @@ namespace openCVGraph
             }
         }
 
-        cv::destroyAllWindows();
-
         {
             std::unique_lock<std::mutex> lk(m_mtx);
             m_CompletedStep = true;
             m_Stepping = false;
             m_cv.notify_all();
         }
+
+        // following causes race condition...
+        // cv::destroyAllWindows();
+
         return fOK;
     }
 
