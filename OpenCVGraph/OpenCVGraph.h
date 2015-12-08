@@ -37,7 +37,7 @@
 // Local
 #include "util.h"
 #include "GraphData.h"
-#include "ZoomView.h"
+#include "ZoomView.hpp"
 #include "Filter.hpp"
 #include "GraphManager.hpp"
 #include "GraphParallelStep.hpp"
