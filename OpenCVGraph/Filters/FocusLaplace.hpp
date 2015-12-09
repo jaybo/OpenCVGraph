@@ -52,7 +52,7 @@ namespace openCVGraph
                 m_imGpuLaplace.convertTo(m_imGpuTemp, CV_8UC1, 1/256.0f);
                 m_imGpuLaplace = m_imGpuTemp;
                 cv::cuda::meanStdDev(m_imGpuTemp, mean, std);
-                m_var = sqrt(std[0]);
+                m_var = std[0] * std[0];
             }
             else {
                 cv::Laplacian(graphData.m_imCapture, m_imLaplace,
@@ -63,8 +63,7 @@ namespace openCVGraph
                 m_imLaplace.convertTo(m_imLaplace, CV_8UC1, 1/256.0);
                 cv::meanStdDev(m_imLaplace, m_imMean, m_imStdDev);
                 double sd = m_imStdDev.at<double> (0,0);
-                m_var = sqrt(sd);
-                
+                m_var = sd * sd;
             }
 
             return ProcessResult::OK;  // if you return false, the graph stops
@@ -82,15 +81,13 @@ namespace openCVGraph
                 m_imView = m_imLaplace;
             }
 
-
-
             std::ostringstream str;
 
             int posLeft = 10;
             double scale = 1.0;
 
             str.str("");
-            str << "Laplacian";
+            str << "Focus: Laplacian";
             DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
             str.str("");

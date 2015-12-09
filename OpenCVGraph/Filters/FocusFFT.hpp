@@ -157,7 +157,7 @@ namespace openCVGraph
             double scale = 1.0;
 
             str.str("");
-            str << "  focus    astig    angle";
+            str << "FFT:  focus   astig  angle";
             DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
