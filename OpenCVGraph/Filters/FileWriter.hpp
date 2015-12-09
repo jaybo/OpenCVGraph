@@ -58,7 +58,11 @@ namespace openCVGraph
         {
             if (m_WriteNextImage) {
                 string fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
-                imwrite(fullName, graphData.m_imOut16UC1);
+                vector<int> params = { 
+                    259,1,      // No compression, turn off LZW
+                    279, 64     // Rows per strip (doesn't seem to affect perf - why not?)
+                };
+                imwrite(fullName, graphData.m_imOut16UC1, params);
 
                 if (m_WriteOnKeyHit != "") {
                     m_WriteNextImage = false;

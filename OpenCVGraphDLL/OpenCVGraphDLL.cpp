@@ -56,8 +56,8 @@ GraphManager* GraphFileWriter()
     GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd, CV_16UC1));
-    graph->AddFilter(fileWriterTIFF);
+    CvFilter fileWriter(new FileWriter("FileWriter", gd, CV_16UC1));
+    graph->AddFilter(fileWriter);
 
     return graph;
 }
@@ -147,9 +147,6 @@ void GraphXimea()
     CvFilter fileWriter(new FileWriter("FileWriter", gd));
     graph1.AddFilter(fileWriter);
 
-    CvFilter fileWriterTIFF(new FileWriterTIFF("FileWriterTIFF", gd));
-    graph1.AddFilter(fileWriterTIFF);
-
     // Start the thread for that graph running
     graph1.StartThread();
     graph1.GotoState(GraphManager::GraphState::Run);
@@ -230,7 +227,8 @@ public:
 int test()
 {
     Temca t;
-    t.Run();
+
+    //t.Run();
 
     return 0;
 }

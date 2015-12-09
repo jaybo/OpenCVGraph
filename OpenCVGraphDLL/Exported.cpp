@@ -4,12 +4,15 @@
 #include "stdafx.h"
 #include "Exported.h"
 
+int test();
+
 extern "C"
 {
 
     bool initSystem()
     {
-        bool fOK = false;
+        bool fOK = true;
+        test();
         return fOK;
     }
 

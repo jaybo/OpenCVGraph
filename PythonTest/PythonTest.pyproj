@@ -12,6 +12,8 @@
     <OutputPath>.</OutputPath>
     <Name>PythonTest</Name>
     <RootNamespace>PythonTest</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +25,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="PythonTest.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenCVGraphDLL\OpenCVGraphDLL.vcxproj">
+      <Name>OpenCVGraphDLL</Name>
+      <Project>{0c2298fe-8ef1-4ebe-9a8d-cf2b52ce7242}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

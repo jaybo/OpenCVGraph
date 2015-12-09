@@ -163,7 +163,6 @@
     <ClInclude Include="Capture\CamXimea.hpp" />
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
-    <ClInclude Include="Filters\FileWriterTIFF.hpp" />
     <ClInclude Include="GraphManager.hpp" />
     <ClInclude Include="GraphParallelStep.hpp" />
     <ClInclude Include="include\spdlog\async_logger.h" />

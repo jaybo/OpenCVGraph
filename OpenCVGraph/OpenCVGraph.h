@@ -23,7 +23,6 @@
 // OpenCV
 #include <opencv2/opencv.hpp>
 #include "opencv2/core.hpp"
-
 #include "opencv2/core/cuda.hpp"
 
 #ifdef WITH_CUDA
@@ -33,7 +32,6 @@
 #include "opencv2/cudawarping.hpp"
 #endif
 
-
 // Local
 #include "util.h"
 #include "GraphData.h"
@@ -42,25 +40,20 @@
 #include "GraphManager.hpp"
 #include "GraphParallelStep.hpp"
 
-
+#include "Filters/Simple.hpp"
 #include "Capture/CamDefault.hpp"
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
 
 #include "Filters/FileWriter.hpp"
-#include "Filters/FileWriterTIFF.hpp"
 
 #ifdef WITH_CUDA
 #include "Filters/ImageStatistics.hpp"
-#include "Filters/Simple.hpp"
-
 #include "Filters/FocusSobel.hpp"
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
 #include "Filters/BrightDarkField.hpp"
-
-
 #endif
 
 // Camera specific includes
