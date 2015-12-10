@@ -200,9 +200,24 @@ namespace openCVGraph
                 srcWidth = m_winWidth * abs(m_ZoomFactor);
             }
 
-            getRectSubPix(MatView, Size(srcWidth, srcHeight),
-                Point(m_cx - m_dx, m_cy - m_dy),
-                MatZoomed);
+            srcWidth = min(srcWidth, MatView.size().width);
+            srcHeight = min(srcHeight, MatView.size().height);
+
+            //Point tl(m_cx - m_dx, m_dy - m_cy); // center of view
+            Point tl(m_cx - m_dx, m_cy - m_dy); // center of view
+            tl.x -= srcWidth / 2;                 // top left
+            tl.x = min(tl.x, MatView.size().width - srcWidth);
+            tl.x = max(0, tl.x);
+            //cout << tl.y;
+            tl.y -= srcHeight / 2;
+            tl.y = min(tl.y, MatView.size().height - srcHeight);
+            tl.y = max(0, tl.y);
+
+            MatZoomed = MatView(Rect(tl, Size(srcWidth, srcHeight)));
+
+            //getRectSubPix(MatView, Size(srcWidth, srcHeight),
+            //    Point(m_cx - m_dx, m_cy - m_dy),
+            //    MatZoomed);
 
             cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0, INTER_NEAREST);
 
