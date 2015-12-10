@@ -54,21 +54,18 @@ namespace openCVGraph
                 view->m_mx = x;
                 view->m_my = y;
 
-                if (flags & EVENT_FLAG_CTRLKEY)
-                {
-                    //sx = 1;
-                }
+                //if (flags & EVENT_FLAG_CTRLKEY)
+                //{
+                //}
 
-                if (flags & EVENT_FLAG_SHIFTKEY)
-                {
-                    //sy = 1;
-                }
+                //if (flags & EVENT_FLAG_SHIFTKEY)
+                //{
+                //}
 
-                if (!(flags & EVENT_FLAG_CTRLKEY) && !(flags & EVENT_FLAG_SHIFTKEY))
-                {
-                    //sx = 1;
-                    //sy = 1;
-                }
+                //if (!(flags & EVENT_FLAG_CTRLKEY) && !(flags & EVENT_FLAG_SHIFTKEY))
+                //{
+                //}
+
                 // zoom faster on big images
                 int zoomInc = (view->MatView.size().width >= 1024) ? 2 : 1;
                 d = getMouseWheelDelta(flags);
@@ -109,8 +106,9 @@ namespace openCVGraph
                         view->m_dy = (y - view->m_sy);
                     }
                 }
-                // view->m_SampledPixelU16 = getU16Pix(view->MatView, P`oint(view->m_cx, view->m_cy));
-
+                // cout << view->m_dx << " " << view->m_cx << endl;
+                view->m_wx = x;
+                view->m_wy = y;
                 break;
             case cv::EVENT_LBUTTONUP:
                 view->m_MouseLButtonDown = false;
@@ -121,7 +119,6 @@ namespace openCVGraph
 
                 break;
             }
-
         }
 
         ZoomView() {
@@ -237,6 +234,7 @@ namespace openCVGraph
         std::string m_ZoomViewName;
         int m_cx = 0, m_cy = 0;     // center of view (in view image coords) (0,0 is center of view)
         int m_dx = 0, m_dy = 0;     // drag delta (window coords)
+        int m_wx = 0, m_wy = 0;     // window coords
         int m_sx, m_sy;             // mouse pos at start of drag (window coords)
         int m_mx, m_my;             // current mouse position
         bool firstTime = true;

@@ -1,19 +1,46 @@
 %YAML:1.0
 GraphManager:
+   Enabled: 1
+   # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
+   LogLevel: 2
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 0
 CamDefault:
    IsEnabled: 1
    ShowView: 1
+   ShowViewControls: 0
    ZoomViewLockIndex: -1
-   Duration_MS_Mean: "0.0"
-   Duration_MS_Min: "0.0"
-   Duration_MS_Max: "0.2"
-   Duration_MS_Last: "0.0"
+   Duration_MS_Mean: "22.2"
+   Duration_MS_Min: "20.8"
+   Duration_MS_Max: "25.6"
+   Duration_MS_Last: "22.1"
    # Set camera_index to -1 to skip use of camera
    camera_index: -1
    # .tiff, .png, or .jpg
    image_name: ""
    movie_name: ""
-   image_dir: "C:/Smart16/Grid_2_SMART/"
+   image_dir: "J:/TEMCAStitching/Grid_1_1"
+Simple:
+   IsEnabled: 1
+   ShowView: 1
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   Duration_MS_Mean: "7.6"
+   Duration_MS_Min: "7.5"
+   Duration_MS_Max: "9.6"
+   Duration_MS_Last: "7.5"
+FileWriter:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   Duration_MS_Mean: "177.6"
+   Duration_MS_Min: "11.6"
+   Duration_MS_Max: "6475.6"
+   Duration_MS_Last: "6475.6"
+   directory: "J:/TEMCAStitching/Grid_1_1UpShifted"
+   baseFileName: test
+   ext: ".tif"
+   # Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.
+   writeOnKeyHit: ""

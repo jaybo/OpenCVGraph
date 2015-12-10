@@ -7,7 +7,7 @@ namespace openCVGraph
 {
 #define MAX_MIMEA_FOCUS_STEPS 4  // Defines size of slider and size of steps, plus or minus
 
-    class CamXimea : public CamDefault {
+    class CamXimea : public CamDefault, ITemcaCamera {
     public:
         CamXimea(std::string name, GraphData& graphData,
             int sourceFormat = CV_16UC1,
@@ -16,45 +16,6 @@ namespace openCVGraph
         {
             m_Logger = graphData.m_Logger;
         }
-
-        // keyWait required to make the UI activate
-        bool processKeyboard(GraphData& data, int key) override
-        {
-            bool fOK = true;
-            if (m_showView) {
-
-                //switch (key) {
-                //    // EXPOSURE
-                //case 0x00260000: // up arrow
-                //    Exposure(true);
-                //    break;
-                //case 0x00280000: // down arrow
-                //    Exposure(false);
-                //    break;
-
-                //    // GAIN
-                //case 0x00270000: // RIGHT arrow
-                //    Gain(true);
-                //    break;
-                //case 0x00250000: // LEFT arrow
-                //    Gain(false);
-                //    break;
-
-                //    // FOCUS
-                //case '.':
-                //    Focus(true);
-                //    break;
-                //case ',':
-                //    Focus(false);
-                //    break;
-                //}
-
-            }
-
-            return fOK;
-        }
-
-
 
         //Allocate resources if needed
         bool init(GraphData& graphData) override
@@ -75,19 +36,19 @@ namespace openCVGraph
             if (fOK) {
                 // set camera specific properties
                 if (fOK) {
-                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, m_is16bpp ? XI_MONO16 : XI_MONO8);
+                    // Limit the number of buffers
+                    if (m_minimumBuffers) {
+                        fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
+                        fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
+                    }
 
                     if (m_isSquare) {
                         // only capture 3840x3840@16bpp
                         fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
                         fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
                     }
+                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, m_is16bpp ? XI_MONO16 : XI_MONO8);
 
-                    // Limit the number of buffers
-                    if (m_minimumBuffers) {
-                        fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
-                        fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
-                    }
                     // Autogain off
                     fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
 
@@ -96,8 +57,6 @@ namespace openCVGraph
                     //m_focalDistance = (int) (1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE));
                     //m_focalLength = (int)(1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH));
                     //m_aperatureValue = (int)(1000 * (cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE));
-
-
 
                     fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
                     fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
@@ -256,40 +215,21 @@ namespace openCVGraph
             bool fOK = true;
             if (!m_isAutoGain) {
                 int inc = 1000;
-                m_exposure += up ? inc : -inc;
-                m_exposure = max(m_exposure, 1000);    // arbitrary: 1mS is the lowest we go
-                cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
-                m_Logger->info("Exposure " + std::to_string(m_exposure));
-            }
-        }
-
-        void Exposure(int v) {
-            bool fOK = true;
-            if (!m_isAutoGain) {
-                m_exposure = v;
-                cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
-                m_Logger->info("Exposure " + std::to_string(m_exposure));
+                auto t = getExposure();
+                t += up ? inc : -inc;
+                t = max(t, 1000);    // arbitrary: 1mS is the lowest we go
+                setExposure(t);
             }
         }
 
         void Gain(bool up) {
-            bool fOK = true;
             if (!m_isAutoGain) {
                 int inc = 250;                // == 0.25
-                m_gain += up ? inc : -inc;
-                m_gain = max(m_gain, 1000);
-                m_gain = min(m_gain, 100000);
-                cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
-                m_Logger->info("Gain " + std::to_string(m_gain));
-            }
-        }
-
-        void Gain(int v) {
-            bool fOK = true;
-            if (!m_isAutoGain) {
-                m_gain = v;
-                fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
-                m_Logger->info("Gain " + std::to_string(m_gain));
+                auto t = getGain();
+                t += up ? inc : -inc;
+                t = max(t, 1000);
+                t = min(t, 100000);
+                setGain(t);
             }
         }
 
@@ -316,6 +256,37 @@ namespace openCVGraph
             m_Logger->info("Aperature " + std::to_string(m_aperture));
         }
 
+        //
+        // ITemcaCamera, external I/F accessed by clients
+        //
+        int getWidth() override {
+            return 3840;
+        }
+        int getHeight() override {
+            return 3840;
+        }
+        int getActualBpp() override {
+            return 12;
+        }
+        int getGain() override {
+            return m_gain;
+        }
+        void setGain(int value) override {
+            if (!m_isAutoGain) {
+                m_gain = value;
+                cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
+                m_Logger->info("Gain " + std::to_string(m_gain));
+            }
+        }
+        int getExposure() override {
+            return m_exposure;
+        }
+        void setExposure(int value) override {
+            m_exposure = value;
+            cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
+            m_Logger->info("Exposure " + std::to_string(m_exposure));
+        }
+
     private:
 
         bool m_isAutoGain = false;
@@ -338,12 +309,12 @@ namespace openCVGraph
 
         static void ExposureCallback(int pos, void * userData) {
             CamXimea* camXimea = (CamXimea *)userData;
-            camXimea->Exposure(pos);
+            camXimea->setExposure(pos);
         }
 
         static void GainCallback(int pos, void * userData) {
             CamXimea* camXimea = (CamXimea *)userData;
-            camXimea->Gain(pos);
+            camXimea->setGain(pos);
         }
 
         static void FocusCallback(int pos, void * userData) {

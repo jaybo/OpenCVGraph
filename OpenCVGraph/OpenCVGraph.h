@@ -41,6 +41,7 @@
 #include "GraphParallelStep.hpp"
 
 #include "Filters/Simple.hpp"
+#include "Capture/ITemcaCamera.hpp"
 #include "Capture/CamDefault.hpp"
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"

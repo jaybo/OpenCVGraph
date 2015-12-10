@@ -39,6 +39,14 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
+            switch (m_SourceFormat) {
+            case CV_8UC1: graphData.m_NeedCV_8UC1 = true; break;
+            case CV_8UC3: graphData.m_NeedCV_8UC3 = true; break;
+            case CV_16UC1: graphData.m_NeedCV_16UC1 = true; graphData.m_NeedCV_8UC1 = true; break;
+            default:
+                assert(0);
+            }
+
             bool fOK = false;
 
             // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
@@ -186,7 +194,7 @@ namespace openCVGraph
                 if (images.size() > 0) {
                     string fname = images[imageIndex];
                     // cout << fname << endl;
-                    graphData.m_imCapture = imread(fname);
+                    graphData.m_imCapture = imread(fname, CV_LOAD_IMAGE_UNCHANGED);
                     imageIndex++;
                     if (imageIndex >= images.size()) {
                         imageIndex = 0;
@@ -214,7 +222,12 @@ namespace openCVGraph
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
-                m_imView = graphData.m_imCapture;
+                if (graphData.m_imCapture.depth() == CV_16U) {
+                    m_imView = graphData.m_imCap8UC1;
+                }
+                else {
+                    m_imView = graphData.m_imCapture;
+                }
                 Filter::processView(graphData);
             }
         }

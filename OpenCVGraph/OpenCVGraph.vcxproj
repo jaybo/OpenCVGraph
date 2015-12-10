@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="Capture\CamDefault.hpp" />
     <ClInclude Include="Capture\CamXimea.hpp" />
+    <ClInclude Include="Capture\ITemcaCamera.hpp" />
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
     <ClInclude Include="GraphManager.hpp" />

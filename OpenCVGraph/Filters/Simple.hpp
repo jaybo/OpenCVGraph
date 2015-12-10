@@ -28,9 +28,10 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
+            m_showView = true;
             if (m_Enabled) {
                 // Define the image formats we use:
-                graphData.m_NeedCV_8UC1 = true;
+                graphData.m_NeedCV_16UC1 = true;
             }
             return true;
         }
@@ -38,8 +39,8 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult Simple::process(GraphData& graphData) override
         {
-            // do something the one of the Out images
-            graphData.m_imOut8UC1 = 2 *graphData.m_imOut8UC1;
+            // shift 12 bit images up to full 16 bit resolution
+            graphData.m_imOut16UC1 = 4 * graphData.m_imCap16UC1;
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }
@@ -49,6 +50,7 @@ namespace openCVGraph
         void Simple::processView(GraphData& graphData) override
         {
             if (m_showView) {
+                graphData.m_imOut16UC1.convertTo(graphData.m_imOut8UC1, CV_8UC1, 1 / 256.0f);
                 graphData.m_imOut8UC1.copyTo(m_imView);
                 Filter::processView(graphData);
             }
