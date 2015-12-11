@@ -56,8 +56,16 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult FileWriter::process(GraphData& graphData) override
         {
-            if (m_WriteNextImage) {
-                string fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
+            if (m_WriteNextImage && !graphData.m_imCap16UC1.empty()) {
+                string fullName;
+                if (m_UseSourceFileName && !graphData.m_LastSourceFileName.empty()) {
+                    auto s = graphData.m_LastSourceFileName;
+                    // strip off the path and add new directory
+                    fullName = m_Directory + '/' + s.substr(s.find_last_of("\\/"), s.npos);
+                }
+                else {
+                    fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
+                }
                 vector<int> params = { 
                     259,1,      // No compression, turn off LZW
                     279, 64     // Rows per strip (doesn't seem to affect perf - why not?)
@@ -78,6 +86,7 @@ namespace openCVGraph
             fs << "directory" << m_Directory.c_str();
             fs << "baseFileName" << m_BaseFileName.c_str();
             fs << "ext" << m_Ext.c_str();
+            fs << "useSourceFileName" << m_UseSourceFileName;
             cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
         }
@@ -88,6 +97,7 @@ namespace openCVGraph
             fs["directory"] >> m_Directory;
             fs["baseFileName"] >> m_BaseFileName;
             fs["ext"] >> m_Ext;
+            fs["useSourceFileName"] >> m_UseSourceFileName;
             fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
         }
 
@@ -95,6 +105,7 @@ namespace openCVGraph
         string m_Directory = "C:/junk";
         string m_BaseFileName = "test";
         string m_Ext = ".tif";
+        bool m_UseSourceFileName = false;
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;
     };

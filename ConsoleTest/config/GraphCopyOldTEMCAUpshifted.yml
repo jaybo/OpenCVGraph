@@ -1,0 +1,38 @@
+%YAML:1.0
+GraphManager:
+   Enabled: 1
+   # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
+   LogLevel: 2
+   CudaEnabledDeviceCount: 1
+   CudaDeviceIndex: 1
+   UseCuda: 0
+CamDefault:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   Duration_MS_Mean: "23.5"
+   Duration_MS_Min: "20.5"
+   Duration_MS_Max: "85.8"
+   Duration_MS_Last: "21.6"
+   # Set camera_index to -1 to skip use of camera
+   camera_index: -1
+   # .tiff, .png, or .jpg
+   image_name: ""
+   movie_name: ""
+   image_dir: "J:/TEMCAStitching/Grid_1_1"
+FileWriter:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   Duration_MS_Mean: "229.6"
+   Duration_MS_Min: "9.7"
+   Duration_MS_Max: "57501.5"
+   Duration_MS_Last: "10.2"
+   directory: "J:/TEMCAStitching/Grid_1_1UpShifted"
+   baseFileName: test
+   ext: ".tif"
+   useSourceFileName: 1
+   # Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.
+   writeOnKeyHit: ""

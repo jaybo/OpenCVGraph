@@ -153,6 +153,7 @@ namespace openCVGraph
             dStdDevMean = sqrt(varMean[0]);
             dStdDevMin = sqrt(dVarMin);
             dStdDevMax = sqrt(dVarMax);
+
         }
 
         void ImageStatistics::CalcGpu(GraphData& graphData)

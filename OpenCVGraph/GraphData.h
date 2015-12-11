@@ -67,12 +67,10 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imOutGpu16UC1;
         cv::cuda::GpuMat m_imOutGpu32FC1;
 #endif
-        // Bag for random data
-        GraphProperties m_Properties;
-        
-		// std::vector<cv::Mat> m_imStack;      // "Stack" of images used by cooperating filters.
-		int m_FrameNumber = 0;                  // Current frame being processed.
 
+
+		int m_FrameNumber = 0;                  // Current frame being processed.
+        string m_LastSourceFileName;
 
 
         std::shared_ptr<logger> m_Logger;
@@ -222,19 +220,6 @@ namespace openCVGraph
 
         }
 
-        // Return property or null if not found
-        void* GetProperty(const string name) {
-            return m_Properties[name];
-        }
-
-        // Return property or null if not found
-        void SetProperty(const string name, void * value ) {
-            void * existingData = m_Properties[name];
-            if (existingData) {
-                delete existingData;
-            }
-            m_Properties[name] = value;
-        }
 
         private:
 

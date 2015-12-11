@@ -48,11 +48,14 @@ void GraphWebCam()
     //CvFilter fpSimple(new Simple("Simple", gd, CV_16UC1));
     //graph1.AddFilter(fpSimple);
 
-    CvFilter canny1(new openCVGraph::Canny("Canny1", gd));
-    graph1.AddFilter(canny1);
+    //CvFilter canny1(new openCVGraph::Canny("Canny1", gd));
+    //graph1.AddFilter(canny1);
 
     //CvFilter canny2(new openCVGraph::Canny("Canny2", gd));
     //graph1.AddFilter(canny2);
+
+    //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
+    //graph1.AddFilter(cartoon);
 
     //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
     //graph1.AddFilter(cartoon);
@@ -64,6 +67,8 @@ void GraphWebCam()
     graph1.JoinThread();
 
 }
+
+
 
 void GraphImageDir()
 {
@@ -92,6 +97,27 @@ void GraphImageDir()
 
     graph1.JoinThread();
 
+}
+
+
+void GraphCopyOldTEMCAUpshifted()
+{
+    // Create a graph
+    GraphManager graph1("GraphCopyOldTEMCAUpshifted", true, graphCallback);
+    GraphData gd = graph1.getGraphData();
+
+    // Add an image source (could be camera, single image, directory, noise, movie)
+    CvFilter cap1(new CamDefault("CamDefault", gd, CV_16UC1));
+    graph1.AddFilter(cap1);
+
+    CvFilter fileWriter(new FileWriter("FileWriter", gd, CV_16UC1));
+    graph1.AddFilter(fileWriter);
+
+    // Start the thread for that graph running
+    graph1.StartThread();
+    graph1.GotoState(GraphManager::GraphState::Run);
+
+    graph1.JoinThread();
 }
 
 #ifdef WITH_CUDA
@@ -137,14 +163,18 @@ void GraphXimea()
 
     graph1.JoinThread();
 }
+
 #endif
+
+
 int main()
 {
+    GraphCopyOldTEMCAUpshifted();
 
     // GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
-     GraphXimea();
+    // GraphXimea();
 #endif
     return 0;
 }

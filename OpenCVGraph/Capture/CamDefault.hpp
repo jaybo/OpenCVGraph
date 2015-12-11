@@ -83,6 +83,7 @@ namespace openCVGraph
                 else {
                     graphData.m_imCapture = image;
                     source = SingleImage;
+                    graphData.m_LastSourceFileName = image_name;
                     fOK = true;
                 }
             }
@@ -91,6 +92,7 @@ namespace openCVGraph
             if (!fOK && fileExists(movie_name)) {
                 if (cap.open(movie_name)) {
                     source = Movie;
+                    graphData.m_LastSourceFileName = movie_name;
                     fOK = true;
                 }
             }
@@ -194,6 +196,7 @@ namespace openCVGraph
                 if (images.size() > 0) {
                     string fname = images[imageIndex];
                     // cout << fname << endl;
+                    graphData.m_LastSourceFileName = fname;
                     graphData.m_imCapture = imread(fname, CV_LOAD_IMAGE_UNCHANGED);
                     imageIndex++;
                     if (imageIndex >= images.size()) {

@@ -94,6 +94,8 @@ if __name__ == '__main__':
     import cv2
     import numpy as np
     
+    foo = cv2.VideoWriter_fourcc('M','J','P','G')
+    print foo
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
