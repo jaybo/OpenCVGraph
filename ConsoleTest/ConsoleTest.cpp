@@ -48,11 +48,11 @@ void GraphWebCam()
     //CvFilter fpSimple(new Simple("Simple", gd, CV_16UC1));
     //graph1.AddFilter(fpSimple);
 
-    //CvFilter canny1(new openCVGraph::Canny("Canny1", gd));
-    //graph1.AddFilter(canny1);
+    CvFilter canny1(new openCVGraph::Canny("Canny1", gd));
+    graph1.AddFilter(canny1);
 
-    //CvFilter canny2(new openCVGraph::Canny("Canny2", gd));
-    //graph1.AddFilter(canny2);
+    CvFilter canny2(new openCVGraph::Canny("Canny2", gd));
+    graph1.AddFilter(canny2);
 
     //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
     //graph1.AddFilter(cartoon);
@@ -169,9 +169,9 @@ void GraphXimea()
 
 int main()
 {
-    GraphCopyOldTEMCAUpshifted();
+    // GraphCopyOldTEMCAUpshifted();
 
-    // GraphWebCam();
+    GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
     // GraphXimea();

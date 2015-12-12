@@ -44,7 +44,8 @@ namespace openCVGraph
             case CV_8UC3: graphData.m_NeedCV_8UC3 = true; break;
             case CV_16UC1: graphData.m_NeedCV_16UC1 = true; graphData.m_NeedCV_8UC1 = true; break;
             default:
-                assert(0);
+                // arbitrary, assume RGB webcam if not specified
+                graphData.m_NeedCV_8UC3 = true; break;
             }
 
             bool fOK = false;
