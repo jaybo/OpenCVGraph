@@ -10,11 +10,16 @@ import time
 import os
 import numpy as np
 
-#module = os.path.dirname(__file__)
-#rel = "c_lib/pysapera.dll"
+module = os.path.dirname(__file__)
+print os.environ
+if __debug__:
+    rel = "../x64/Debug/OpenCVGraphDLL.dll"
+else:
+    rel = "../x64/Release/OpenCVGraphDLL.dll"
 
 #dll_path = r"C:/dev/pytemca/pytemca/camera/c_lib/pysapera.dll"
-dll_path = r"C:/dev/OpenCVGraph/x64/Debug/OpenCVGraphDLL.dll" # os.path.join(module, rel)
+#dll_path = r"C:/dev/OpenCVGraph/x64/Debug/OpenCVGraphDLL.dll" 
+dll_path = os.path.join(module, rel)
 
 class OpenCVGraphDLL(object):
     """

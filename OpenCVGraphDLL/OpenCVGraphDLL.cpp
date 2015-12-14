@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "Exported.hpp"
 
 using namespace std;
 using namespace openCVGraph;
