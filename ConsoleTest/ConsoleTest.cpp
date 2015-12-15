@@ -171,10 +171,10 @@ int main()
 {
     // GraphCopyOldTEMCAUpshifted();
 
-    GraphWebCam();
+    // GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
-    // GraphXimea();
+    GraphXimea();
 #endif
     return 0;
 }

@@ -13,7 +13,7 @@
     <Name>PythonTest</Name>
     <RootNamespace>PythonTest</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
     <Environment>
     </Environment>
     <IsWindowsApplication>False</IsWindowsApplication>

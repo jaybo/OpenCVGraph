@@ -42,7 +42,7 @@ GraphManager* GraphWebCam()
 GraphManager* GraphCamXimea()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimea2", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
     CvFilter camera(new CamXimea("CamXimea", gd, CV_16UC1));
@@ -63,33 +63,29 @@ GraphManager* GraphFileWriter()
     return graph;
 }
 
-GraphManager* GraphCanny()
+GraphManager* GraphQC()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCanny", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter canny(new openCVGraph::Canny("Canny", gd, CV_8UC3));
-    graph->AddFilter(canny);
-    //graph->UseCuda(false);
+    CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
+    graph->AddFilter(filter);
 
     return graph;
 }
 
-GraphManager* GraphCartoon()
+GraphManager* GraphStitchingCheck()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCartoon", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd, CV_8UC3));
-    graph->AddFilter(cartoon);
-    //graph->UseCuda(false);
+    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
+    //graph->AddFilter(filter);
 
     return graph;
 }
-
-
 
 void GraphImageDir()
 {
@@ -158,15 +154,37 @@ void GraphXimea()
 
 class Temca
 {
-private:
-    GraphManager* cap = GraphCamXimea();
-    //GraphManager* cap = GraphWebCam();
-    GraphManager *can = GraphCanny();
-    GraphManager *fw = GraphFileWriter();
-    GraphManager *car = GraphCartoon();
-
 public:
-    void Run()
+    Temca() {
+        // Set up logging
+        try
+        {
+            const char * loggerName = "GraphLogs";
+            // Use existing logger if already created
+            if (auto logger = spd::get(loggerName)) {
+                m_Logger = logger;
+            }
+            else {
+                string logDir = "logs";
+                createDir(logDir);
+                std::vector<spdlog::sink_ptr> sinks;
+                sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
+                sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + loggerName, "txt", 23, 59));
+                m_Logger = std::make_shared<spdlog::logger>(loggerName, begin(sinks), end(sinks));
+                spdlog::register_logger(m_Logger);
+            }
+
+            m_Logger->info("Temca starting up -----------------------------------");
+        }
+        catch (const spdlog::spdlog_ex& ex)
+        {
+            std::cout << "Log failed: " << ex.what() << std::endl;
+        }
+        
+    }
+
+
+   /* void Run()
     {
         bool fOK = true;
 
@@ -221,17 +239,122 @@ public:
         can->JoinThread();
         fw->JoinThread();
         car->JoinThread();
+    }*/
+
+    // Create all graphs 
+    bool init()
+    {
+        bool fOK = true;
+
+        // Create the graphs
+        m_gmCapture = GraphCamXimea();
+        m_gmFileWriter = GraphFileWriter();
+        m_gmQC = GraphQC();
+        m_gmStitchingCheck = GraphStitchingCheck();
+
+        // Create the graphs lists which can run in parallel
+        m_parallelCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+        m_parallelFileWriter = new GraphParallelStep("StepFileWriter", list<GraphManager*> { m_gmFileWriter });
+        m_parallelQC = new GraphParallelStep("StepQC", list<GraphManager*> { m_gmQC });
+        m_parallelStitchingCheck = new GraphParallelStep("StepStitchingCheck", list<GraphManager*> { m_gmStitchingCheck });
+
+        // Create a list of all steps
+        m_Steps.push_back(m_parallelCapture);
+        m_Steps.push_back(m_parallelFileWriter);
+        m_Steps.push_back(m_parallelQC);
+        m_Steps.push_back(m_parallelStitchingCheck);
+
+        // init each step
+        for (auto step : m_Steps) {
+            fOK = step->init();
+            if (!fOK) {
+                m_Logger->error("init of " + step->GetName() + " failed!");
+                return fOK;
+            }
+        }
+
+        return fOK;
+
     }
+
+    void fini() {
+        bool fOK = true;
+        for (auto step : m_Steps) {
+            fOK = step->fini();
+            if (!fOK) {
+                m_Logger->error("fini of " + step->GetName() + " failed!");
+            }
+        }
+    }
+
+    void StartThread()
+    {
+        m_thread = std::thread::thread(&Temca::ProcessLoop, this);
+    }
+
+    void JoinThread()
+    {
+        m_thread.join();
+    }
+
+private:
+    // The graphs which  can run simultaneous on separate threads, 
+    // and either on GPU or CPU
+    GraphManager* m_gmCapture = NULL;
+    GraphManager* m_gmFileWriter = NULL;
+    GraphManager* m_gmQC = NULL;
+    GraphManager* m_gmStitchingCheck = NULL;
+    
+    // Bundled graphs which step together
+    GraphParallelStep* m_parallelCapture;
+    GraphParallelStep* m_parallelFileWriter;
+    GraphParallelStep* m_parallelQC;
+    GraphParallelStep* m_parallelStitchingCheck;
+
+    std::list<GraphParallelStep*> m_Steps;
+
+    bool m_Enabled = true;
+    bool m_Aborting = false;
+
+    std::thread m_thread;
+    //GraphState m_GraphState;
+    bool m_Stepping = false;
+
+    std::mutex m_mtx;
+    std::condition_variable m_cv;           // 
+    bool m_CompletedStep = false;           // Has the step finished?
+    bool m_CompletedRun = false;            // Has the run finished?
+    
+    int m_LogLevel = spd::level::info;
+    std::shared_ptr<spdlog::logger> m_Logger;
+
+
+    bool ProcessLoop()
+    {
+        return true;
+    }
+
+
 };
 
+Temca * pTemca = NULL;
 
-int test()
+bool init()
 {
-    Temca t;
-
-    //t.Run();
-
-    return 0;
+    bool fOK = true;
+    pTemca = new Temca();
+    fOK &= pTemca->init();
+    pTemca->StartThread();
+    return true;
 }
+
+bool fini()
+{
+    if (pTemca) {
+        pTemca->JoinThread();
+    }
+    return true;
+}
+
 
 

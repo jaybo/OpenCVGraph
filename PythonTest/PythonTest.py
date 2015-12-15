@@ -11,14 +11,11 @@ import os
 import numpy as np
 
 module = os.path.dirname(__file__)
-print os.environ
 if __debug__:
     rel = "../x64/Debug/OpenCVGraphDLL.dll"
 else:
     rel = "../x64/Release/OpenCVGraphDLL.dll"
 
-#dll_path = r"C:/dev/pytemca/pytemca/camera/c_lib/pysapera.dll"
-#dll_path = r"C:/dev/OpenCVGraph/x64/Debug/OpenCVGraphDLL.dll" 
 dll_path = os.path.join(module, rel)
 
 class OpenCVGraphDLL(object):
@@ -28,7 +25,8 @@ class OpenCVGraphDLL(object):
     """
     _OpenCVGraphDLL = WinDLL(dll_path)
 
-    init_system = _OpenCVGraphDLL.initSystem
+    init = _OpenCVGraphDLL.init
+    fini = _OpenCVGraphDLL.fini
 
     #load_config_files = _OpenCVGraphDLL.loadConfigFiles
 
@@ -88,7 +86,7 @@ class OpenCVGraph(object):
     """
     def __init__(self):
         t = time.clock()
-        if not OpenCVGraphDLL.init_system():
+        if not OpenCVGraphDLL.init():
             raise EnvironmentError ('Cannot access the camera, its either offline, not installed, or already in use')
 
         logging.info("OpenCVGraph DLL initialized in %s seconds" % (time.clock()-t))

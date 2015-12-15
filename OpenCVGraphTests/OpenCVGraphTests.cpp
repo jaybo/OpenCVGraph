@@ -170,16 +170,16 @@ public:
         bool fOK = true;
 
         list<GraphManager*> capParallel = { cap };
-        GraphParallelStep capStep(capParallel);
+        GraphParallelStep capStep("StepCapture", capParallel);
         fOK &= capStep.init();
 
         list<GraphManager*> postCapParallel1 = { can, fw };
-        GraphParallelStep postCapStep1(postCapParallel1);
+        GraphParallelStep postCapStep1("StepPost1", postCapParallel1);
         fOK &= postCapStep1.init();
 
 
         list<GraphManager*> postCapParallel2 = { car};
-        GraphParallelStep postCapStep2(postCapParallel2);
+        GraphParallelStep postCapStep2("StepPost2", postCapParallel2);
         fOK &= postCapStep2.init();
 
         GraphData& gdCap = cap->getGraphData();

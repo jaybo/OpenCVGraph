@@ -3,18 +3,17 @@
 #ifndef OPENCV_GRAPH_EXPORTED_H
 #define OPENCV_GRAPH_EXPORTED_H
 
-
-
 int test();
 
 extern "C" {
-    //__declspec(dllexport) bool initSystem();
-    __declspec(dllexport) bool initSystem()
-    {
-        bool fOK = true;
-        // test();
-        return fOK;
-    }
+    __declspec(dllexport) bool init();
+    __declspec(dllexport) bool fini();
+
+    //{
+    //    bool fOK = true;
+    //    // test();
+    //    return fOK;
+    //}
 
     //__declspec(dllexport) bool loadConfigFiles(const char cam_file[256], const char vic_file[256]);
     //__declspec(dllexport) void freeArray();

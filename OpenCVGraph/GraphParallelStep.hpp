@@ -12,10 +12,10 @@ namespace openCVGraph
 
     class  GraphParallelStep {
     public:
-        GraphParallelStep(list<GraphManager *> graphs) {
+        GraphParallelStep(string name, list<GraphManager *> graphs) {
+            m_Name = name;
             m_Graphs = graphs;
         }
-#if true
 
         bool init() {
             bool fOK = true;
@@ -80,8 +80,12 @@ namespace openCVGraph
             return fOK;
         }
 
-#endif
+        string & GetName() {
+            return m_Name;
+        }
+
     private:
+        string m_Name;
         list<GraphManager *> m_Graphs;
         bool m_Initialized = false;
 

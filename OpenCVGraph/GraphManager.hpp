@@ -26,13 +26,20 @@ namespace openCVGraph
         // Set up logging
         try
         {
-            string logDir = "logs";
-            createDir(logDir);
-            std::vector<spdlog::sink_ptr> sinks;
-            sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
-            sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + name + "logfile", "txt", 23, 59));
-            m_Logger = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
-            spdlog::register_logger(m_Logger);
+            const char * loggerName = "GraphLogs";
+            // Use existing logger if already created
+            if (auto logger = spd::get(loggerName)) {
+                m_Logger = logger;
+            }
+            else {
+                string logDir = "logs";
+                createDir(logDir);
+                std::vector<spdlog::sink_ptr> sinks;
+                sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
+                sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + loggerName, "txt", 23, 59));
+                m_Logger = std::make_shared<spdlog::logger>(loggerName, begin(sinks), end(sinks));
+                spdlog::register_logger(m_Logger);
+            }
         }
         catch (const spdlog::spdlog_ex& ex)
         {
