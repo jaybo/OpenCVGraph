@@ -1,5 +1,5 @@
 """
-Python wrapper for functionality exposed in the OpenCVGraph dll.
+Python wrapper for functionality exposed in the TemcaGraph dll.
 
 @author: jayb
 
@@ -10,104 +10,168 @@ import time
 import os
 import numpy as np
 
-module = os.path.dirname(__file__)
 if __debug__:
-    rel = "../x64/Debug/OpenCVGraphDLL.dll"
+    rel = "../x64/Debug/TemcaGraphDLL.dll"
 else:
-    rel = "../x64/Release/OpenCVGraphDLL.dll"
+    rel = "../x64/Release/TemcaGraphDLL.dll"
 
-dll_path = os.path.join(module, rel)
+dll_path = os.path.join(os.path.dirname(__file__), rel)
 
-class OpenCVGraphDLL(object):
+class TemcaGraphDLL(object):
     """
     dll setup.  These are all the foreign functions we are going to be using
         from the dll, along with their arguments types and return values.
     """
-    _OpenCVGraphDLL = WinDLL(dll_path)
+    _TemcaGraphDLL = WinDLL(dll_path)
 
-    init = _OpenCVGraphDLL.init
-    fini = _OpenCVGraphDLL.fini
+    init = _TemcaGraphDLL.init
+    init.argtypes = [c_char_p]
+    init.restype = c_uint32
 
-    #load_config_files = _OpenCVGraphDLL.loadConfigFiles
+    fini = _TemcaGraphDLL.fini
 
-    #queue_frame = _OpenCVGraphDLL.queueFrame
+    grab_frame = _TemcaGraphDLL.grabFrame
+    grab_frame.argtypes = [c_char_p]
+    grab_frame.restype = c_uint32
+
+    get_width = _TemcaGraphDLL.getWidth
+    get_width.restype = c_uint32
+
+    get_height = _TemcaGraphDLL.getHeight
+    get_height.restype = c_uint32
+
+    get_format = _TemcaGraphDLL.getFormat
+    get_format.restype = c_uint32
+
+    get_pixel_depth = _TemcaGraphDLL.getPixelDepth
+    get_pixel_depth.restype = c_uint32
+
+    STATUSCALLBACKFUNC = CFUNCTYPE(c_int, POINTER(c_char_p)) 
+
+    #queue_frame = _TemcaGraphDLL.queueFrame
     #queue_frame.restype = c_uint32
 
-    #grab_frame = _OpenCVGraphDLL.grabFrame
 
-    #acquire_images = _OpenCVGraphDLL.acquireImages
+    #acquire_images = _TemcaGraphDLL.acquireImages
 
-    #get_parameter = _OpenCVGraphDLL.getParameter
+    #get_parameter = _TemcaGraphDLL.getParameter
     #get_parameter.argtypes = (c_int32,)
     #get_parameter.restype = c_int32
 
-    #get_width = _OpenCVGraphDLL.getWidth
+    #get_width = _TemcaGraphDLL.getWidth
     #get_width.restype = c_uint32
 
-    #get_height = _OpenCVGraphDLL.getHeight
+    #get_height = _TemcaGraphDLL.getHeight
     #get_height.restype = c_uint32
 
-    #get_format = _OpenCVGraphDLL.getFormat
+    #get_format = _TemcaGraphDLL.getFormat
     #get_format.restype = c_uint32
 
-    #get_buffer_type = _OpenCVGraphDLL.getBufferType
+    #get_buffer_type = _TemcaGraphDLL.getBufferType
     #get_buffer_type.restype = c_uint32
 
-    #get_buffer_data_depth = _OpenCVGraphDLL.getBufferDataDepth
+    #get_buffer_data_depth = _TemcaGraphDLL.getBufferDataDepth
     #get_buffer_data_depth.restype = c_uint32
 
-    #get_buffer_pixel_depth = _OpenCVGraphDLL.getBufferPixelDepth
+    #get_buffer_pixel_depth = _TemcaGraphDLL.getBufferPixelDepth
     #get_buffer_pixel_depth.restype = c_uint32
 
-    #set_parameter = _OpenCVGraphDLL.setParameter
+    #set_parameter = _TemcaGraphDLL.setParameter
     #set_parameter.argtypes = (c_int32, c_int32)
     #set_parameter.restype = c_int32
 
-    #disconnect_sapera = _OpenCVGraphDLL.disconnectSapera
+    #disconnect_sapera = _TemcaGraphDLL.disconnectSapera
 
-    #free_sapera = _OpenCVGraphDLL.freeSapera
+    #free_sapera = _TemcaGraphDLL.freeSapera
 
-    #create_buffer = _OpenCVGraphDLL.createBuffer
+    #create_buffer = _TemcaGraphDLL.createBuffer
 
-    #free_buffer = _OpenCVGraphDLL.freeArray
+    #free_buffer = _TemcaGraphDLL.freeArray
 
-    #close_sapera = _OpenCVGraphDLL.closeSapera
+    #close_sapera = _TemcaGraphDLL.closeSapera
 
-    #get_status_text = _OpenCVGraphDLL.getStatusText
+    #get_status_text = _TemcaGraphDLL.getStatusText
     #get_status_text.argtypes = (c_uint32,)
     #get_status_text.restype = c_char_p
 
 
-class OpenCVGraph(object):
+class TemcaGraph(object):
     """
 
     Args:
 
     """
-    def __init__(self):
+    def __init__(self, graphType='default'):
         t = time.clock()
-        if not OpenCVGraphDLL.init():
+        if not TemcaGraphDLL.init(graphType):
             raise EnvironmentError ('Cannot access the camera, its either offline, not installed, or already in use')
+        logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock()-t))
 
-        logging.info("OpenCVGraph DLL initialized in %s seconds" % (time.clock()-t))
+    def fini(self):
+        TemcaGraphDLL.fini()
 
+    def grab_frame(self, filename = "none"):
+        TemcaGraphDLL.grab_frame(filename)
+
+    def get_width(self):
+        return TemcaGraphDLL.get_width()
         
+    def get_height(self):
+        return TemcaGraphDLL.get_height()
+
+    def get_format(self):
+        return TemcaGraphDLL.get_format()
+
+    def get_pixel_depth(self):
+        return TemcaGraphDLL.get_pixel_depth()
+
+    def get_last_image(self):
+        pass
+
+    def statusCallback (status, stringResults):
+        pass
+
+        #self.frame_width = self.get_width()
+        #self.frame_height = self.get_height()
+        #self.pixel_format = self.get_format()
+        #self.pixel_depth = self.get_pixel_depth()
+
+        #if self.pixel_depth == 16:
+        #    self.data_ctype = c_uint16
+        #    self.data_numpy_type = np.uint16
+        #elif self.pixel_depth == 8:
+        #    self.data_ctype = c_uint8
+        #    self.data_numpy_type = np.uint8
+        #else:
+        #    raise TypeError("Pixel depth should be either 16 or 8. Got %s instead." % self.pixel_depth)
+
+
+
+
+
 if __name__ == '__main__':
      
     import cv2
     import numpy as np
     
-    foo = cv2.VideoWriter_fourcc('M','J','P','G')
-    print foo
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    openCVGraph = OpenCVGraph()
+    temcaGraph = TemcaGraph()
+    w = temcaGraph.get_width()
+    h = temcaGraph.get_height()
+    fmt = temcaGraph.get_format()
+    pix_depth = temcaGraph.get_pixel_depth()
+
+    im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
-    while True:
-        time.sleep(1.0)
+    for f in range(20):
+        time.sleep(0.5)
+        temcaGraph.grab_frame()
+
+    temcaGraph.fini()
 
     #while True:
         #t = time.clock()

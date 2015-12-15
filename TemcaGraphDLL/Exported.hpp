@@ -6,8 +6,13 @@
 int test();
 
 extern "C" {
-    __declspec(dllexport) bool init();
+    __declspec(dllexport) bool init(const char* graphType);
     __declspec(dllexport) bool fini();
+    __declspec(dllexport) void grabFrame(const char* filename);
+    __declspec(dllexport) UINT32 getWidth();
+    __declspec(dllexport) UINT32 getHeight();
+    __declspec(dllexport) UINT32 getFormat();
+    __declspec(dllexport) UINT32 getPixelDepth(); 
 
     //{
     //    bool fOK = true;

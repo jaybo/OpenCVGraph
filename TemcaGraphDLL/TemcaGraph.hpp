@@ -184,66 +184,8 @@ public:
         
     }
 
-
-   /* void Run()
-    {
-        bool fOK = true;
-
-        list<GraphManager*> capParallel = { cap };
-        GraphParallelStep capStep(capParallel);
-        fOK &= capStep.init();
-
-        list<GraphManager*> postCapParallel1 = { can, fw };
-        GraphParallelStep postCapStep1(postCapParallel1);
-        fOK &= postCapStep1.init();
-
-
-        list<GraphManager*> postCapParallel2 = { car };
-        GraphParallelStep postCapStep2(postCapParallel2);
-        fOK &= postCapStep2.init();
-
-        GraphData& gdCap = cap->getGraphData();
-        GraphData& gdCan = can->getGraphData();
-        GraphData& gdFW = fw->getGraphData();
-        GraphData& gdCar = car->getGraphData();
-
-        while (fOK) {
-            fOK &= capStep.Step();
-            fOK &= capStep.WaitStepCompletion();
-
-            if (!fOK) {
-                break;
-            }
-
-            gdCan.m_imCapture = gdCap.m_imCapture;
-            gdCan.CopyCaptureToRequiredFormats();
-
-            gdFW.m_imCapture = gdCap.m_imCapture;
-            gdFW.CopyCaptureToRequiredFormats();
-
-            gdCar.m_imCapture = gdCap.m_imCapture;
-            gdCar.CopyCaptureToRequiredFormats();
-
-            fOK &= postCapStep1.Step();
-            fOK &= postCapStep2.Step();
-
-            fOK &= postCapStep1.WaitStepCompletion();
-            fOK &= postCapStep2.WaitStepCompletion();
-
-        }
-
-        capStep.fini();
-        postCapStep1.fini();
-        postCapStep2.fini();
-
-        cap->JoinThread();
-        can->JoinThread();
-        fw->JoinThread();
-        car->JoinThread();
-    }*/
-
     // Create all graphs 
-    bool init()
+    bool init(const char * graphType)
     {
         bool fOK = true;
 
@@ -295,8 +237,20 @@ public:
 
     void JoinThread()
     {
+        m_Aborting = true;
         m_thread.join();
     }
+
+    void GrabFrame(const char * filename)
+    {
+        std::unique_lock<std::mutex> lk(m_mtx);
+        m_CompletedStep = false;
+        m_Stepping = true;
+        m_CaptureFileName = string(filename);
+        m_cv.notify_all();
+    }
+
+
 
 private:
     // The graphs which  can run simultaneous on separate threads, 
@@ -307,26 +261,27 @@ private:
     GraphManager* m_gmStitchingCheck = NULL;
     
     // Bundled graphs which step together
-    GraphParallelStep* m_StepCapture;
-    GraphParallelStep* m_StepPostCapture;
+    GraphParallelStep* m_StepCapture = NULL;
+    GraphParallelStep* m_StepPostCapture = NULL;
 
     std::list<GraphParallelStep*> m_Steps;
     std::list<GraphParallelStep*> m_StepsPostCapture;
 
     bool m_Enabled = true;
-    bool m_Aborting = false;
+    std::atomic_bool m_Aborting = false;
 
     std::thread m_thread;
-    //GraphState m_GraphState;
-    bool m_Stepping = false;
+    std::atomic_bool m_Stepping = false;
 
     std::mutex m_mtx;
-    std::condition_variable m_cv;           // 
-    bool m_CompletedStep = false;           // Has the step finished?
-    bool m_CompletedRun = false;            // Has the run finished?
+    std::condition_variable m_cv;                       // 
+    std::atomic_bool m_CompletedStep = false;           // Has the step finished?
+    std::atomic_bool m_CompletedRun = false;            // Has the run finished?
     
     int m_LogLevel = spd::level::info;
     std::shared_ptr<spdlog::logger> m_Logger;
+
+    string m_CaptureFileName;
 
     // control interfaces
     ITemcaCamera * m_ITemcaCamera;
@@ -338,7 +293,15 @@ private:
         bool fOK = true;
 
         try {
-            while (fOK) {
+            while (fOK && !m_Aborting) {
+                m_CompletedStep = false;
+
+                // Wait for the client to issue a grab, which sets m_Stepping
+
+                std::unique_lock<std::mutex> lk(m_mtx);
+                m_cv.wait(lk, [=]() {return m_Stepping == true; });
+                m_Stepping = false;
+
                 // Do the capture step
                 if (!(fOK = m_StepCapture->Step())) {
                     m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
@@ -369,8 +332,9 @@ private:
                         }
                     }
                 }
+                m_CompletedStep = true;
             }
-
+            fini(); // cleanup
         }
         catch (exception& ex)
         {
@@ -384,11 +348,20 @@ private:
 
 Temca * pTemca = NULL;
 
-bool init()
+bool init(const char* graphType)
 {
+    string s = string(graphType);
+
+    if (s == "default") {
+        pTemca = new Temca();
+    }
+    else {
+        // unknown graph type
+        return false;   
+    }
+
     bool fOK = true;
-    pTemca = new Temca();
-    fOK &= pTemca->init();
+    fOK &= pTemca->init(graphType);
     pTemca->StartThread();
     return true;
 }
@@ -402,4 +375,25 @@ bool fini()
 }
 
 
+void grabFrame(const char * filename)
+{
+    if (pTemca) {
+        pTemca->GrabFrame(filename);
+    }
+}
 
+UINT32 getWidth() {
+    return 3840;        // bugbug fix
+}
+
+UINT32 getHeight() {
+    return 3840;        // bugbug fix
+}
+
+UINT32 getFormat() {
+    return 2;        // bugbug fix
+}
+
+UINT32 getPixelDepth() {
+    return 16;        // bugbug fix
+}

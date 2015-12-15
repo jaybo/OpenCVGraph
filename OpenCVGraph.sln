@@ -17,12 +17,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVGraphTests", "OpenCVG
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{82BC1148-5DEF-48AC-80AC-8C2170445B86}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVGraphDLL", "OpenCVGraphDLL\OpenCVGraphDLL.vcxproj", "{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}"
-	ProjectSection(ProjectDependencies) = postProject
-		{F2EDD354-3C52-444F-BDBF-76824DBC70CE} = {F2EDD354-3C52-444F-BDBF-76824DBC70CE}
-	EndProjectSection
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonTest", "PythonTest\PythonTest.pyproj", "{12B2A5C2-D2A2-4776-A3F5-1BC267790809}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TemcaGraphDLL", "TemcaGraphDLL\TemcaGraphDLL.vcxproj", "{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +61,12 @@ Global
 		{587009D8-8D6B-4C73-B2A6-DBC7EE1EDE87}.Release|x64.Build.0 = Release|x64
 		{587009D8-8D6B-4C73-B2A6-DBC7EE1EDE87}.Release|x86.ActiveCfg = Release|Win32
 		{587009D8-8D6B-4C73-B2A6-DBC7EE1EDE87}.Release|x86.Build.0 = Release|Win32
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|x64.ActiveCfg = Release|Any CPU
+		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|x86.ActiveCfg = Release|Any CPU
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Debug|x64.ActiveCfg = Debug|x64
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Debug|x64.Build.0 = Debug|x64
@@ -74,12 +77,6 @@ Global
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Release|x64.Build.0 = Release|x64
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Release|x86.ActiveCfg = Release|Win32
 		{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}.Release|x86.Build.0 = Release|Win32
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|x64.ActiveCfg = Release|Any CPU
-		{12B2A5C2-D2A2-4776-A3F5-1BC267790809}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
