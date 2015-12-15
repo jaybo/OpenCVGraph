@@ -69,8 +69,14 @@ GraphManager* GraphQC()
     GraphManager *graph = new GraphManager("GraphQC", true, graphCallback);
     GraphData gd = graph->getGraphData();
 
-    CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
-    graph->AddFilter(filter);
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
+    //graph->AddFilter(fFocusSobel);
+
+    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
+    //graph->AddFilter(fFocusFFT);
+
+    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
+    //graph->AddFilter(filter);
 
     return graph;
 }
@@ -87,69 +93,64 @@ GraphManager* GraphStitchingCheck()
     return graph;
 }
 
-void GraphImageDir()
+GraphManager* GraphImageDir()
 {
     // Create a graph
-    GraphManager graph1("GraphImageDir", true, graphCallback);
-    GraphData gd = graph1.getGraphData();
+    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback);
+    GraphData gd = graph->getGraphData();
 
-    graph1.UseCuda(false);
+    graph->UseCuda(false);
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap1(new CamDefault("CamDefault", gd));
-    graph1.AddFilter(cap1);
+    CvFilter cap(new CamDefault("CamDefault", gd));
+    graph->AddFilter(cap);
 
     //CvFilter canny(new openCVGraph::Canny("Canny", gd));
-    //graph1.AddFilter(canny);
+    //graph->AddFilter(canny);
 
-    // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
-
-    graph1.JoinThread();
-
+    return graph;
 }
 
 #ifdef WITH_CUDA
-void GraphXimea()
-{
-    // Create a graph
-    GraphManager graph1("GraphXimea", true, graphCallback);
-    GraphData gd = graph1.getGraphData();
-
-    CvFilter cam2(new CamXimea("CamXimea", gd, CV_16UC1, 1024, 1024));
-    graph1.AddFilter(cam2);
-
-    CvFilter faverage(new Average("Average", gd));
-    graph1.AddFilter(faverage);
-
-    CvFilter brightDark(new BrightDarkFieldCorrection("BrightDark", gd));
-    graph1.AddFilter(brightDark);
-
-    CvFilter fpRunningStats(new ImageStatistics("Stats", gd));
-    graph1.AddFilter(fpRunningStats);
-
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
-    graph1.AddFilter(fFocusSobel);
-
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
-    graph1.AddFilter(fFocusFFT);
-
-    //CvFilter canny(new openCVGraph::Canny("Canny", gd));
-    //graph1.AddFilter(canny);
-
-    //CvFilter fpSimple(new Simple("Simple", gd));
-    //graph1.AddFilter(fpSimple);
-
-    CvFilter fileWriter(new FileWriter("FileWriter", gd));
-    graph1.AddFilter(fileWriter);
-
-    // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
-
-    graph1.JoinThread();
-}
+//void GraphXimea()
+//{
+//    // Create a graph
+//    GraphManager graph1("GraphXimea", true, graphCallback);
+//    GraphData gd = graph1.getGraphData();
+//
+//    CvFilter cam(new CamXimea("CamXimea", gd, CV_16UC1, 1024, 1024));
+//    graph1.AddFilter(cam);
+//
+//    //CvFilter faverage(new Average("Average", gd));
+//    //graph1.AddFilter(faverage);
+//
+//    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", gd));
+//    graph1.AddFilter(fbrightDark);
+//
+//    //CvFilter fpRunningStats(new ImageStatistics("Stats", gd));
+//    //graph1.AddFilter(fpRunningStats);
+//
+//    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
+//    //graph1.AddFilter(fFocusSobel);
+//
+//    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
+//    //graph1.AddFilter(fFocusFFT);
+//
+//    //CvFilter canny(new openCVGraph::Canny("Canny", gd));
+//    //graph1.AddFilter(canny);
+//
+//    //CvFilter fpSimple(new Simple("Simple", gd));
+//    //graph1.AddFilter(fpSimple);
+//
+//    //CvFilter fileWriter(new FileWriter("FileWriter", gd));
+//    //graph1.AddFilter(fileWriter);
+//
+//    // Start the thread for that graph running
+//    graph1.StartThread();
+//    graph1.GotoState(GraphManager::GraphState::Run);
+//
+//    graph1.JoinThread();
+//}
 #endif
 
 class Temca
@@ -252,17 +253,19 @@ public:
         m_gmQC = GraphQC();
         m_gmStitchingCheck = GraphStitchingCheck();
 
-        // Create the graphs lists which can run in parallel
-        m_parallelCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-        m_parallelFileWriter = new GraphParallelStep("StepFileWriter", list<GraphManager*> { m_gmFileWriter });
-        m_parallelQC = new GraphParallelStep("StepQC", list<GraphManager*> { m_gmQC });
-        m_parallelStitchingCheck = new GraphParallelStep("StepStitchingCheck", list<GraphManager*> { m_gmStitchingCheck });
+        // Create the graphs steps.  
+        // Each step runs to completion.  
+        // Each graph in a step runs in parallel with other graphs in the step.
+        m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+        // ... could have more steps here
 
         // Create a list of all steps
-        m_Steps.push_back(m_parallelCapture);
-        m_Steps.push_back(m_parallelFileWriter);
-        m_Steps.push_back(m_parallelQC);
-        m_Steps.push_back(m_parallelStitchingCheck);
+        m_Steps.push_back(m_StepCapture);
+        m_Steps.push_back(m_StepPostCapture);
+
+        // and just those steps following capture
+        m_StepsPostCapture.push_back(m_StepPostCapture);
 
         // init each step
         for (auto step : m_Steps) {
@@ -272,9 +275,7 @@ public:
                 return fOK;
             }
         }
-
         return fOK;
-
     }
 
     void fini() {
@@ -306,12 +307,11 @@ private:
     GraphManager* m_gmStitchingCheck = NULL;
     
     // Bundled graphs which step together
-    GraphParallelStep* m_parallelCapture;
-    GraphParallelStep* m_parallelFileWriter;
-    GraphParallelStep* m_parallelQC;
-    GraphParallelStep* m_parallelStitchingCheck;
+    GraphParallelStep* m_StepCapture;
+    GraphParallelStep* m_StepPostCapture;
 
     std::list<GraphParallelStep*> m_Steps;
+    std::list<GraphParallelStep*> m_StepsPostCapture;
 
     bool m_Enabled = true;
     bool m_Aborting = false;
@@ -328,10 +328,55 @@ private:
     int m_LogLevel = spd::level::info;
     std::shared_ptr<spdlog::logger> m_Logger;
 
+    // control interfaces
+    ITemcaCamera * m_ITemcaCamera;
 
+
+    // The main capture loop
     bool ProcessLoop()
     {
-        return true;
+        bool fOK = true;
+
+        try {
+            while (fOK) {
+                // Do the capture step
+                if (!(fOK = m_StepCapture->Step())) {
+                    m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
+                }
+                else {
+                    if (!(fOK = m_StepCapture->WaitStepCompletion())) {
+                        m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
+                    }
+                    else {
+                        // copy capture image reference to all graphs
+                        auto gd = m_gmCapture->getGraphData();
+                        for (auto step : m_StepsPostCapture) {
+                            step->NewCaptureImage(gd);
+                        }
+
+                        // step all of the post capture steps
+                        for (auto step : m_StepsPostCapture) {
+                            if (!(fOK = step->Step())) {
+                                m_Logger->error(step->GetName() + " failed to Step.");
+                                break;
+                            }
+                            if (fOK) {
+                                if (!(fOK = step->WaitStepCompletion())) {
+                                    m_Logger->error(step->GetName() + " failed WaitStepCompletion.");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        catch (exception& ex)
+        {
+            std::cout << "main processing loop: " << ex.what() << std::endl;
+        }
+    return fOK;
     }
 
 

@@ -1,0 +1,8 @@
+%YAML:1.0
+GraphManager:
+   Enabled: 1
+   # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
+   LogLevel: 2
+   CudaEnabledDeviceCount: 1
+   CudaDeviceIndex: 1
+   UseCuda: 1

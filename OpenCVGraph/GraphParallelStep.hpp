@@ -84,6 +84,16 @@ namespace openCVGraph
             return m_Name;
         }
 
+        // The graph is being passed a source image "m_imCapture"
+        void NewCaptureImage(GraphData & graphData)
+        {
+            for (GraphManager * gm : m_Graphs) {
+                auto gd = gm->getGraphData();
+                gd.m_imCapture = graphData.m_imCapture;
+                gd.CopyCaptureToRequiredFormats();
+            }
+        }
+
     private:
         string m_Name;
         list<GraphManager *> m_Graphs;

@@ -106,6 +106,9 @@ if __name__ == '__main__':
 
     frameCounter = 0
 
+    while True:
+        time.sleep(1.0)
+
     #while True:
         #t = time.clock()
         #sapera.queue_frame()
