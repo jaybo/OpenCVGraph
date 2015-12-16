@@ -17,6 +17,22 @@ else:
 
 dll_path = os.path.join(os.path.dirname(__file__), rel)
 
+class CallbackInfo(Structure):
+    _fields_ = [
+        ("status", c_int), # // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
+        ("error_code", c_int),
+        ("error_string", c_char * 256)
+        ]
+
+class FrameInfo(Structure):
+    _fields_ = [
+        ("width", c_int),
+        ("height", c_int),
+        ("format", c_int),
+        ("pixel_depth", c_int),
+        ("camera_id", c_char * 256)
+        ]
+
 class TemcaGraphDLL(object):
     """
     dll setup.  These are all the foreign functions we are going to be using
@@ -30,23 +46,15 @@ class TemcaGraphDLL(object):
 
     fini = _TemcaGraphDLL.fini
 
+    #register_callback = _TemcaGraphDLL.RegisterNotifyCallback
+
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p]
     grab_frame.restype = c_uint32
 
-    get_width = _TemcaGraphDLL.getWidth
-    get_width.restype = c_uint32
-
-    get_height = _TemcaGraphDLL.getHeight
-    get_height.restype = c_uint32
-
-    get_format = _TemcaGraphDLL.getFormat
-    get_format.restype = c_uint32
-
-    get_pixel_depth = _TemcaGraphDLL.getPixelDepth
-    get_pixel_depth.restype = c_uint32
-
-    STATUSCALLBACKFUNC = CFUNCTYPE(c_int, POINTER(c_char_p)) 
+    frame_info = _TemcaGraphDLL.getFrameInfo
+    frame_info.argtypes = [POINTER(FrameInfo)]
+    frame_info.restype = c_uint32
 
     #queue_frame = _TemcaGraphDLL.queueFrame
     #queue_frame.restype = c_uint32
@@ -58,41 +66,14 @@ class TemcaGraphDLL(object):
     #get_parameter.argtypes = (c_int32,)
     #get_parameter.restype = c_int32
 
-    #get_width = _TemcaGraphDLL.getWidth
-    #get_width.restype = c_uint32
-
-    #get_height = _TemcaGraphDLL.getHeight
-    #get_height.restype = c_uint32
-
-    #get_format = _TemcaGraphDLL.getFormat
-    #get_format.restype = c_uint32
-
-    #get_buffer_type = _TemcaGraphDLL.getBufferType
-    #get_buffer_type.restype = c_uint32
-
-    #get_buffer_data_depth = _TemcaGraphDLL.getBufferDataDepth
-    #get_buffer_data_depth.restype = c_uint32
-
-    #get_buffer_pixel_depth = _TemcaGraphDLL.getBufferPixelDepth
-    #get_buffer_pixel_depth.restype = c_uint32
-
     #set_parameter = _TemcaGraphDLL.setParameter
     #set_parameter.argtypes = (c_int32, c_int32)
     #set_parameter.restype = c_int32
 
-    #disconnect_sapera = _TemcaGraphDLL.disconnectSapera
-
-    #free_sapera = _TemcaGraphDLL.freeSapera
-
-    #create_buffer = _TemcaGraphDLL.createBuffer
-
-    #free_buffer = _TemcaGraphDLL.freeArray
-
-    #close_sapera = _TemcaGraphDLL.closeSapera
-
     #get_status_text = _TemcaGraphDLL.getStatusText
     #get_status_text.argtypes = (c_uint32,)
     #get_status_text.restype = c_char_p
+
 
 
 class TemcaGraph(object):
@@ -104,32 +85,41 @@ class TemcaGraph(object):
     def __init__(self, graphType='default'):
         t = time.clock()
         if not TemcaGraphDLL.init(graphType):
-            raise EnvironmentError ('Cannot access the camera, its either offline, not installed, or already in use')
+            raise EnvironmentError ('Cannot create graphType: ' + graphType + '. Other possiblities: camera, is offline, not installed, or already in use')
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock()-t))
 
     def fini(self):
         TemcaGraphDLL.fini()
 
+    def get_frame_info(self, frameinfo):
+        ''' fills FrameInfo structure with details of the capture format including width and height
+        '''
+        TemcaGraphDLL.frame_info(byref(frameinfo))
+
     def grab_frame(self, filename = "none"):
         TemcaGraphDLL.grab_frame(filename)
-
-    def get_width(self):
-        return TemcaGraphDLL.get_width()
-        
-    def get_height(self):
-        return TemcaGraphDLL.get_height()
-
-    def get_format(self):
-        return TemcaGraphDLL.get_format()
-
-    def get_pixel_depth(self):
-        return TemcaGraphDLL.get_pixel_depth()
 
     def get_last_image(self):
         pass
 
     def statusCallback (status, stringResults):
         pass
+    
+
+
+
+    #STATUSCALLBACKFUNC = ctypes.CFUNCTYPE(c_int, POINTER(c_char_p)) 
+
+    #def getCallbackFunc(self):
+    #    def func(status, stringResults):
+    #        self.statusCallback(status, stringResults)
+    #    #prevent garbage collection of func
+    #    self.callback = func 
+    #    return STATUSCALLBACKFUNC(func)
+
+    #def registerNotifyCallback(self):
+    #    TemcaGraphDLL.RegisterNotifyCallback(self.getCallbackFunc())
+
 
         #self.frame_width = self.get_width()
         #self.frame_height = self.get_height()
@@ -158,10 +148,13 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
-    w = temcaGraph.get_width()
-    h = temcaGraph.get_height()
-    fmt = temcaGraph.get_format()
-    pix_depth = temcaGraph.get_pixel_depth()
+   
+    fi = FrameInfo()
+    temcaGraph.get_frame_info(fi)
+    w = fi.width
+    h = fi.height
+    camera_id = fi.camera_id
+
 
     im = np.zeros((w, h), dtype=np.uint32);
 

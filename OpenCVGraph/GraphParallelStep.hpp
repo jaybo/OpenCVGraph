@@ -88,7 +88,7 @@ namespace openCVGraph
         void NewCaptureImage(GraphData & graphData)
         {
             for (GraphManager * gm : m_Graphs) {
-                auto gd = gm->getGraphData();
+                GraphData gd = gm->getGraphData();
                 gd.m_imCapture = graphData.m_imCapture;
                 gd.CopyCaptureToRequiredFormats();
             }

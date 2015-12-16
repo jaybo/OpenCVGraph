@@ -39,15 +39,6 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
-            switch (m_SourceFormat) {
-            case CV_8UC1: graphData.m_NeedCV_8UC1 = true; break;
-            case CV_8UC3: graphData.m_NeedCV_8UC3 = true; break;
-            case CV_16UC1: graphData.m_NeedCV_16UC1 = true; graphData.m_NeedCV_8UC1 = true; break;
-            default:
-                // arbitrary, assume RGB webcam if not specified
-                graphData.m_NeedCV_8UC3 = true; break;
-            }
-
             bool fOK = false;
 
             // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 

@@ -361,9 +361,9 @@ bool init(const char* graphType)
     }
 
     bool fOK = true;
-    fOK &= pTemca->init(graphType);
+    fOK = pTemca->init(graphType);
     pTemca->StartThread();
-    return true;
+    return fOK;
 }
 
 bool fini()
@@ -382,18 +382,11 @@ void grabFrame(const char * filename)
     }
 }
 
-UINT32 getWidth() {
-    return 3840;        // bugbug fix
-}
 
-UINT32 getHeight() {
-    return 3840;        // bugbug fix
-}
-
-UINT32 getFormat() {
-    return 2;        // bugbug fix
-}
-
-UINT32 getPixelDepth() {
-    return 16;        // bugbug fix
+void  getFrameInfo(FrameInfo* fi) {
+    fi->width = 3840;
+    fi->height = 3840;
+    fi->pixel_depth = 16;
+    fi->format = 2;
+    strncpy_s(fi->camera_id, "cameraIdSomeday", sizeof(fi->camera_id) - 1);
 }

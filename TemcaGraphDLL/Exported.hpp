@@ -5,14 +5,28 @@
 
 int test();
 
+typedef struct tCallbackInfo {
+    int status; // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
+    int error_code; // 0: OK, 
+    char error_string[256];
+} CallbackInfo;
+
+typedef struct tFrameInfo {
+    int width;
+    int height;
+    int format;
+    int pixel_depth;
+    char camera_id[256];
+} FrameInfo;
+
 extern "C" {
     __declspec(dllexport) bool init(const char* graphType);
     __declspec(dllexport) bool fini();
+    //__declspec(dllexport) bool RegisterNotifyCallback(void *(*callbackFunc)(char *));
+
     __declspec(dllexport) void grabFrame(const char* filename);
-    __declspec(dllexport) UINT32 getWidth();
-    __declspec(dllexport) UINT32 getHeight();
-    __declspec(dllexport) UINT32 getFormat();
-    __declspec(dllexport) UINT32 getPixelDepth(); 
+
+    __declspec(dllexport) void getFrameInfo(FrameInfo* fi);
 
     //{
     //    bool fOK = true;
