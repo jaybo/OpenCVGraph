@@ -267,7 +267,7 @@ namespace openCVGraph
         }
     }
 
-    GraphData& getGraphData() { return m_GraphData; }
+    GraphData* getGraphData() { return &m_GraphData; }
 
     void GraphManager::saveConfig()
     {

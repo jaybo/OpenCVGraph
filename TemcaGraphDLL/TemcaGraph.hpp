@@ -30,9 +30,9 @@ GraphManager* GraphWebCam()
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamDefault("WebCam", gd, CV_8UC3));
+    CvFilter camera(new CamDefault("WebCam", *gd, CV_8UC3));
     graph->AddFilter(camera);
 
     return graph;
@@ -43,9 +43,9 @@ GraphManager* GraphCamXimea()
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamXimea("CamXimea", gd, CV_16UC1));
+    CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
     graph->AddFilter(camera);
 
     return graph;
@@ -55,9 +55,9 @@ GraphManager* GraphFileWriter()
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
-    CvFilter fileWriter(new FileWriter("FileWriter", gd, CV_16UC1));
+    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
     graph->AddFilter(fileWriter);
 
     return graph;
@@ -67,15 +67,15 @@ GraphManager* GraphQC()
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphQC", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
-    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
     //graph->AddFilter(fFocusSobel);
 
-    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
+    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
     //graph->AddFilter(fFocusFFT);
 
-    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
+    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
     //graph->AddFilter(filter);
 
     return graph;
@@ -85,9 +85,9 @@ GraphManager* GraphStitchingCheck()
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
-    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", gd, CV_16UC1));
+    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
     //graph->AddFilter(filter);
 
     return graph;
@@ -97,15 +97,15 @@ GraphManager* GraphImageDir()
 {
     // Create a graph
     GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback);
-    GraphData gd = graph->getGraphData();
+    GraphData* gd = graph->getGraphData();
 
     graph->UseCuda(false);
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap(new CamDefault("CamDefault", gd));
+    CvFilter cap(new CamDefault("CamDefault", *gd));
     graph->AddFilter(cap);
 
-    //CvFilter canny(new openCVGraph::Canny("Canny", gd));
+    //CvFilter canny(new openCVGraph::Canny("Canny", *gd));
     //graph->AddFilter(canny);
 
     return graph;
@@ -312,7 +312,7 @@ private:
                     }
                     else {
                         // copy capture image reference to all graphs
-                        auto gd = m_gmCapture->getGraphData();
+                        GraphData * gd = m_gmCapture->getGraphData();
                         for (auto step : m_StepsPostCapture) {
                             step->NewCaptureImage(gd);
                         }
