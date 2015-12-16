@@ -21,7 +21,7 @@ namespace openCVGraph
             Run
         };
 
-    GraphManager(const std::string name, bool abortOnESC, GraphCallback callback)
+    GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, bool useCuda = true)
     {
         // Set up logging
         try
@@ -51,6 +51,7 @@ namespace openCVGraph
         m_GraphData.m_AbortOnESC = abortOnESC;
         m_GraphCallback = callback;
         m_GraphData.m_Logger = m_Logger;
+        m_UseCuda = useCuda;
 
         m_GraphState = GraphState::Stop;
         m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();

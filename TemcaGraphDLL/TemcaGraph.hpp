@@ -54,7 +54,7 @@ GraphManager* GraphCamXimea()
 GraphManager* GraphFileWriter()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, false);
     GraphData* gd = graph->getGraphData();
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
@@ -66,11 +66,11 @@ GraphManager* GraphFileWriter()
 GraphManager* GraphQC()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, true);
     GraphData* gd = graph->getGraphData();
 
-    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
-    //graph->AddFilter(fFocusSobel);
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
+    graph->AddFilter(fFocusSobel);
 
     //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
     //graph->AddFilter(fFocusFFT);
@@ -84,7 +84,7 @@ GraphManager* GraphQC()
 GraphManager* GraphStitchingCheck()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, true);
     GraphData* gd = graph->getGraphData();
 
     //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
