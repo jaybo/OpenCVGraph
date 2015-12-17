@@ -33,6 +33,13 @@ class FrameInfo(Structure):
         ("camera_id", c_char * 256)
         ]
 
+class FocusInfo(Structure):
+    _fields_ = [
+        ("score", c_float),
+        ("astigmatism", c_float),
+        ("angle", c_float),
+        ]
+
 class TemcaGraphDLL(object):
     """
     dll setup.  These are all the foreign functions we are going to be using
@@ -53,8 +60,11 @@ class TemcaGraphDLL(object):
     grab_frame.restype = c_uint32
 
     frame_info = _TemcaGraphDLL.getFrameInfo
-    frame_info.argtypes = [POINTER(FrameInfo)]
-    frame_info.restype = c_uint32
+    frame_info.restype = FrameInfo
+
+    get_status = _TemcaGraphDLL.getStatus
+    get_status.restype = CallbackInfo
+
 
     #queue_frame = _TemcaGraphDLL.queueFrame
     #queue_frame.restype = c_uint32
@@ -91,10 +101,13 @@ class TemcaGraph(object):
     def fini(self):
         TemcaGraphDLL.fini()
 
-    def get_frame_info(self, frameinfo):
+    def get_frame_info(self):
         ''' fills FrameInfo structure with details of the capture format including width and height
         '''
-        TemcaGraphDLL.frame_info(byref(frameinfo))
+        return TemcaGraphDLL.frame_info()
+
+    def get_status(self):
+        return TemcaGraphDLL.get_status()
 
     def grab_frame(self, filename = "none"):
         TemcaGraphDLL.grab_frame(filename)
@@ -149,20 +162,22 @@ if __name__ == '__main__':
 
     temcaGraph = TemcaGraph()
    
-    fi = FrameInfo()
-    temcaGraph.get_frame_info(fi)
+    fi = temcaGraph.get_frame_info()
     w = fi.width
     h = fi.height
     camera_id = fi.camera_id
 
+    stat = temcaGraph.get_status()
+    status = stat.status
+    error_string = stat.error_string
 
     im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
     for f in range(20):
-        time.sleep(0.5)
         temcaGraph.grab_frame()
+        time.sleep(0.5)
 
     temcaGraph.fini()
 

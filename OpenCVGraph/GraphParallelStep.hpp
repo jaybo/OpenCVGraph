@@ -8,14 +8,20 @@ using namespace spdlog;
 
 namespace openCVGraph
 {
-    // Handles stepping a list of filter graphs in parallel
+    // Handles stepping a list of filter graphs in parallel.  
+    //
+    // All graphs in the list will be stepped in unison (and since each graph runs on its own thread all will run simultaneously)
+    // and then WaitStepCompletion will only return when all graphs have completed their work.
 
     class  GraphParallelStep {
     public:
+
         GraphParallelStep(string name, list<GraphManager *> graphs) {
             m_Name = name;
             m_Graphs = graphs;
         }
+
+        // Start the thread for each graph and then go to the "Pause" state
 
         bool init() {
             bool fOK = true;
@@ -30,6 +36,8 @@ namespace openCVGraph
             return fOK;
         }
 
+        // Abort each graph, and then wait for the thread to complete
+
         bool fini() {
             bool fOK = true;
 
@@ -38,14 +46,14 @@ namespace openCVGraph
                     graph->Abort();
                     fOK &= graph->GotoState(GraphManager::GraphState::Stop);
 
-                    //graph.StopThread();
+                    graph->JoinThread();
                 }
             }
             m_Initialized = false;
             return fOK;
         }
 
-        // Step all graphs in parallel.  Return when all graphs have finished.
+        // Step all graphs in parallel.  Triggers an event which wakes up each graph, but call returns immediately. 
 
         bool Step() {
             bool fOK = true;
@@ -60,6 +68,8 @@ namespace openCVGraph
 
             return fOK;
         }
+
+        // Wait for all graphs to finish their work.
 
         bool WaitStepCompletion()
         {
@@ -84,7 +94,9 @@ namespace openCVGraph
             return m_Name;
         }
 
-        // The graph is being passed a source image "m_imCapture"
+        // The graph is being passed a new source image "m_imCapture"
+        // pass it to all of the contained graphs
+
         void NewCaptureImage(GraphData* graphData)
         {
             for (GraphManager * gm : m_Graphs) {

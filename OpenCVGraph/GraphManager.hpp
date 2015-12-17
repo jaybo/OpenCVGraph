@@ -11,7 +11,7 @@ namespace openCVGraph
 
     // Keep a vector of Filters and call each in turn to crunch images
     // (or perform other work)
-    // States: Stop, Pause (can only Step if Paused), and Run
+    // States: Stop, Pause, and Run
 
     class  GraphManager {
     public:
@@ -70,7 +70,7 @@ namespace openCVGraph
 
     GraphManager::~GraphManager()
     {
-        m_GraphData.m_Logger->info() << "~GraphManager()";
+        m_GraphData.m_Logger->info() << "~GraphManager() file: " << m_persistFile;
     }
 
 

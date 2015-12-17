@@ -56,7 +56,7 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult FileWriter::process(GraphData& graphData) override
         {
-            if (m_WriteNextImage && !graphData.m_imCap16UC1.empty()) {
+            if (m_WriteNextImage && !(m_WriteCaptureStream ? graphData.m_imCap16UC1 : graphData.m_imOut16UC1).empty()) {
                 string fullName;
                 if (m_UseSourceFileName && !graphData.m_LastSourceFileName.empty()) {
                     auto s = graphData.m_LastSourceFileName;
@@ -70,7 +70,7 @@ namespace openCVGraph
                     259,1,      // No compression, turn off LZW
                     279, 64     // Rows per strip (doesn't seem to affect perf - why not?)
                 };
-                imwrite(fullName, graphData.m_imOut16UC1, params);
+                imwrite(fullName, m_WriteCaptureStream ? graphData.m_imCap16UC1 : graphData.m_imOut16UC1, params);
 
                 if (m_WriteOnKeyHit != "") {
                     m_WriteNextImage = false;
@@ -89,6 +89,8 @@ namespace openCVGraph
             fs << "useSourceFileName" << m_UseSourceFileName;
             cvWriteComment((CvFileStorage *)*fs, "Set writeOnKeyHit to a single char to trigger write if that key is hit. Leave empty to write every frame.", 0);
             fs << "writeOnKeyHit" << m_WriteOnKeyHit.c_str();
+            cvWriteComment((CvFileStorage *)*fs, "writeCaptureSteam == 1 : write Cap stream, == 0 : write Out stream.", 0);
+            fs << "writeCaptureStream" << m_WriteCaptureStream;
         }
 
         void  FileWriter::loadConfig(FileNode& fs, GraphData& data) override
@@ -99,6 +101,7 @@ namespace openCVGraph
             fs["ext"] >> m_Ext;
             fs["useSourceFileName"] >> m_UseSourceFileName;
             fs["writeOnKeyHit"] >> m_WriteOnKeyHit;
+            fs["writeCaptureStream"] >> m_WriteCaptureStream;
         }
 
     private:
@@ -108,6 +111,7 @@ namespace openCVGraph
         bool m_UseSourceFileName = false;
         string m_WriteOnKeyHit = "";
         bool m_WriteNextImage = true;
+        bool m_WriteCaptureStream = true;  // else write m_imOut
     };
 }
 #endif

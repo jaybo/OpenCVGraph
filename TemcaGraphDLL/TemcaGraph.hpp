@@ -238,7 +238,9 @@ public:
     void JoinThread()
     {
         m_Aborting = true;
+        m_cv.notify_all();
         m_thread.join();
+        m_Logger->info("Temca fini ------------------------------------------------");
     }
 
     void GrabFrame(const char * filename)
@@ -249,8 +251,6 @@ public:
         m_CaptureFileName = string(filename);
         m_cv.notify_all();
     }
-
-
 
 private:
     // The graphs which  can run simultaneous on separate threads, 
@@ -299,40 +299,44 @@ private:
                 // Wait for the client to issue a grab, which sets m_Stepping
 
                 std::unique_lock<std::mutex> lk(m_mtx);
-                m_cv.wait(lk, [=]() {return m_Stepping == true; });
+                m_cv.wait(lk, [=]() {return (m_Stepping == true) || m_Aborting; });  // return false to continue waiting!
                 m_Stepping = false;
 
-                // Do the capture step
-                if (!(fOK = m_StepCapture->Step())) {
-                    m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
-                }
-                else {
-                    if (!(fOK = m_StepCapture->WaitStepCompletion())) {
-                        m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
+                if (!m_Aborting) {
+
+                    // Do the capture step
+                    if (!(fOK = m_StepCapture->Step())) {
+                        m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
                     }
                     else {
-                        // copy capture image reference to all graphs
-                        GraphData * gd = m_gmCapture->getGraphData();
-                        for (auto step : m_StepsPostCapture) {
-                            step->NewCaptureImage(gd);
+                        if (!(fOK = m_StepCapture->WaitStepCompletion())) {
+                            m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
                         }
-
-                        // step all of the post capture steps
-                        for (auto step : m_StepsPostCapture) {
-                            if (!(fOK = step->Step())) {
-                                m_Logger->error(step->GetName() + " failed to Step.");
-                                break;
+                        else {
+                            // copy capture image reference to all graphs
+                            GraphData * gd = m_gmCapture->getGraphData();
+                            for (auto step : m_StepsPostCapture) {
+                                step->NewCaptureImage(gd);
                             }
-                            if (fOK) {
-                                if (!(fOK = step->WaitStepCompletion())) {
-                                    m_Logger->error(step->GetName() + " failed WaitStepCompletion.");
+
+                            // step all of the post capture steps
+                            for (auto step : m_StepsPostCapture) {
+                                if (!(fOK = step->Step())) {
+                                    m_Logger->error(step->GetName() + " failed to Step.");
                                     break;
+                                }
+                                if (fOK) {
+                                    if (!(fOK = step->WaitStepCompletion())) {
+                                        m_Logger->error(step->GetName() + " failed WaitStepCompletion.");
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 m_CompletedStep = true;
+                m_Logger->info("completed step");
             }
             fini(); // cleanup
         }
@@ -383,10 +387,27 @@ void grabFrame(const char * filename)
 }
 
 
-void  getFrameInfo(FrameInfo* fi) {
-    fi->width = 3840;
-    fi->height = 3840;
-    fi->pixel_depth = 16;
-    fi->format = 2;
-    strncpy_s(fi->camera_id, "cameraIdSomeday", sizeof(fi->camera_id) - 1);
+FrameInfo getFrameInfo() {
+    FrameInfo fi;
+    fi.width = 3840;
+    fi.height = 3840;
+    fi.pixel_depth = 16;
+    fi.format = 2;
+    strncpy_s(fi.camera_id, "cameraIdSomeday", sizeof(fi.camera_id) - 1);
+    return fi;
 }
+
+CallbackInfo getStatus() {
+    CallbackInfo ci;
+    ci.status = 42;
+    strncpy_s(ci.error_string, "this is not an error", sizeof(ci.error_string) - 1);
+    return ci;
+}
+
+FocusInfo getFocus() {
+    FocusInfo fi = { 0 };
+    fi.score = 42;
+    return fi;
+}
+
+

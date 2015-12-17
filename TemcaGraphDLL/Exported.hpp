@@ -19,6 +19,13 @@ typedef struct tFrameInfo {
     char camera_id[256];
 } FrameInfo;
 
+typedef struct tFocusInfo {
+    float score;
+    float astigmatism;
+    float angle;
+} FocusInfo;
+
+
 extern "C" {
     __declspec(dllexport) bool init(const char* graphType);
     __declspec(dllexport) bool fini();
@@ -26,13 +33,10 @@ extern "C" {
 
     __declspec(dllexport) void grabFrame(const char* filename);
 
-    __declspec(dllexport) void getFrameInfo(FrameInfo* fi);
+    __declspec(dllexport) tFrameInfo getFrameInfo();
+    __declspec(dllexport) tCallbackInfo getStatus();
+    __declspec(dllexport) tFocusInfo getFocus();
 
-    //{
-    //    bool fOK = true;
-    //    // test();
-    //    return fOK;
-    //}
 
     //__declspec(dllexport) bool loadConfigFiles(const char cam_file[256], const char vic_file[256]);
     //__declspec(dllexport) void freeArray();

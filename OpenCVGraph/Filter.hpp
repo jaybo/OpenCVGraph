@@ -19,16 +19,17 @@ namespace openCVGraph
         Filter::Filter(std::string name, GraphData& data, int sourceFormat = -1, int width = 512, int height = 512)
             : m_FilterName(name), m_SourceFormat(sourceFormat), m_width(width), m_height(height)
         {
-            data.m_Logger->info("Filter() " + m_FilterName);
+            m_Logger = data.m_Logger;
 
             m_CombinedName = data.m_GraphName + "-" + name;
+            m_Logger->info("Filter() " + m_CombinedName);
             m_TickFrequency = cv::getTickFrequency();
             m_imView = Mat::eye(10, 10, CV_16U);
         }
 
         virtual Filter::~Filter()
         {
-            //data.m_Logger->info << "~Filter() " << m_FilterName;
+            m_Logger->info("~Filter() " + m_CombinedName);
         }
 
         // Graph is starting up
@@ -38,12 +39,20 @@ namespace openCVGraph
         virtual bool Filter::init(GraphData& data)
         {
             switch (m_SourceFormat) {
-            case CV_8UC1: data.m_NeedCV_8UC1 = true; break;
-            case CV_8UC3: data.m_NeedCV_8UC3 = true; break;
-            case CV_16UC1: data.m_NeedCV_16UC1 = true; data.m_NeedCV_8UC1 = true; break;
+            case CV_8UC1: 
+                data.m_NeedCV_8UC1 = true; 
+                break;
+            case CV_8UC3: 
+                data.m_NeedCV_8UC3 = true; 
+                break;
+            case CV_16UC1: 
+                data.m_NeedCV_16UC1 = true; 
+                data.m_NeedCV_8UC1 = true;   // bugbug todo
+                break;
             default:
                 // arbitrary, assume RGB webcam if not specified
-                data.m_NeedCV_8UC3 = true; break;
+                data.m_NeedCV_8UC3 = true; 
+                break;
             }
 
             if (m_Enabled) {
@@ -104,7 +113,6 @@ namespace openCVGraph
             m_DurationMSSum += m_DurationMS;
             m_DurationMSMax = max(m_DurationMS, m_DurationMSMax);
             m_DurationMSMin = min(m_DurationMS, m_DurationMSMin);
-            //BOOST_LOG_TRIVIAL(info) << m_FilterName << "\ttime(MS): " << std::fixed << std::setprecision(1) << m_DurationMS;
         }
 
         virtual void Filter::saveConfig(FileStorage& fs, GraphData& data)
@@ -123,21 +131,25 @@ namespace openCVGraph
             strT << (m_DurationMSSum / ((data.m_FrameNumber == 0) ? 1 : data.m_FrameNumber));
             tmp = strT.str();
             fs << "Duration_MS_Mean" << tmp.c_str();
+            m_Logger->info("Duration_MS_Mean: " + tmp);
 
             strT.str("");
             strT << m_DurationMSMin;
             tmp = strT.str();
             fs << "Duration_MS_Min" << tmp.c_str();
+            m_Logger->info("Duration_MS_Min: " + tmp);
 
             strT.str("");
             strT << m_DurationMSMax;
             tmp = strT.str();
             fs << "Duration_MS_Max" << tmp.c_str();
+            m_Logger->info("Duration_MS_Max: " + tmp);
 
             strT.str("");
             strT << m_DurationMS;
             tmp = strT.str();
             fs << "Duration_MS_Last" << tmp.c_str();
+            m_Logger->info("Duration_MS_Last: " + tmp);
 
         }
 
@@ -218,6 +230,8 @@ namespace openCVGraph
         cv::Mat m_imViewTextOverlay;        // overlay for that image
         ZoomView m_ZoomView;
         cv::MouseCallback m_MouseCallback = NULL;
+
+        std::shared_ptr<spdlog::logger> m_Logger;
 	};
 
     typedef std::shared_ptr<Filter> CvFilter;
