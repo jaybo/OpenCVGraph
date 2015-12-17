@@ -252,6 +252,10 @@ public:
         m_cv.notify_all();
     }
 
+    void SetPythonCallback(StatusCallbackType callback) {
+        m_PythonCallback = callback;
+    }
+
 private:
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
@@ -286,6 +290,8 @@ private:
     // control interfaces
     ITemcaCamera * m_ITemcaCamera;
 
+    // callback to python
+    StatusCallbackType m_PythonCallback = NULL;
 
     // The main capture loop
     bool ProcessLoop()
@@ -397,8 +403,8 @@ FrameInfo getFrameInfo() {
     return fi;
 }
 
-CallbackInfo getStatus() {
-    CallbackInfo ci;
+StatusCallbackInfo getStatus() {
+    StatusCallbackInfo ci;
     ci.status = 42;
     strncpy_s(ci.error_string, "this is not an error", sizeof(ci.error_string) - 1);
     return ci;
@@ -410,4 +416,8 @@ FocusInfo getFocus() {
     return fi;
 }
 
-
+void RegisterNotifyCallback(StatusCallbackType callback) {
+    if (pTemca) {
+        pTemca->SetPythonCallback(callback);
+    }
+}

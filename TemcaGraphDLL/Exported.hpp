@@ -5,11 +5,13 @@
 
 int test();
 
-typedef struct tCallbackInfo {
+typedef struct tStatusCallbackInfo {
     int status; // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
     int error_code; // 0: OK, 
     char error_string[256];
-} CallbackInfo;
+} StatusCallbackInfo;
+
+typedef StatusCallbackInfo (*StatusCallbackType)();
 
 typedef struct tFrameInfo {
     int width;
@@ -29,12 +31,12 @@ typedef struct tFocusInfo {
 extern "C" {
     __declspec(dllexport) bool init(const char* graphType);
     __declspec(dllexport) bool fini();
-    //__declspec(dllexport) bool RegisterNotifyCallback(void *(*callbackFunc)(char *));
+    __declspec(dllexport) void RegisterNotifyCallback(StatusCallbackType callback);
 
     __declspec(dllexport) void grabFrame(const char* filename);
 
     __declspec(dllexport) tFrameInfo getFrameInfo();
-    __declspec(dllexport) tCallbackInfo getStatus();
+    __declspec(dllexport) tStatusCallbackInfo getStatus();
     __declspec(dllexport) tFocusInfo getFocus();
 
 

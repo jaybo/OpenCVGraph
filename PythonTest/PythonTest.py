@@ -17,12 +17,14 @@ else:
 
 dll_path = os.path.join(os.path.dirname(__file__), rel)
 
-class CallbackInfo(Structure):
+class StatusCallbackInfo(Structure):
     _fields_ = [
         ("status", c_int), # // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
         ("error_code", c_int),
         ("error_string", c_char * 256)
         ]
+
+STATUSCALLBACKFUNC = CFUNCTYPE(StatusCallbackInfo) 
 
 class FrameInfo(Structure):
     _fields_ = [
@@ -53,7 +55,9 @@ class TemcaGraphDLL(object):
 
     fini = _TemcaGraphDLL.fini
 
-    #register_callback = _TemcaGraphDLL.RegisterNotifyCallback
+    register_notify_callback = _TemcaGraphDLL.RegisterNotifyCallback
+    register_notify_callback.argtypes = [STATUSCALLBACKFUNC]
+    register_notify_callback.restype = None
 
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p]
@@ -63,7 +67,7 @@ class TemcaGraphDLL(object):
     frame_info.restype = FrameInfo
 
     get_status = _TemcaGraphDLL.getStatus
-    get_status.restype = CallbackInfo
+    get_status.restype = StatusCallbackInfo
 
 
     #queue_frame = _TemcaGraphDLL.queueFrame
@@ -115,40 +119,23 @@ class TemcaGraph(object):
     def get_last_image(self):
         pass
 
-    def statusCallback (status, stringResults):
+    def statusCallback (self, statusInfo):
         pass
     
 
 
 
-    #STATUSCALLBACKFUNC = ctypes.CFUNCTYPE(c_int, POINTER(c_char_p)) 
-
-    #def getCallbackFunc(self):
-    #    def func(status, stringResults):
-    #        self.statusCallback(status, stringResults)
-    #    #prevent garbage collection of func
-    #    self.callback = func 
-    #    return STATUSCALLBACKFUNC(func)
-
-    #def registerNotifyCallback(self):
-    #    TemcaGraphDLL.RegisterNotifyCallback(self.getCallbackFunc())
 
 
-        #self.frame_width = self.get_width()
-        #self.frame_height = self.get_height()
-        #self.pixel_format = self.get_format()
-        #self.pixel_depth = self.get_pixel_depth()
+    def getCallbackFunc(self):
+        def func(statusInfo):
+            self.statusCallback(statusInfo)
+        #prevent garbage collection of func
+        self.callback = func 
+        return STATUSCALLBACKFUNC(func)
 
-        #if self.pixel_depth == 16:
-        #    self.data_ctype = c_uint16
-        #    self.data_numpy_type = np.uint16
-        #elif self.pixel_depth == 8:
-        #    self.data_ctype = c_uint8
-        #    self.data_numpy_type = np.uint8
-        #else:
-        #    raise TypeError("Pixel depth should be either 16 or 8. Got %s instead." % self.pixel_depth)
-
-
+    def registerNotifyCallback(self):
+        TemcaGraphDLL.register_notify_callback(self.getCallbackFunc())
 
 
 
@@ -171,11 +158,13 @@ if __name__ == '__main__':
     status = stat.status
     error_string = stat.error_string
 
+    # temcaGraph.registerNotifyCallback()
+
     im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
-    for f in range(20):
+    for f in range(10):
         temcaGraph.grab_frame()
         time.sleep(0.5)
 
