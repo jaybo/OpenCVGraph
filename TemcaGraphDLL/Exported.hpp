@@ -3,15 +3,14 @@
 #ifndef OPENCV_GRAPH_EXPORTED_H
 #define OPENCV_GRAPH_EXPORTED_H
 
-int test();
-
 typedef struct tStatusCallbackInfo {
     int status; // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
     int error_code; // 0: OK, 
     char error_string[256];
 } StatusCallbackInfo;
 
-typedef StatusCallbackInfo (*StatusCallbackType)();
+typedef int (*StatusCallbackType)(StatusCallbackInfo* callbackinfo);
+// typedef int (*StatusCallbackType)();
 
 typedef struct tFrameInfo {
     int width;

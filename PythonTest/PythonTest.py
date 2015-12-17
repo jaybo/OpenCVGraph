@@ -24,7 +24,7 @@ class StatusCallbackInfo(Structure):
         ("error_string", c_char * 256)
         ]
 
-STATUSCALLBACKFUNC = CFUNCTYPE(StatusCallbackInfo) 
+STATUSCALLBACKFUNC = CFUNCTYPE(c_int, POINTER(StatusCallbackInfo))  # returns c_int
 
 class FrameInfo(Structure):
     _fields_ = [
@@ -70,26 +70,6 @@ class TemcaGraphDLL(object):
     get_status.restype = StatusCallbackInfo
 
 
-    #queue_frame = _TemcaGraphDLL.queueFrame
-    #queue_frame.restype = c_uint32
-
-
-    #acquire_images = _TemcaGraphDLL.acquireImages
-
-    #get_parameter = _TemcaGraphDLL.getParameter
-    #get_parameter.argtypes = (c_int32,)
-    #get_parameter.restype = c_int32
-
-    #set_parameter = _TemcaGraphDLL.setParameter
-    #set_parameter.argtypes = (c_int32, c_int32)
-    #set_parameter.restype = c_int32
-
-    #get_status_text = _TemcaGraphDLL.getStatusText
-    #get_status_text.argtypes = (c_uint32,)
-    #get_status_text.restype = c_char_p
-
-
-
 class TemcaGraph(object):
     """
 
@@ -120,24 +100,24 @@ class TemcaGraph(object):
         pass
 
     def statusCallback (self, statusInfo):
-        pass
+        ''' Called  at completion of frame capture (time to move the stage)
+            and again when all graph operations are complete
+        '''
+        status = statusInfo.contents.status
+        error = statusInfo.contents.error_code
+        logging.info ('callback status: ' + str(status) + ', error: ' + str(error))
+        if error != 0:
+            error_string = statusInfo.contents.error_string
+            logging.error ('callback error is' + error_string)
+        return True
     
+    def registerNotifyCallback(self, callback):
+        #prevent garbage collection of callback func
+        self.callback = STATUSCALLBACKFUNC(callback)
+        TemcaGraphDLL.register_notify_callback(self.callback)
 
-
-
-
-
-    def getCallbackFunc(self):
-        def func(statusInfo):
-            self.statusCallback(statusInfo)
-        #prevent garbage collection of func
-        self.callback = func 
-        return STATUSCALLBACKFUNC(func)
-
-    def registerNotifyCallback(self):
-        TemcaGraphDLL.register_notify_callback(self.getCallbackFunc())
-
-
+def foo(statusInfo):
+    return True
 
 if __name__ == '__main__':
      
@@ -148,7 +128,7 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
-   
+
     fi = temcaGraph.get_frame_info()
     w = fi.width
     h = fi.height
@@ -158,13 +138,13 @@ if __name__ == '__main__':
     status = stat.status
     error_string = stat.error_string
 
-    # temcaGraph.registerNotifyCallback()
+    temcaGraph.registerNotifyCallback(temcaGraph.statusCallback)
 
     im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
-    for f in range(10):
+    for f in range(5):
         temcaGraph.grab_frame()
         time.sleep(0.5)
 

@@ -291,12 +291,32 @@ private:
     ITemcaCamera * m_ITemcaCamera;
 
     // callback to python
+    StatusCallbackInfo m_PythonInfo = { 0 };
     StatusCallbackType m_PythonCallback = NULL;
+
+    bool PythonCallback(int status, int error, char * errorString) {
+        bool fOK = true;
+        if (m_PythonCallback) {
+            m_PythonInfo.status = status;
+            m_PythonInfo.error_code = error;
+            strcpy_s(m_PythonInfo.error_string, errorString);
+            fOK = (m_PythonCallback)(&m_PythonInfo);
+        }
+        return fOK;
+    }
+
+    enum StatusCodes {
+        InitFinished = 0,       
+        CaptureFinished = 1,
+        ProcessingFinished = 2
+    };
 
     // The main capture loop
     bool ProcessLoop()
     {
         bool fOK = true;
+
+        fOK = PythonCallback(InitFinished, 0, "");
 
         try {
             while (fOK && !m_Aborting) {
@@ -310,11 +330,12 @@ private:
 
                 if (!m_Aborting) {
 
-                    // Do the capture step
                     if (!(fOK = m_StepCapture->Step())) {
                         m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
                     }
                     else {
+                        fOK = PythonCallback(CaptureFinished, 0, "");
+
                         if (!(fOK = m_StepCapture->WaitStepCompletion())) {
                             m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
                         }
@@ -341,6 +362,7 @@ private:
                         }
                     }
                 }
+                fOK = PythonCallback(ProcessingFinished, 0, "");
                 m_CompletedStep = true;
                 m_Logger->info("completed step");
             }

@@ -15,6 +15,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 // TODO: reference additional headers your program requires here
 #include <opencv2/opencv.hpp>
