@@ -160,7 +160,7 @@ public:
         // Set up logging
         try
         {
-            const char * loggerName = "GraphLogs";
+            const char * loggerName = "TemcaLog";
             // Use existing logger if already created
             if (auto logger = spd::get(loggerName)) {
                 m_Logger = logger;
@@ -181,7 +181,7 @@ public:
         {
             std::cout << "Log failed: " << ex.what() << std::endl;
         }
-        
+
     }
 
     // Create all graphs 
@@ -263,7 +263,7 @@ private:
     GraphManager* m_gmFileWriter = NULL;
     GraphManager* m_gmQC = NULL;
     GraphManager* m_gmStitchingCheck = NULL;
-    
+
     // Bundled graphs which step together
     GraphParallelStep* m_StepCapture = NULL;
     GraphParallelStep* m_StepPostCapture = NULL;
@@ -281,7 +281,7 @@ private:
     std::condition_variable m_cv;                       // 
     std::atomic_bool m_CompletedStep = false;           // Has the step finished?
     std::atomic_bool m_CompletedRun = false;            // Has the run finished?
-    
+
     int m_LogLevel = spd::level::info;
     std::shared_ptr<spdlog::logger> m_Logger;
 
@@ -306,9 +306,10 @@ private:
     }
 
     enum StatusCodes {
-        InitFinished = 0,       
+        InitFinished = 0,
         CaptureFinished = 1,
-        ProcessingFinished = 2
+        ProcessingFinished = 2,
+        ShutdownFinished = 3
     };
 
     // The main capture loop
@@ -334,7 +335,7 @@ private:
                         m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
                     }
                     else {
-                        fOK = PythonCallback(CaptureFinished, 0, "");
+                        fOK &= PythonCallback(CaptureFinished, 0, "");
 
                         if (!(fOK = m_StepCapture->WaitStepCompletion())) {
                             m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
@@ -362,9 +363,8 @@ private:
                         }
                     }
                 }
-                fOK = PythonCallback(ProcessingFinished, 0, "");
+                fOK &= PythonCallback(ProcessingFinished, 0, "");
                 m_CompletedStep = true;
-                m_Logger->info("completed step");
             }
             fini(); // cleanup
         }
@@ -372,7 +372,8 @@ private:
         {
             std::cout << "main processing loop: " << ex.what() << std::endl;
         }
-    return fOK;
+        fOK &= PythonCallback(ShutdownFinished, 0, "");
+        return fOK;
     }
 
 
@@ -389,7 +390,7 @@ bool init(const char* graphType)
     }
     else {
         // unknown graph type
-        return false;   
+        return false;
     }
 
     bool fOK = true;

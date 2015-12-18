@@ -86,7 +86,7 @@ class TemcaGraph(object):
         TemcaGraphDLL.fini()
 
     def get_frame_info(self):
-        ''' fills FrameInfo structure with details of the capture format including width and height
+        ''' fills FrameInfo structure with details of the capture format including width, height, and bytes per pixel
         '''
         return TemcaGraphDLL.frame_info()
 
@@ -100,8 +100,15 @@ class TemcaGraph(object):
         pass
 
     def statusCallback (self, statusInfo):
-        ''' Called  at completion of frame capture (time to move the stage)
-            and again when all graph operations are complete
+        ''' Called by the c++ Temca graph runner whenever status changes:
+            status values:
+                0: finishied init (startup)
+                1: finished frame capture  (ie. time to move the stage)
+                2: finished frame processing and file writing
+                3: finished fini (shutdown)
+            error values:
+                0: no error
+                ...
         '''
         status = statusInfo.contents.status
         error = statusInfo.contents.error_code
@@ -128,17 +135,16 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
+    temcaGraph.registerNotifyCallback(temcaGraph.statusCallback)
 
     fi = temcaGraph.get_frame_info()
     w = fi.width
     h = fi.height
     camera_id = fi.camera_id
 
-    stat = temcaGraph.get_status()
-    status = stat.status
-    error_string = stat.error_string
-
-    temcaGraph.registerNotifyCallback(temcaGraph.statusCallback)
+    #stat = temcaGraph.get_status()
+    #status = stat.status
+    #error_string = stat.error_string
 
     im = np.zeros((w, h), dtype=np.uint32);
 
