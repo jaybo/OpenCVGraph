@@ -26,7 +26,7 @@ namespace openCVGraph
         // Set up logging
         try
         {
-            const char * loggerName = "GraphLogs";
+            const char * loggerName = "TemcaLog";
             // Use existing logger if already created
             if (auto logger = spd::get(loggerName)) {
                 m_Logger = logger;

@@ -48,6 +48,9 @@ GraphManager* GraphCamXimea()
     CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
     graph->AddFilter(camera);
 
+    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", *gd, CV_16UC1));
+    graph->AddFilter(fbrightDark);
+
     return graph;
 }
 
