@@ -8,23 +8,12 @@ using namespace spdlog;
 
 namespace openCVGraph
 {
-    // Result of calling "process()" on each filter
-    enum ProcessResult {
-        OK,             // Normal result, continue through the processing loop
-        Abort,          // Catastropic error, abort
-        Continue,       // GoTo beginning of the loop.  Averaging filters will issue this result until they've accumulated enough images.
-    };
-
-    // Property bag for sharing results
-    typedef std::map<string, void *> GraphProperties;
-
-
+    //
+    // Container for all mats and data which flows through the graph
+    //
 
 	class  GraphData {
-	public:
-        GraphData() {
-        }
-
+    public:
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
         bool m_Aborting = false;
@@ -68,15 +57,16 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imOutGpu32FC1;
 #endif
 
-
 		int m_FrameNumber = 0;                  // Current frame being processed.
-        string m_LastSourceFileName;
-
+        string m_SourceFileName;                // Used when source images come from file, directory, or movie
+        string m_DestinationFileName;           // Name of output file
 
         std::shared_ptr<logger> m_Logger;
 
         // A capture or source filter has already put an image into m_imCapture.
         // Now convert it into formats needed by the rest of the graph.
+        // A basic rule is that m_imCapture should never be modified by any filter downstream, so it's always available.
+
         void CopyCaptureToRequiredFormats()
         {
             int nChannels = m_imCapture.channels();
@@ -108,12 +98,14 @@ namespace openCVGraph
                     }
                     if (m_NeedCV_16UC1) {
                         m_imCapGpu16UC1 = m_imCaptureGpu;
-                        m_imOutGpu16UC1 = m_imCapGpu16UC1;
                     }
                     if (m_NeedCV_32FC1) {
                         m_imCaptureGpu.convertTo(m_imCapGpu32FC1, CV_32FC1);
                     }
                     if (m_NeedCV_8UC3) {
+                        if (!m_NeedCV_8UC1) {
+                            m_imCaptureGpu.convertTo(m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
+                        }
                         cuda::cvtColor(m_imCapGpu8UC1, m_imCapGpu8UC3, COLOR_GRAY2RGB);
                     }
                     break;
@@ -136,19 +128,18 @@ namespace openCVGraph
                 }
 
                 // And copy to Out Mats
-                // ??? should just be reference to Cap Mats
 
                 if (m_NeedCV_8UC1) {
-                    m_imCapGpu8UC1.copyTo(m_imOutGpu8UC1);
+                    m_imOutGpu8UC1 = m_imCapGpu8UC1;
                 }
                 if (m_NeedCV_16UC1) {
-                    m_imCapGpu16UC1.copyTo(m_imOutGpu16UC1);
+                    m_imOutGpu16UC1 = m_imCapGpu16UC1;
                 }
                 if (m_NeedCV_32FC1) {
-                    m_imCapGpu32FC1.copyTo(m_imOutGpu32FC1);
+                    m_imOutGpu32FC1 = m_imCapGpu32FC1;
                 }
                 if (m_NeedCV_8UC3) {
-                    m_imCapGpu8UC3.copyTo(m_imOutGpu8UC3);
+                    m_imOutGpu8UC3 = m_imCapGpu8UC3;
                 }
 #endif
             }
@@ -202,27 +193,20 @@ namespace openCVGraph
                 }
 
                 // And copy to Out Mats
-                // ??? should just be reference to Cap Mats
 
                 if (m_NeedCV_8UC1) {
-                    m_imCap8UC1.copyTo(m_imOut8UC1);
+                    m_imOut8UC1 = m_imCap8UC1;
                 }
                 if (m_NeedCV_16UC1) {
-                    m_imCap16UC1.copyTo(m_imOut16UC1);
+                    m_imOut16UC1 = m_imCap16UC1;
                 }
                 if (m_NeedCV_32FC1) {
-                    m_imCap32FC1.copyTo(m_imOut32FC1);
+                    m_imOut32FC1 = m_imCap32FC1;
                 }
                 if (m_NeedCV_8UC3) {
-                    m_imCap8UC3.copyTo(m_imOut8UC3);
+                    m_imOut8UC3 = m_imCap8UC3;
                 }
             }
-
         }
-
-
-        private:
-
-
 	};
 }

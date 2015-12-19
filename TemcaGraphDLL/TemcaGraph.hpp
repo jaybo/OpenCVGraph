@@ -303,16 +303,17 @@ private:
             m_PythonInfo.status = status;
             m_PythonInfo.error_code = error;
             strcpy_s(m_PythonInfo.error_string, errorString);
-            fOK = (m_PythonCallback)(&m_PythonInfo);
+            fOK = (bool) ((m_PythonCallback)(&m_PythonInfo));
         }
         return fOK;
     }
 
     enum StatusCodes {
         InitFinished = 0,
-        CaptureFinished = 1,
-        ProcessingFinished = 2,
-        ShutdownFinished = 3
+        StartNewFrame = 1,
+        CaptureFinished = 2,
+        ProcessingFinished = 3,
+        ShutdownFinished = 4
     };
 
     // The main capture loop
@@ -325,6 +326,7 @@ private:
         try {
             while (fOK && !m_Aborting) {
                 m_CompletedStep = false;
+                fOK &= PythonCallback(StartNewFrame, 0, "");
 
                 // Wait for the client to issue a grab, which sets m_Stepping
 

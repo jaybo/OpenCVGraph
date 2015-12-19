@@ -9,11 +9,14 @@ namespace openCVGraph
     typedef bool(*GraphCallback)(GraphManager* graphManager);
     typedef std::shared_ptr < openCVGraph::Filter> Processor;
 
-    // Keep a vector of Filters and call each in turn to crunch images
-    // (or perform other work)
-    // States: Stop, Pause, and Run
+
+    // GraphManager
+    // Keeps a vector of Filters and call each in turn to process images
+    // (or perform other arbitrary work)
+    // Possible states are: Stop, Pause, and Run
 
     class  GraphManager {
+
     public:
         enum GraphState {
             Stop,
@@ -21,323 +24,323 @@ namespace openCVGraph
             Run
         };
 
-    GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, bool useCuda = true)
-    {
-        // Set up logging
-        try
+        GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, bool useCuda = true)
         {
-            const char * loggerName = "TemcaLog";
-            // Use existing logger if already created
-            if (auto logger = spd::get(loggerName)) {
-                m_Logger = logger;
+            // Set up logging
+            try
+            {
+                const char * loggerName = "TemcaLog";
+                // Use existing logger if already created
+                if (auto logger = spd::get(loggerName)) {
+                    m_Logger = logger;
+                }
+                else {
+                    string logDir = "logs";
+                    createDir(logDir);
+                    std::vector<spdlog::sink_ptr> sinks;
+                    sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
+                    sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + loggerName, "txt", 23, 59));
+                    m_Logger = std::make_shared<spdlog::logger>(loggerName, begin(sinks), end(sinks));
+                    spdlog::register_logger(m_Logger);
+                }
             }
-            else {
-                string logDir = "logs";
-                createDir(logDir);
-                std::vector<spdlog::sink_ptr> sinks;
-                sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_st>());
-                sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_st>(logDir + "/" + loggerName, "txt", 23, 59));
-                m_Logger = std::make_shared<spdlog::logger>(loggerName, begin(sinks), end(sinks));
-                spdlog::register_logger(m_Logger);
+            catch (const spdlog::spdlog_ex& ex)
+            {
+                std::cout << "Log failed: " << ex.what() << std::endl;
             }
+
+            m_Name = name;
+            m_GraphData.m_GraphName = m_Name;
+            m_GraphData.m_AbortOnESC = abortOnESC;
+            m_GraphCallback = callback;
+            m_GraphData.m_Logger = m_Logger;
+            m_UseCuda = useCuda;
+
+            m_GraphState = GraphState::Stop;
+            m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
+            if (m_CudaEnabledDeviceCount > 0 && m_CudaDeviceIndex <= m_CudaEnabledDeviceCount) {
+                // bugbug todo cv::cuda::setDevice(m_CudaEnabledDeviceCount);
+            }
+
+            std::string config("config");
+            createDir(config);
+
+            // The settings file name combines both the GraphName and the Filter together
+            m_persistFile = config + "/" + m_Name + ".yml";
+
+            m_GraphData.m_Logger->info() << "GraphManager() file: " << m_persistFile;
         }
-        catch (const spdlog::spdlog_ex& ex)
+
+        GraphManager::~GraphManager()
         {
-            std::cout << "Log failed: " << ex.what() << std::endl;
+            m_GraphData.m_Logger->info() << "~GraphManager() file: " << m_persistFile;
         }
 
-        m_Name = name;
-        m_GraphData.m_GraphName = m_Name;
-        m_GraphData.m_AbortOnESC = abortOnESC;
-        m_GraphCallback = callback;
-        m_GraphData.m_Logger = m_Logger;
-        m_UseCuda = useCuda;
 
-        m_GraphState = GraphState::Stop;
-        m_CudaEnabledDeviceCount = cv::cuda::getCudaEnabledDeviceCount();
-        if (m_CudaEnabledDeviceCount > 0 && m_CudaDeviceIndex <= m_CudaEnabledDeviceCount) {
-           // bugbug todo cv::cuda::setDevice(m_CudaEnabledDeviceCount);
+        void GraphManager::StartThread()
+        {
+            thread = std::thread::thread(&GraphManager::ProcessLoop, this);
         }
 
-        std::string config("config");
-        createDir(config);
+        void GraphManager::JoinThread()
+        {
+            thread.join();
+        }
 
-        // The settings file name combines both the GraphName and the Filter together
-        m_persistFile = config + "/" + m_Name + ".yml";
+        ProcessResult GraphManager::ProcessOne(int key)
+        {
+            bool fOK = true;
+            Processor filter;
+            ProcessResult result = ProcessResult::OK;
 
-        m_GraphData.m_Logger->info() << "GraphManager() file: " << m_persistFile;
-    }
+            // first process keyhits
+            if (key != -1) {
+                for (int i = 0; i < m_Filters.size(); i++) {
+                    filter = m_Filters[i];
+                    if (filter->IsEnabled()) {
+                        fOK &= filter->processKeyboard(m_GraphData, key);
+                    }
+                }
+            }
 
-    GraphManager::~GraphManager()
-    {
-        m_GraphData.m_Logger->info() << "~GraphManager() file: " << m_persistFile;
-    }
+            // MAKE ONE PASS THROUGH THE GRAPH
+            for (int i = 0; i < m_Filters.size(); i++) {
+                filter = m_Filters[i];
+                filter->tic();
+                // Q: Bail only at end of loop or partway through?
+                // Currently, complete the loop
+                if (filter->IsEnabled())
+                {
+                    result = filter->process(m_GraphData);
+                }
+                filter->toc();
+                if (filter->IsEnabled())
+                {
+                    filter->processView(m_GraphData);
+                }
+                if (result != ProcessResult::OK) break;
+            }
+            m_GraphData.m_FrameNumber++;
 
+            return result;
+        }
 
-    void GraphManager::StartThread()
-    {
-        thread = std::thread::thread(&GraphManager::ProcessLoop, this);
-    }
+        // The main loop for the graph
+        // Controls loading and saving config data, and running, pausing, stepping, and stopping the graph
 
-    void GraphManager::JoinThread()
-    {
-        thread.join();
-    }
+        bool GraphManager::ProcessLoop()
+        {
+            bool fOK = true;
+            m_Stepping = false;
+            Processor filter;
+            ProcessResult result;
 
-    ProcessResult GraphManager::ProcessOne(int key)
-    {
-        bool fOK = true;
-        Processor filter;
-        ProcessResult result = ProcessResult::OK;
+            loadConfig();
 
-        // first process keyhits
-        if (key != -1) {
+            // Let the filters know whether or not to use Cuda
+#ifdef WITH_CUDA
+            m_GraphData.m_UseCuda = m_UseCuda;
+#else
+            m_GraphData.m_UseCuda = false;
+#endif
+            // Init everybody
             for (int i = 0; i < m_Filters.size(); i++) {
                 filter = m_Filters[i];
                 if (filter->IsEnabled()) {
-                    fOK &= filter->processKeyboard(m_GraphData, key);
-                }
-            }
-        }
-
-        // MAKE ONE PASS THROUGH THE GRAPH
-        for (int i = 0; i < m_Filters.size(); i++) {
-            filter = m_Filters[i];
-            filter->tic();
-            // Q: Bail only at end of loop or partway through?
-            // Currently, complete the loop
-            if (filter->IsEnabled())
-            {
-                result = filter->process(m_GraphData);
-            }
-            filter->toc();
-            if (filter->IsEnabled())
-            {
-                filter->processView(m_GraphData);
-            }
-            if (result != ProcessResult::OK) break;
-        }
-        m_GraphData.m_FrameNumber++;
-
-        return result;
-    }
-
-    // The main loop for the graph
-    // Controls loading and saving config data, and running, pausing, stepping, and stopping the graph
-
-    bool GraphManager::ProcessLoop()
-    {
-        bool fOK = true;
-        m_Stepping = false;
-        Processor filter;
-        ProcessResult result;
-
-        loadConfig();
-
-        // Let the filters know whether or not to use Cuda
-#ifdef WITH_CUDA
-        m_GraphData.m_UseCuda = m_UseCuda;
-#else
-        m_GraphData.m_UseCuda = false;
-#endif
-        // Init everybody
-        for (int i = 0; i < m_Filters.size(); i++) {
-            filter = m_Filters[i];
-            if (filter->IsEnabled()) {
-                fOK &= filter->init(m_GraphData);
-                if (!fOK) {
-                    m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
-                }
-            }
-        }
-
-        // main processing loop
-        while (fOK && !m_Aborting) {
-            // This should be the only waitKey() in the entire graph
-            int key = cv::waitKey(1);
-            if (m_GraphData.m_AbortOnESC && (key == 27)) {
-                fOK = false;
-                m_GraphState = GraphState::Stop;
-                break;
-            }
-
-            if (m_GraphState != GraphState::Run)
-            {
-                std::unique_lock<std::mutex> lk(m_mtx);
-
-                // wake up immedediately if signaled, 
-                // otherwise periodically to check for keyboard input when debugging / developing
-
-                m_cv.wait_for(lk, std::chrono::milliseconds(30), [=]() {return m_GraphState == GraphState::Stop; });
-            }
-
-            switch (m_GraphState) {
-            case GraphState::Stop:
-                // nothing to do
-                break;
-            case GraphState::Pause:
-                if (m_Stepping) {
-                    result = ProcessOne(key);
-                    fOK = fOK && (result != ProcessResult::Abort);
-                    {
-                        std::unique_lock<std::mutex> lk(m_mtx);
-                        m_CompletedStep = true;
-                        m_Stepping = false;
-                        m_cv.notify_all();
+                    fOK &= filter->init(m_GraphData);
+                    if (!fOK) {
+                        m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
                     }
                 }
-                break;
-            case GraphState::Run:
-                result = ProcessOne(key);
-                fOK = fOK && (result != ProcessResult::Abort);
-                break;
             }
 
-            // Callback to client app?
-            if (m_GraphCallback) {
-                fOK = (*m_GraphCallback)(this);
+            // main processing loop
+            while (fOK && !m_Aborting) {
+                // This should be the only waitKey() in the entire graph
+                int key = cv::waitKey(1);
+                if (m_GraphData.m_AbortOnESC && (key == 27)) {
+                    fOK = false;
+                    m_GraphState = GraphState::Stop;
+                    break;
+                }
+
+                if (m_GraphState != GraphState::Run)
+                {
+                    std::unique_lock<std::mutex> lk(m_mtx);
+
+                    // wake up immedediately if signaled, 
+                    // otherwise periodically to check for keyboard input when debugging / developing
+
+                    m_cv.wait_for(lk, std::chrono::milliseconds(30), [=]() {return m_GraphState == GraphState::Stop; });
+                }
+
+                switch (m_GraphState) {
+                case GraphState::Stop:
+                    // nothing to do
+                    break;
+                case GraphState::Pause:
+                    if (m_Stepping) {
+                        result = ProcessOne(key);
+                        fOK = fOK && (result != ProcessResult::Abort);
+                        {
+                            std::unique_lock<std::mutex> lk(m_mtx);
+                            m_CompletedStep = true;
+                            m_Stepping = false;
+                            m_cv.notify_all();
+                        }
+                    }
+                    break;
+                case GraphState::Run:
+                    result = ProcessOne(key);
+                    fOK = fOK && (result != ProcessResult::Abort);
+                    break;
+                }
+
+                // Callback to client app?
+                if (m_GraphCallback) {
+                    fOK = (*m_GraphCallback)(this);
+                }
             }
+
+            saveConfig();
+
+            // clean up
+            for (int i = 0; i < m_Filters.size(); i++) {
+                filter = m_Filters[i];
+                if (filter->IsEnabled()) {
+                    filter->fini(m_GraphData);
+                }
+            }
+
+            {
+                std::unique_lock<std::mutex> lk(m_mtx);
+                m_CompletedStep = true;
+                m_Stepping = false;
+                m_cv.notify_all();
+            }
+
+            // following causes race condition...
+            // cv::destroyAllWindows();
+
+            return fOK;
         }
 
-        saveConfig();
-
-        // clean up
-        for (int i = 0; i < m_Filters.size(); i++) {
-            filter = m_Filters[i];
-            if (filter->IsEnabled()) {
-                filter->fini(m_GraphData);
-            }
-        }
-
+        bool GraphManager::Step()
         {
-            std::unique_lock<std::mutex> lk(m_mtx);
-            m_CompletedStep = true;
-            m_Stepping = false;
-            m_cv.notify_all();
+            std::unique_lock<std::mutex> lck(m_mtx);
+
+            if (m_GraphState == GraphState::Pause)
+            {
+                m_CompletedStep = false;
+                m_Stepping = true;
+                m_cv.notify_all();
+                return true;
+            }
+            return false;
         }
 
-        // following causes race condition...
-        // cv::destroyAllWindows();
-
-        return fOK;
-    }
-
-    bool GraphManager::Step()
-    {
-        std::unique_lock<std::mutex> lck(m_mtx);
-
-        if (m_GraphState == GraphState::Pause)
+        bool GraphManager::GotoState(GraphState newState)
         {
-            m_CompletedStep = false;
-            m_Stepping = true;
+            std::unique_lock<std::mutex> lck(m_mtx);
+
+            m_GraphState = newState;
             m_cv.notify_all();
             return true;
         }
-        return false;
-    }
 
-    bool GraphManager::GotoState(GraphState newState)
-    {
-        std::unique_lock<std::mutex> lck(m_mtx);
-
-        m_GraphState = newState;
-        m_cv.notify_all();
-        return true;
-    }
-
-    bool AddFilter(Processor filter) {
-        if (m_GraphState == GraphState::Stop) {
-            m_Filters.push_back(filter);
-            return true;
+        bool AddFilter(Processor filter) {
+            if (m_GraphState == GraphState::Stop) {
+                m_Filters.push_back(filter);
+                return true;
+            }
+            else return false;
         }
-        else return false;
-    }
 
-    bool RemoveFilter(Processor filter) {
-        if (m_GraphState == GraphState::Stop) {
-            m_Filters.erase(std::remove(m_Filters.begin(), m_Filters.end(), filter), m_Filters.end());
-            m_Filters.push_back(filter);
-            return true;
+        bool RemoveFilter(Processor filter) {
+            if (m_GraphState == GraphState::Stop) {
+                m_Filters.erase(std::remove(m_Filters.begin(), m_Filters.end(), filter), m_Filters.end());
+                m_Filters.push_back(filter);
+                return true;
+            }
+            else return false;
         }
-        else return false;
-    }
 
-    void UseCuda(bool useCuda) {
-        if (m_GraphState == GraphState::Stop) {
-            m_UseCuda = useCuda;
+        void UseCuda(bool useCuda) {
+            if (m_GraphState == GraphState::Stop) {
+                m_UseCuda = useCuda;
+            }
         }
-    }
 
-    GraphData* getGraphData() { return &m_GraphData; }
+        GraphData* getGraphData() { return &m_GraphData; }
 
-    void GraphManager::saveConfig()
-    {
-        FileStorage fs(m_persistFile, FileStorage::WRITE);
-        if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
+        void GraphManager::saveConfig()
+        {
+            FileStorage fs(m_persistFile, FileStorage::WRITE);
+            if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
 
-        // Save state for the graph manager
-        fs << "GraphManager" << "{";
+            // Save state for the graph manager
+            fs << "GraphManager" << "{";
 
-        // Persist the filter data
-        fs << "Enabled" << m_Enabled;
-
-        cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
-
-        fs << "LogLevel" << m_LogLevel;
-        fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
-        fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
-        fs << "UseCuda" << m_UseCuda;
-        fs << "}";
-
-        // Save state for each filter
-        for (int i = 0; i < m_Filters.size(); i++) {
-            Processor filter = m_Filters[i];
-            m_GraphData.m_Logger->info() << filter->m_FilterName;
-            fs << filter->m_FilterName.c_str() << "{";
             // Persist the filter data
-            filter->saveConfig(fs, m_GraphData);
+            fs << "Enabled" << m_Enabled;
+
+            cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
+
+            fs << "LogLevel" << m_LogLevel;
+            fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
+            fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
+            fs << "UseCuda" << m_UseCuda;
             fs << "}";
-        }
-        fs.release();
-    }
 
-    void GraphManager::loadConfig()
-    {
-        FileStorage fs(m_persistFile, FileStorage::READ);
-        if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
-
-        auto node = fs["GraphManager"];
-        node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
-
-        if (!node["LogLevel"].empty()) {
-            node["LogLevel"] >> m_LogLevel;
-        }
-        if (!node["UseCuda"].empty()) {
-            node["UseCuda"] >> m_UseCuda;
-        }
-        if (!node["Enabled"].empty()) {
-            node["Enabled"] >> m_Enabled;
-        }
-        for (int i = 0; i < m_Filters.size(); i++) {
-            Processor filter = m_Filters[i];
-            auto node = fs[filter->m_FilterName.c_str()];
-            if (!node.empty()) {
-                filter->loadConfig(node, m_GraphData);
+            // Save state for each filter
+            for (int i = 0; i < m_Filters.size(); i++) {
+                Processor filter = m_Filters[i];
+                m_GraphData.m_Logger->info() << filter->m_FilterName;
+                fs << filter->m_FilterName.c_str() << "{";
+                // Persist the filter data
+                filter->saveConfig(fs, m_GraphData);
+                fs << "}";
             }
+            fs.release();
         }
-        fs.release();
-    }
 
-    std::mutex& getWaitMutex() { return m_mtx; }
-    std::condition_variable& getConditionalVariable () { return m_cv; }
-    bool CompletedStep() { return m_CompletedStep; }
-    bool IsEnabled() { return m_Enabled; }
-    void Abort() { m_Aborting = true; }
-    bool IsAborted() { return m_Aborting; }
-    bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }
+        void GraphManager::loadConfig()
+        {
+            FileStorage fs(m_persistFile, FileStorage::READ);
+            if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
+
+            auto node = fs["GraphManager"];
+            node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
+
+            if (!node["LogLevel"].empty()) {
+                node["LogLevel"] >> m_LogLevel;
+            }
+            if (!node["UseCuda"].empty()) {
+                node["UseCuda"] >> m_UseCuda;
+            }
+            if (!node["Enabled"].empty()) {
+                node["Enabled"] >> m_Enabled;
+            }
+            for (int i = 0; i < m_Filters.size(); i++) {
+                Processor filter = m_Filters[i];
+                auto node = fs[filter->m_FilterName.c_str()];
+                if (!node.empty()) {
+                    filter->loadConfig(node, m_GraphData);
+                }
+            }
+            fs.release();
+        }
+
+        std::mutex& getWaitMutex() { return m_mtx; }
+        std::condition_variable& getConditionalVariable() { return m_cv; }
+        bool CompletedStep() { return m_CompletedStep; }
+        bool IsEnabled() { return m_Enabled; }
+        void Abort() { m_Aborting = true; }
+        bool IsAborted() { return m_Aborting; }
+        bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }
 
     private:
-        std::string m_Name;                 
+        std::string m_Name;
         string m_persistFile;
         GraphCallback m_GraphCallback;
         bool m_Enabled = true;

@@ -58,8 +58,8 @@ namespace openCVGraph
         {
             if (m_WriteNextImage && !(m_WriteCaptureStream ? graphData.m_imCap16UC1 : graphData.m_imOut16UC1).empty()) {
                 string fullName;
-                if (m_UseSourceFileName && !graphData.m_LastSourceFileName.empty()) {
-                    auto s = graphData.m_LastSourceFileName;
+                if (m_UseSourceFileName && !graphData.m_SourceFileName.empty()) {
+                    auto s = graphData.m_SourceFileName;
                     // strip off the path and add new directory
                     fullName = m_Directory + '/' + s.substr(s.find_last_of("\\/"), s.npos);
                 }

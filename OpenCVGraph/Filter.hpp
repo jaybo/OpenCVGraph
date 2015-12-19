@@ -12,6 +12,19 @@ using namespace std;
 namespace openCVGraph
 {
 
+    //
+    // Result of calling "process()" on each filter
+    //
+    enum ProcessResult {
+        OK,             // Normal result, continue through the processing loop
+        Abort,          // Catastropic error, abort
+        Continue,       // GoTo beginning of the loop.  Averaging filters will issue this result until they've accumulated enough images.
+    };
+
+    // Filter
+    // Performs discrete work on image stream
+    //
+
     class Filter
     {
     public:

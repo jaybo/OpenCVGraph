@@ -6,6 +6,7 @@ Python wrapper for functionality exposed in the TemcaGraph dll.
 """
 from ctypes import *
 import logging
+import threading
 import time
 import os
 import numpy as np
@@ -78,8 +79,15 @@ class TemcaGraph(object):
     """
     def __init__(self, graphType='default'):
         t = time.clock()
+        self.eventInitCompleted = threading.Event()
+        self.eventStartNewFrame = threading.Event()
+        self.eventCaptureCompleted = threading.Event()
+        self.eventProcessingCompleted = threading.Event()
+        self.eventFiniCompleted = threading.Event()
+
         if not TemcaGraphDLL.init(graphType):
             raise EnvironmentError ('Cannot create graphType: ' + graphType + '. Other possiblities: camera, is offline, not installed, or already in use')
+
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock()-t))
 
     def fini(self):
@@ -103,9 +111,10 @@ class TemcaGraph(object):
         ''' Called by the c++ Temca graph runner whenever status changes:
             status values:
                 0: finishied init (startup)
-                1: finished frame capture  (ie. time to move the stage)
-                2: finished frame processing and file writing
-                3: finished fini (shutdown)
+                1: starting new frame
+                2: finished frame capture  (ie. time to move the stage)
+                3: finished frame processing and file writing
+                4: finished fini (shutdown)
             error values:
                 0: no error
                 ...
@@ -113,9 +122,25 @@ class TemcaGraph(object):
         status = statusInfo.contents.status
         error = statusInfo.contents.error_code
         logging.info ('callback status: ' + str(status) + ', error: ' + str(error))
+        tid = threading.currentThread()
+
+        if status == 0:
+            self.eventInitCompleted.set()
+        elif status == 1:
+            self.eventProcessingCompleted.clear()
+            self.eventStartNewFrame.set()
+        elif status == 2:
+            self.eventCaptureCompleted.set()
+        elif status == 3:
+            self.eventCaptureCompleted.clear()
+            self.eventStartNewFrame.clear()
+            self.eventProcessingCompleted.set()
+        elif status == 4:
+            self.eventFiniCompleted.set()
         if error != 0:
             error_string = statusInfo.contents.error_string
             logging.error ('callback error is' + error_string)
+
         return True
     
     def registerNotifyCallback(self, callback):
@@ -141,18 +166,27 @@ if __name__ == '__main__':
     w = fi.width
     h = fi.height
     camera_id = fi.camera_id
+    tid = threading.currentThread()
 
     #stat = temcaGraph.get_status()
     #status = stat.status
     #error_string = stat.error_string
 
-    im = np.zeros((w, h), dtype=np.uint32);
+    waitTime = 30.0
+    #temcaGraph.eventInitCompleted.wait(waitTime)
+
+    #im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
-    for f in range(5):
+    for f in range(10):
+        logging.info ('start frame: ' + str(frameCounter))
+        #temcaGraph.eventStartNewFrame.wait(waitTime)
         temcaGraph.grab_frame()
-        time.sleep(0.5)
+        temcaGraph.eventCaptureCompleted.wait(waitTime)
+        temcaGraph.eventProcessingCompleted.wait(waitTime)
+        frameCounter += 1
+        #time.sleep(0.5)
 
     temcaGraph.fini()
 
