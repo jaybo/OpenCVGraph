@@ -28,9 +28,9 @@ typedef struct tFocusInfo {
 
 
 extern "C" {
-    __declspec(dllexport) bool init(const char* graphType);
+    __declspec(dllexport) bool init(const char* graphType, StatusCallbackType callback);
     __declspec(dllexport) bool fini();
-    __declspec(dllexport) void RegisterNotifyCallback(StatusCallbackType callback);
+    //__declspec(dllexport) void RegisterNotifyCallback(StatusCallbackType callback);
 
     __declspec(dllexport) void grabFrame(const char* filename);
 

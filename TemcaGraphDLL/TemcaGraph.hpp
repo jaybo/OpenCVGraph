@@ -188,9 +188,11 @@ public:
     }
 
     // Create all graphs 
-    bool init(const char * graphType)
+    bool init(const char * graphType, StatusCallbackType callback)
     {
         bool fOK = true;
+
+        m_PythonCallback = callback;
 
         // Create the graphs
         m_gmCapture = GraphCamXimea();
@@ -386,7 +388,7 @@ private:
 
 Temca * pTemca = NULL;
 
-bool init(const char* graphType)
+bool init(const char* graphType, StatusCallbackType callback)
 {
     string s = string(graphType);
 
@@ -398,8 +400,9 @@ bool init(const char* graphType)
         return false;
     }
 
+
     bool fOK = true;
-    fOK = pTemca->init(graphType);
+    fOK = pTemca->init(graphType, callback);
     pTemca->StartThread();
     return fOK;
 }

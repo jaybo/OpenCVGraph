@@ -51,14 +51,10 @@ class TemcaGraphDLL(object):
     _TemcaGraphDLL = WinDLL(dll_path)
 
     init = _TemcaGraphDLL.init
-    init.argtypes = [c_char_p]
+    init.argtypes = [c_char_p, STATUSCALLBACKFUNC]
     init.restype = c_uint32
 
     fini = _TemcaGraphDLL.fini
-
-    register_notify_callback = _TemcaGraphDLL.RegisterNotifyCallback
-    register_notify_callback.argtypes = [STATUSCALLBACKFUNC]
-    register_notify_callback.restype = None
 
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p]
@@ -77,7 +73,12 @@ class TemcaGraph(object):
     Args:
 
     """
-    def __init__(self, graphType='default'):
+    def __init__(self, graphType='default', callback = None):
+        if callback == None:
+            callback = self.statusCallback
+        # prevent the callback from being garbage collected
+        self.callback = STATUSCALLBACKFUNC(callback)
+
         t = time.clock()
         self.eventInitCompleted = threading.Event()
         self.eventStartNewFrame = threading.Event()
@@ -85,7 +86,7 @@ class TemcaGraph(object):
         self.eventProcessingCompleted = threading.Event()
         self.eventFiniCompleted = threading.Event()
 
-        if not TemcaGraphDLL.init(graphType):
+        if not TemcaGraphDLL.init(graphType, self.callback):
             raise EnvironmentError ('Cannot create graphType: ' + graphType + '. Other possiblities: camera, is offline, not installed, or already in use')
 
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock()-t))
@@ -143,13 +144,6 @@ class TemcaGraph(object):
 
         return True
     
-    def registerNotifyCallback(self, callback):
-        #prevent garbage collection of callback func
-        self.callback = STATUSCALLBACKFUNC(callback)
-        TemcaGraphDLL.register_notify_callback(self.callback)
-
-def foo(statusInfo):
-    return True
 
 if __name__ == '__main__':
      
@@ -160,7 +154,6 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
-    temcaGraph.registerNotifyCallback(temcaGraph.statusCallback)
 
     fi = temcaGraph.get_frame_info()
     w = fi.width
@@ -172,22 +165,23 @@ if __name__ == '__main__':
     #status = stat.status
     #error_string = stat.error_string
 
-    waitTime = 30.0
-    #temcaGraph.eventInitCompleted.wait(waitTime)
+    waitTime = None
+    temcaGraph.eventInitCompleted.wait(waitTime)
 
     #im = np.zeros((w, h), dtype=np.uint32);
 
     frameCounter = 0
 
-    for f in range(10):
+    for f in range(100):
         logging.info ('start frame: ' + str(frameCounter))
-        #temcaGraph.eventStartNewFrame.wait(waitTime)
+        temcaGraph.eventStartNewFrame.wait(waitTime)
         temcaGraph.grab_frame()
         temcaGraph.eventCaptureCompleted.wait(waitTime)
         temcaGraph.eventProcessingCompleted.wait(waitTime)
         frameCounter += 1
         #time.sleep(0.5)
 
+    temcaGraph.eventFiniCompleted(waitTime)
     temcaGraph.fini()
 
     #while True:

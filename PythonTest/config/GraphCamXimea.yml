@@ -11,10 +11,10 @@ CamXimea:
    ShowView: 1
    ShowViewControls: 1
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "108.8"
-   Duration_MS_Min: "106.9"
-   Duration_MS_Max: "114.9"
-   Duration_MS_Last: "108.6"
+   Duration_MS_Mean: "108.9"
+   Duration_MS_Min: "106.4"
+   Duration_MS_Max: "114.4"
+   Duration_MS_Last: "114.4"
    camera_index: 0
    minimum_buffers: 1
    aperture: 1200
@@ -32,9 +32,9 @@ BrightDark:
    ShowView: 0
    ShowViewControls: 0
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "11.7"
+   Duration_MS_Mean: "11.8"
    Duration_MS_Min: "11.4"
-   Duration_MS_Max: "13.7"
+   Duration_MS_Max: "14.0"
    Duration_MS_Last: "11.4"
    bright_field_path: "config/BrightField.tif"
    dark_field_path: "config/DarkField.tif"
