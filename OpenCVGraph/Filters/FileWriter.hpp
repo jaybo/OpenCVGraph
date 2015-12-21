@@ -58,13 +58,18 @@ namespace openCVGraph
         {
             if (m_WriteNextImage && !(m_WriteCaptureStream ? graphData.m_imCap16UC1 : graphData.m_imOut16UC1).empty()) {
                 string fullName;
-                if (m_UseSourceFileName && !graphData.m_SourceFileName.empty()) {
-                    auto s = graphData.m_SourceFileName;
+                if (m_UseSourceFileName && !graphData.m_CommonData->m_SourceFileName.empty()) {
+                    auto s = graphData.m_CommonData->m_SourceFileName;
                     // strip off the path and add new directory
                     fullName = m_Directory + '/' + s.substr(s.find_last_of("\\/"), s.npos);
                 }
                 else {
-                    fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
+                    if (!graphData.m_CommonData->m_DestinationFileName.empty()) {
+                        fullName = graphData.m_CommonData->m_DestinationFileName;
+                    }
+                    else {
+                        fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_CommonData->m_FrameNumber) + m_Ext;
+                    }
                 }
                 vector<int> params = { 
                     259,1,      // No compression, turn off LZW

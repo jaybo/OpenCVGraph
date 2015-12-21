@@ -35,7 +35,8 @@ bool graphCallback(GraphManager* graphManager) {
 void GraphWebCam()
 {
     // Create a graph
-    GraphManager graph1("GraphWebCam", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphWebCam", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
@@ -73,7 +74,8 @@ void GraphWebCam()
 void GraphImageDir()
 {
     // Create a graph
-    GraphManager graph1("GraphImageDir", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphImageDir", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     graph1.UseCuda(false);
@@ -103,7 +105,8 @@ void GraphImageDir()
 void GraphCopyOldTEMCAUpshifted()
 {
     // Create a graph
-    GraphManager graph1("GraphCopyOldTEMCAUpshifted", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphCopyOldTEMCAUpshifted", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
@@ -124,7 +127,8 @@ void GraphCopyOldTEMCAUpshifted()
 void GraphXimea()
 {
     // Create a graph
-    GraphManager graph1("GraphXimea", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphXimea", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 1024, 1024));
@@ -171,7 +175,7 @@ int main()
 {
     // GraphCopyOldTEMCAUpshifted();
 
-    GraphWebCam();
+    // GraphWebCam();
     //GraphImageDir();
 #ifdef WITH_CUDA
     GraphXimea();

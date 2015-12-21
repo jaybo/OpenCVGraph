@@ -28,7 +28,8 @@ bool graphCallback(GraphManager* graphManager)
 GraphManager* GraphWebCam()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter camera(new CamDefault("WebCam", *gd, CV_8UC3));
@@ -41,7 +42,8 @@ GraphManager* GraphWebCam()
 GraphManager* GraphCamXimea()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimea2", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager *graph = new GraphManager("GraphCamXimea2", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
@@ -53,7 +55,8 @@ GraphManager* GraphCamXimea()
 GraphManager* GraphFileWriter()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
@@ -65,7 +68,8 @@ GraphManager* GraphFileWriter()
 GraphManager* GraphCanny()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCanny", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager *graph = new GraphManager("GraphCanny", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter canny(new openCVGraph::Canny("Canny", *gd, CV_8UC3));
@@ -78,7 +82,8 @@ GraphManager* GraphCanny()
 GraphManager* GraphCartoon()
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCartoon", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager *graph = new GraphManager("GraphCartoon", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", *gd, CV_8UC3));
@@ -93,7 +98,8 @@ GraphManager* GraphCartoon()
 void GraphImageDir()
 {
     // Create a graph
-    GraphManager graph1("GraphImageDir", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphImageDir", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     graph1.UseCuda(false);
@@ -117,7 +123,8 @@ void GraphImageDir()
 void GraphXimea()
 {
     // Create a graph
-    GraphManager graph1("GraphXimea", true, graphCallback);
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph1("GraphXimea", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
     CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 1024, 1024));

@@ -24,7 +24,7 @@ namespace openCVGraph
             Run
         };
 
-        GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, bool useCuda = true)
+        GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, GraphCommonData *commonData, bool useCuda = true)
         {
             // Set up logging
             try
@@ -51,8 +51,10 @@ namespace openCVGraph
 
             m_Name = name;
             m_GraphData.m_GraphName = m_Name;
+            m_GraphData.m_CommonData = commonData;
             m_GraphData.m_AbortOnESC = abortOnESC;
             m_GraphCallback = callback;
+
             m_GraphData.m_Logger = m_Logger;
             m_UseCuda = useCuda;
 
@@ -120,7 +122,7 @@ namespace openCVGraph
                 }
                 if (result != ProcessResult::OK) break;
             }
-            m_GraphData.m_FrameNumber++;
+            m_GraphData.m_CommonData->m_FrameNumber++;
 
             return result;
         }

@@ -190,7 +190,7 @@ namespace openCVGraph
             m_firstTime = false;
 
             // let the camera stabilize
-            // if (graphData.m_FrameNumber < 2) return true;
+            // if (graphData.m_CommonData->m_FrameNumber < 2) return true;
 
             m_N++;  // count of frames processed
 
@@ -244,7 +244,7 @@ namespace openCVGraph
             DrawOverlayTextMono(str.str(), Point(posLeft, 460), scale);
 
             str.str("");
-            str << m_N << "/" << graphData.m_FrameNumber;
+            str << m_N << "/" << graphData.m_CommonData->m_FrameNumber;
             DrawOverlayTextMono(str.str(), Point(posLeft, 500), scale);
 
             auto histSize = Size(512, 200);

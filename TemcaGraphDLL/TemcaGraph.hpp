@@ -26,10 +26,10 @@ bool graphCallback(GraphManager* graphManager)
     return true;
 }
 
-GraphManager* GraphWebCam()
+GraphManager* GraphWebCam(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter camera(new CamDefault("WebCam", *gd, CV_8UC3));
@@ -39,10 +39,10 @@ GraphManager* GraphWebCam()
 }
 
 
-GraphManager* GraphCamXimea()
+GraphManager* GraphCamXimea(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback);
+    GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
@@ -55,10 +55,10 @@ GraphManager* GraphCamXimea()
     return graph;
 }
 
-GraphManager* GraphFileWriter()
+GraphManager* GraphFileWriter(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, false);
+    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, commonData, false);
     GraphData* gd = graph->getGraphData();
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
@@ -67,10 +67,10 @@ GraphManager* GraphFileWriter()
     return graph;
 }
 
-GraphManager* GraphQC()
+GraphManager* GraphQC(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, true);
+    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, commonData, true);
     GraphData* gd = graph->getGraphData();
 
 #ifdef WITH_CUDA
@@ -87,10 +87,10 @@ GraphManager* GraphQC()
     return graph;
 }
 
-GraphManager* GraphStitchingCheck()
+GraphManager* GraphStitchingCheck(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, true);
+    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, commonData, true);
     GraphData* gd = graph->getGraphData();
 
     //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
@@ -99,10 +99,10 @@ GraphManager* GraphStitchingCheck()
     return graph;
 }
 
-GraphManager* GraphImageDir()
+GraphManager* GraphImageDir(GraphCommonData * commonData)
 {
     // Create a graph
-    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback);
+    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
     graph->UseCuda(false);
@@ -198,10 +198,10 @@ public:
         m_PythonCallback = callback;
 
         // Create the graphs
-        m_gmCapture = GraphCamXimea();
-        m_gmFileWriter = GraphFileWriter();
-        m_gmQC = GraphQC();
-        m_gmStitchingCheck = GraphStitchingCheck();
+        m_gmCapture = GraphCamXimea(m_graphCommonData);
+        m_gmFileWriter = GraphFileWriter(m_graphCommonData);
+        m_gmQC = GraphQC(m_graphCommonData);
+        m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
 
         // Create the graphs steps.  
         // Each step runs to completion.  
@@ -251,12 +251,14 @@ public:
         m_Logger->info("Temca fini ------------------------------------------------");
     }
 
-    void GrabFrame(const char * filename)
+    void GrabFrame(const char * filename, int roiX, int roiY)
     {
         std::unique_lock<std::mutex> lk(m_mtx);
         m_CompletedStep = false;
         m_Stepping = true;
-        m_CaptureFileName = string(filename);
+        m_graphCommonData->m_DestinationFileName = filename;
+        m_graphCommonData->m_roiX = roiX;
+        m_graphCommonData->m_roiY = roiY;
         m_cv.notify_all();
     }
 
@@ -272,12 +274,16 @@ private:
     GraphManager* m_gmQC = NULL;
     GraphManager* m_gmStitchingCheck = NULL;
 
+    GraphCommonData *m_graphCommonData = new GraphCommonData();
+
     // Bundled graphs which step together
     GraphParallelStep* m_StepCapture = NULL;
     GraphParallelStep* m_StepPostCapture = NULL;
 
     std::list<GraphParallelStep*> m_Steps;
     std::list<GraphParallelStep*> m_StepsPostCapture;
+
+
 
     bool m_Enabled = true;
     std::atomic_bool m_Aborting = false;
@@ -310,7 +316,7 @@ private:
             m_PythonInfo.status = status;
             m_PythonInfo.error_code = error;
             strcpy_s(m_PythonInfo.error_string, errorString);
-            fOK = (bool) ((m_PythonCallback)(&m_PythonInfo));
+            fOK = (bool) (((m_PythonCallback)(&m_PythonInfo)));
         }
         return fOK;
     }
@@ -421,10 +427,10 @@ bool fini()
 }
 
 
-void grabFrame(const char * filename)
+void grabFrame(const char * filename, UINT32 roiX, UINT32 roiY)
 {
     if (pTemca) {
-        pTemca->GrabFrame(filename);
+        pTemca->GrabFrame(filename, roiX, roiY);
     }
 }
 
@@ -452,8 +458,8 @@ FocusInfo getFocus() {
     return fi;
 }
 
-void setROI(tROIInfo * roiInfo) {
+void setROI(const ROIInfo *  roiInfo) {
     if (pTemca) {
-        pTemca->setROIInfo(roiInfo);
+        //pTemca->setROIInfo(roiInfo);
     }
 }

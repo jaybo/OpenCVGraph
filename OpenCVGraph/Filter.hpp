@@ -141,7 +141,7 @@ namespace openCVGraph
             std::string tmp;
             strT << fixed << setprecision(1);
 
-            strT << (m_DurationMSSum / ((data.m_FrameNumber == 0) ? 1 : data.m_FrameNumber));
+            strT << (m_DurationMSSum / ((data.m_CommonData->m_FrameNumber == 0) ? 1 : data.m_CommonData->m_FrameNumber));
             tmp = strT.str();
             fs << "Duration_MS_Mean" << tmp.c_str();
             m_Logger->info("Duration_MS_Mean: " + tmp);

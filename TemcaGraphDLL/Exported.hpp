@@ -35,9 +35,9 @@ extern "C" {
     __declspec(dllexport) bool init(const char* graphType, StatusCallbackType callback);
     __declspec(dllexport) bool fini();
 
-    __declspec(dllexport) void defineROI(const tROIInfo * roiInfo);
+    __declspec(dllexport) void setROI(const ROIInfo * roiInfo);
 
-    __declspec(dllexport) void grabFrame(const char* filename);
+    __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
 
     __declspec(dllexport) tFrameInfo getFrameInfo();
     __declspec(dllexport) tStatusCallbackInfo getStatus();

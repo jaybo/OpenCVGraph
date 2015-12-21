@@ -63,8 +63,8 @@ class TemcaGraphDLL(object):
     fini = _TemcaGraphDLL.fini
 
     grab_frame = _TemcaGraphDLL.grabFrame
-    grab_frame.argtypes = [c_char_p]
-    grab_frame.restype = c_uint32
+    grab_frame.argtypes = [c_char_p, c_int, c_int]
+    grab_frame.restype = None
 
     frame_info = _TemcaGraphDLL.getFrameInfo
     frame_info.restype = FrameInfo
@@ -72,8 +72,9 @@ class TemcaGraphDLL(object):
     get_status = _TemcaGraphDLL.getStatus
     get_status.restype = StatusCallbackInfo
 
-    set_roi_info = _TemcaGraphDLL.setROIINfo
-    set_roi_info.argtypes [ POINTER(ROIInfo)]
+    setRoiInfo = _TemcaGraphDLL.setROI
+    setRoiInfo .restype = None
+    setRoiInfo .argtypes = [ POINTER( ROIInfo) ]
 
 class TemcaGraph(object):
     """
@@ -110,11 +111,14 @@ class TemcaGraph(object):
     def get_status(self):
         return TemcaGraphDLL.get_status()
 
-    def grab_frame(self, filename = "none"):
-        TemcaGraphDLL.grab_frame(filename)
+    def grab_frame(self, filename = "none", roiX = 0, roiY = 0):
+        TemcaGraphDLL.grab_frame(filename, roiX, roiY)
 
     def get_last_image(self):
         pass
+
+    def set_roi_info (self, roiInfo):
+        TemcaGraphDLL.setRoiInfo (roiInfo)
 
     def statusCallback (self, statusInfo):
         ''' Called by the c++ Temca graph runner whenever status changes:
@@ -163,31 +167,34 @@ if __name__ == '__main__':
 
     temcaGraph = TemcaGraph()
 
+    # get info about frame dimensions
     fi = temcaGraph.get_frame_info()
     w = fi.width
     h = fi.height
     camera_id = fi.camera_id
-    tid = threading.currentThread()
-
-    #stat = temcaGraph.get_status()
-    #status = stat.status
-    #error_string = stat.error_string
 
     waitTime = None
+
+    # wait for graph to complete initialization
     temcaGraph.eventInitCompleted.wait(waitTime)
 
-    #im = np.zeros((w, h), dtype=np.uint32);
+    # set ROI grid size (for stitching only)
+    roiInfo = ROIInfo()
+    roiInfo.gridX = 2
+    roiInfo.gridY = 2
+    temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
 
-    for f in range(100):
-        logging.info ('start frame: ' + str(frameCounter))
-        temcaGraph.eventStartNewFrame.wait(waitTime)
-        temcaGraph.grab_frame()
-        temcaGraph.eventCaptureCompleted.wait(waitTime)
-        temcaGraph.eventProcessingCompleted.wait(waitTime)
-        frameCounter += 1
-        #time.sleep(0.5)
+    for y in range(roiInfo.gridY):
+        for x in range (roiInfo.gridX):
+            temcaGraph.eventStartNewFrame.wait(waitTime)
+            temcaGraph.grab_frame('j:/junk/frame' + str(frameCounter) + '.tif', x, y)
+            temcaGraph.eventCaptureCompleted.wait(waitTime)
+
+            # move stage here
+            temcaGraph.eventProcessingCompleted.wait(waitTime)
+            frameCounter += 1
 
     temcaGraph.eventFiniCompleted(waitTime)
     temcaGraph.fini()

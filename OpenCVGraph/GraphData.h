@@ -8,6 +8,21 @@ using namespace spdlog;
 
 namespace openCVGraph
 {
+
+    // Container for data which is shared by ALL graphs
+
+    class GraphCommonData {
+    public:
+        int m_FrameNumber = 0;                  // Current frame being processed.
+        int m_roiX;
+        int m_roiY;
+        string m_SourceFileName;                // Used when source images come from file, directory, or movie
+        string m_DestinationFileName;           // Name of output file
+
+        std::shared_ptr<logger> m_Logger;
+    };
+
+
     //
     // Container for all mats and data which flows through the graph
     //
@@ -57,9 +72,10 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imOutGpu32FC1;
 #endif
 
-		int m_FrameNumber = 0;                  // Current frame being processed.
-        string m_SourceFileName;                // Used when source images come from file, directory, or movie
-        string m_DestinationFileName;           // Name of output file
+        GraphCommonData * m_CommonData;
+		//int m_FrameNumber = 0;                  // Current frame being processed.
+        //string m_SourceFileName;                // Used when source images come from file, directory, or movie
+        //string m_DestinationFileName;           // Name of output file
 
         std::shared_ptr<logger> m_Logger;
 
