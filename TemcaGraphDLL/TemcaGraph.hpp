@@ -48,9 +48,10 @@ GraphManager* GraphCamXimea()
     CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
     graph->AddFilter(camera);
 
+#ifdef WITH_CUDA
     CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", *gd, CV_16UC1));
     graph->AddFilter(fbrightDark);
-
+#endif
     return graph;
 }
 
@@ -72,8 +73,10 @@ GraphManager* GraphQC()
     GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, true);
     GraphData* gd = graph->getGraphData();
 
+#ifdef WITH_CUDA
     CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
     graph->AddFilter(fFocusSobel);
+#endif
 
     //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
     //graph->AddFilter(fFocusFFT);
@@ -257,8 +260,8 @@ public:
         m_cv.notify_all();
     }
 
-    void SetPythonCallback(StatusCallbackType callback) {
-        m_PythonCallback = callback;
+    void setROIInfo(const ROIInfo * roiInfo) {
+        m_ROIInfo = *roiInfo;
     }
 
 private:
@@ -298,6 +301,8 @@ private:
     // callback to python
     StatusCallbackInfo m_PythonInfo = { 0 };
     StatusCallbackType m_PythonCallback = NULL;
+
+    ROIInfo m_ROIInfo = { 0 };
 
     bool PythonCallback(int status, int error, char * errorString) {
         bool fOK = true;
@@ -447,8 +452,8 @@ FocusInfo getFocus() {
     return fi;
 }
 
-void RegisterNotifyCallback(StatusCallbackType callback) {
+void setROI(tROIInfo * roiInfo) {
     if (pTemca) {
-        pTemca->SetPythonCallback(callback);
+        pTemca->setROIInfo(roiInfo);
     }
 }

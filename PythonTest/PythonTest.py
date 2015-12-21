@@ -43,6 +43,12 @@ class FocusInfo(Structure):
         ("angle", c_float),
         ]
 
+class ROIInfo(Structure):
+    _fields_ = [
+        ("gridX", c_int),
+        ("gridY", c_int),
+        ]
+
 class TemcaGraphDLL(object):
     """
     dll setup.  These are all the foreign functions we are going to be using
@@ -66,6 +72,8 @@ class TemcaGraphDLL(object):
     get_status = _TemcaGraphDLL.getStatus
     get_status.restype = StatusCallbackInfo
 
+    set_roi_info = _TemcaGraphDLL.setROIINfo
+    set_roi_info.argtypes [ POINTER(ROIInfo)]
 
 class TemcaGraph(object):
     """
