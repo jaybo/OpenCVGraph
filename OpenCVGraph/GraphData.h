@@ -14,17 +14,18 @@ namespace openCVGraph
     class GraphCommonData {
     public:
         int m_FrameNumber = 0;                  // Current frame being processed.
-        int m_roiX;
-        int m_roiY;
+        int m_roiX;                             // position in ROI grid
+        int m_roiY;                             
         string m_SourceFileName;                // Used when source images come from file, directory, or movie
         string m_DestinationFileName;           // Name of output file
 
-        std::shared_ptr<logger> m_Logger;
+        //std::shared_ptr<logger> m_Logger;
     };
 
 
     //
-    // Container for all mats and data which flows through the graph
+    // Container for all mats and data which flows through the graph.  
+    // Each graph has its own GraphData (with unique Mat headers) but actual Mat data is often shared between graphs.
     //
 
 	class  GraphData {
@@ -73,10 +74,6 @@ namespace openCVGraph
 #endif
 
         GraphCommonData * m_CommonData;
-		//int m_FrameNumber = 0;                  // Current frame being processed.
-        //string m_SourceFileName;                // Used when source images come from file, directory, or movie
-        //string m_DestinationFileName;           // Name of output file
-
         std::shared_ptr<logger> m_Logger;
 
         // A capture or source filter has already put an image into m_imCapture.

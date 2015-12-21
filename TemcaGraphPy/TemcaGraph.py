@@ -20,7 +20,12 @@ dll_path = os.path.join(os.path.dirname(__file__), rel)
 
 class StatusCallbackInfo(Structure):
     _fields_ = [
-        ("status", c_int), # // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
+        ("status", c_int), 
+        # 0: finishied init (startup), 
+        # 1: starting new frame, 
+        # 2: finished frame capture  (ie. time to move the stage), 
+        # 3: finished frame processing and file writing, 
+        # 4: finished fini (shutdown)
         ("error_code", c_int),
         ("error_string", c_char * 256)
         ]
@@ -62,12 +67,16 @@ class TemcaGraphDLL(object):
 
     fini = _TemcaGraphDLL.fini
 
+    frame_info = _TemcaGraphDLL.getFrameInfo
+    frame_info.restype = FrameInfo
+
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p, c_int, c_int]
     grab_frame.restype = None
-
-    frame_info = _TemcaGraphDLL.getFrameInfo
-    frame_info.restype = FrameInfo
+    
+    #get_last_frame = _TemcaGraphDLL.getLastFrame
+    #get_last_frame.argtypes = [POINTER (c_byte)]
+    #get_last_frame.restype = None
 
     get_status = _TemcaGraphDLL.getStatus
     get_status.restype = StatusCallbackInfo
@@ -78,11 +87,11 @@ class TemcaGraphDLL(object):
 
 class TemcaGraph(object):
     """
-
-    Args:
-
+    Wrapper for the C++ TemcaGraphDLL
     """
     def __init__(self, graphType='default', callback = None):
+        ''' graphType: 'default', 'dummy'
+        '''
         if callback == None:
             callback = self.statusCallback
         # prevent the callback from being garbage collected
@@ -101,6 +110,8 @@ class TemcaGraph(object):
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock()-t))
 
     def fini(self):
+        ''' Closing down all graphs
+        '''
         TemcaGraphDLL.fini()
 
     def get_frame_info(self):
@@ -112,9 +123,13 @@ class TemcaGraph(object):
         return TemcaGraphDLL.get_status()
 
     def grab_frame(self, filename = "none", roiX = 0, roiY = 0):
+        ''' Trigger capture of a frame.
+        '''
         TemcaGraphDLL.grab_frame(filename, roiX, roiY)
 
-    def get_last_image(self):
+    def get_last_frame(self):
+        ''' get a copy of the last frame captured.  This must be called only after eventCaptureCompleted is signaled.
+        '''
         pass
 
     def set_roi_info (self, roiInfo):
@@ -166,12 +181,15 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
+    #temcaGraph = TemcaGraph('dummy')
 
     # get info about frame dimensions
     fi = temcaGraph.get_frame_info()
     w = fi.width
     h = fi.height
     camera_id = fi.camera_id
+
+
 
     waitTime = None
 
@@ -196,24 +214,7 @@ if __name__ == '__main__':
             temcaGraph.eventProcessingCompleted.wait(waitTime)
             frameCounter += 1
 
-    temcaGraph.eventFiniCompleted(waitTime)
     temcaGraph.fini()
+    temcaGraph.eventFiniCompleted.wait(waitTime)
 
-    #while True:
-        #t = time.clock()
-        #sapera.queue_frame()
-        #frame = sapera.grab_frame()
-
-        #frameCounter += 1
-
-        ##frame = frame[
-        #fmin = np.min(frame)
-        #fmax = np.max(frame)
-        #print((time.clock()-t)*1000, fmin, fmax)
-        #resized = cv2.resize(frame, (frame.shape[0] / 2, frame.shape[1] / 2), interpolation = cv2.INTER_NEAREST)
-        #scaled = resized * 4 # from 14 to 16 bits
-        #cv2.imshow("TEST", scaled)
-        #k = cv2.waitKey(1)
-        #if k == 27:
-        #    break
-  
+ 

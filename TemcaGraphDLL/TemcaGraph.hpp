@@ -32,7 +32,7 @@ GraphManager* GraphWebCam(GraphCommonData * commonData)
     GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamDefault("WebCam", *gd, CV_8UC3));
+    CvFilter camera(new CamDefault("WebCam", *gd, CV_16UC1));
     graph->AddFilter(camera);
 
     return graph;
@@ -46,6 +46,23 @@ GraphManager* GraphCamXimea(GraphCommonData * commonData)
     GraphData* gd = graph->getGraphData();
 
     CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
+    graph->AddFilter(camera);
+
+#ifdef WITH_CUDA
+    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", *gd, CV_16UC1));
+    graph->AddFilter(fbrightDark);
+#endif
+    return graph;
+}
+
+
+GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
+{
+    // Create a graph
+    GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, commonData);
+    GraphData* gd = graph->getGraphData();
+
+    CvFilter camera(new CamDefault("CamXimeaDummy", *gd, CV_16UC1, 3840, 3840));
     graph->AddFilter(camera);
 
 #ifdef WITH_CUDA
@@ -194,11 +211,16 @@ public:
     bool init(const char * graphType, StatusCallbackType callback)
     {
         bool fOK = true;
-
+        string sGraphType(graphType);
         m_PythonCallback = callback;
 
         // Create the graphs
-        m_gmCapture = GraphCamXimea(m_graphCommonData);
+        if (sGraphType == "dummy") {
+            m_gmCapture = GraphCamXimeaDummy(m_graphCommonData);
+        }
+        else {
+            m_gmCapture = GraphCamXimea(m_graphCommonData);
+        }
         m_gmFileWriter = GraphFileWriter(m_graphCommonData);
         m_gmQC = GraphQC(m_graphCommonData);
         m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
@@ -403,14 +425,13 @@ bool init(const char* graphType, StatusCallbackType callback)
 {
     string s = string(graphType);
 
-    if (s == "default") {
+    if (s == "default" || s == "dummy") {
         pTemca = new Temca();
     }
     else {
         // unknown graph type
         return false;
     }
-
 
     bool fOK = true;
     fOK = pTemca->init(graphType, callback);
@@ -462,4 +483,8 @@ void setROI(const ROIInfo *  roiInfo) {
     if (pTemca) {
         //pTemca->setROIInfo(roiInfo);
     }
+}
+
+void getLastFrame(unsigned char * image) {
+
 }

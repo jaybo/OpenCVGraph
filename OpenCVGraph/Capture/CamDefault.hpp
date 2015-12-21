@@ -41,8 +41,10 @@ namespace openCVGraph
 
             bool fOK = false;
 
+
+
             // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
-            if (camera_index >= 0) {
+            if ((m_SourceFormat != CV_16UC1) && (camera_index >= 0)) {
 
                 fOK = cap.open(camera_index);
                 if (fOK) {
@@ -91,7 +93,6 @@ namespace openCVGraph
 
             // Directory Directory Directory Directory Directory Directory Directory 
             if (!fOK) {
-#if true
                 DIR *dir;
                 vector<string> extensions = { ".png", ".tif", ".tiff", ".jpg", ".jpeg" };
                 struct dirent *ent;
@@ -126,31 +127,7 @@ namespace openCVGraph
                 else {
                     /* could not open directory */
                 }
-#else
-                if (fs::exists(image_dir) && fs::is_directory(image_dir)) {
 
-                    fs::recursive_directory_iterator it(image_dir);
-                    fs::recursive_directory_iterator endit;
-                    vector<string> extensions = { ".png", ".tif", ".tiff", ".jpg", ".jpeg" };
-                    while (it != endit)
-                    {
-                        string lower = it->path().extension().string();
-                        // tolower and replace those pesky backslashes
-                        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-                        std::replace(lower.begin(), lower.end(), '\\', '/');
-                        cout << it->path().extension() << endl;
-
-                        if (fs::is_regular_file(*it) &&
-                            std::find(extensions.begin(), extensions.end(), lower) != extensions.end())
-                        {
-                            images.push_back(it->path());
-                        }
-                        ++it;
-                    }
-                    source = Directory;
-                    fOK = true;
-                }
-#endif
             }
 
             // Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 

@@ -38,6 +38,7 @@ extern "C" {
     __declspec(dllexport) void setROI(const ROIInfo * roiInfo);
 
     __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
+    __declspec(dllexport) void getLastFrame(unsigned char * image);
 
     __declspec(dllexport) tFrameInfo getFrameInfo();
     __declspec(dllexport) tStatusCallbackInfo getStatus();
