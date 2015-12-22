@@ -12,13 +12,15 @@ typedef struct tStatusCallbackInfo {
 typedef int (*StatusCallbackType)(StatusCallbackInfo* callbackinfo);
 // typedef int (*StatusCallbackType)();
 
-typedef struct tFrameInfo {
+typedef struct tCameraInfo {
     int width;
     int height;
-    int format;
-    int pixel_depth;
+    int format;             // CV_16UC1
+    int pixel_depth;        // bytes per pixel
+    int camera_bpp;         
+    char camera_model[256];
     char camera_id[256];
-} FrameInfo;
+} CameraInfo;
 
 typedef struct tFocusInfo {
     float score;
@@ -40,7 +42,7 @@ extern "C" {
     __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
     __declspec(dllexport) void getLastFrame(UINT16 * image);
 
-    __declspec(dllexport) tFrameInfo getFrameInfo();
+    __declspec(dllexport) tCameraInfo getCameraInfo();
     __declspec(dllexport) tStatusCallbackInfo getStatus();
     __declspec(dllexport) tFocusInfo getFocus();
 

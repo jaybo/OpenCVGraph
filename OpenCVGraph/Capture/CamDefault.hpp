@@ -6,7 +6,7 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    class CamDefault : public Filter {
+    class CamDefault : public Filter, public ITemcaCamera {
     public:
         // General image source:
         //   if   "camera_index" is set, use that camera

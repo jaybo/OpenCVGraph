@@ -340,6 +340,7 @@ namespace openCVGraph
         void Abort() { m_Aborting = true; }
         bool IsAborted() { return m_Aborting; }
         bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }
+        std::vector<Processor> GetFilters() { return m_Filters; }
 
     private:
         std::string m_Name;

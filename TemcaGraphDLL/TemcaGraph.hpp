@@ -19,6 +19,7 @@ bool graphCallback(GraphManager* graphManager)
     {
         if (key == 27) // ESCAPE
         {
+            graphManager->getGraphData()->m_Logger->error("graph aborted by user.");
             graphManager->Abort();
             return false;
         }
@@ -247,6 +248,9 @@ public:
                 return fOK;
             }
         }
+
+        FindTemcaInterfaces();
+
         return fOK;
     }
 
@@ -295,6 +299,23 @@ public:
         memcpy(image, gd->m_imCapture.data, size_t( gd->m_imCapture.size().area() * sizeof (UINT16)));
     }
 
+
+    CameraInfo getCameraInfo() {
+        CameraInfo fi;
+        if (m_ITemcaCamera) {
+            ITemcaCamera* pCam = dynamic_cast<ITemcaCamera *> (m_ITemcaCamera.get());
+            fi.width = pCam->getWidth();
+            fi.height = pCam->getHeight();
+            fi.format = pCam->getFormat();
+            fi.pixel_depth = pCam->getBytesPerPixel();
+            fi.camera_bpp = pCam->getActualBpp();
+            strncpy_s(fi.camera_model, pCam->getCameraModel(), sizeof(fi.camera_model) - 1);
+            strncpy_s(fi.camera_id, pCam->getCameraId(), sizeof(fi.camera_id) - 1);
+        }
+        return fi;
+    }
+
+
 private:
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
@@ -312,8 +333,6 @@ private:
     std::list<GraphParallelStep*> m_Steps;
     std::list<GraphParallelStep*> m_StepsPostCapture;
 
-
-
     bool m_Enabled = true;
     std::atomic_bool m_Aborting = false;
 
@@ -323,7 +342,7 @@ private:
     std::mutex m_mtx;
     std::condition_variable m_cv;                       // 
     std::atomic_bool m_CompletedStep = false;           // Has the step finished?
-    std::atomic_bool m_CompletedRun = false;            // Has the run finished?
+    //std::atomic_bool m_CompletedRun = false;            // Has the run finished?
 
     int m_LogLevel = spd::level::info;
     std::shared_ptr<spdlog::logger> m_Logger;
@@ -331,11 +350,23 @@ private:
     string m_CaptureFileName;
 
     // control interfaces
-    ITemcaCamera * m_ITemcaCamera;
+    Processor m_ITemcaCamera = NULL;
 
     // callback to python
     StatusCallbackInfo m_PythonInfo = { 0 };
     StatusCallbackType m_PythonCallback = NULL;
+
+    void FindTemcaInterfaces()
+    {
+        for (auto processor : m_gmCapture->GetFilters()) {
+            // the next line took me 2 hours to figure out!!!
+            if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
+            {
+                m_ITemcaCamera = processor;
+            }
+        }
+
+    }
 
     bool PythonCallback(int status, int error, const char * errorString) {
         bool fOK = true;
@@ -343,7 +374,8 @@ private:
             m_PythonInfo.status = status;
             m_PythonInfo.error_code = error;
             strcpy_s(m_PythonInfo.error_string, errorString);
-            fOK = (bool) (((m_PythonCallback)(&m_PythonInfo)));
+            // Keep going if the python callback returns True
+            fOK = ((m_PythonCallback)(&m_PythonInfo) != 0);
         }
         return fOK;
     }
@@ -475,14 +507,11 @@ void grabFrame(const char * filename, UINT32 roiX, UINT32 roiY)
 }
 
 
-FrameInfo getFrameInfo() {
-    FrameInfo fi;
-    fi.width = 3840;
-    fi.height = 3840;
-    fi.pixel_depth = 16;
-    fi.format = 2;
-    strncpy_s(fi.camera_id, "cameraIdSomeday", sizeof(fi.camera_id) - 1);
-    return fi;
+CameraInfo getCameraInfo() {
+    if (pTemca) {
+        return pTemca->getCameraInfo();
+    }
+    return CameraInfo();
 }
 
 StatusCallbackInfo getStatus() {

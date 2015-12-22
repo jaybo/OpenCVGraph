@@ -7,7 +7,7 @@ namespace openCVGraph
 {
 #define MAX_MIMEA_FOCUS_STEPS 4  // Defines size of slider and size of steps, plus or minus
 
-    class CamXimea : public CamDefault, ITemcaCamera {
+    class CamXimea : public CamDefault {
     public:
         CamXimea(std::string name, GraphData& graphData,
             int sourceFormat = CV_16UC1,

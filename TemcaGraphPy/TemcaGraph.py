@@ -34,12 +34,14 @@ class StatusCallbackInfo(Structure):
 
 STATUSCALLBACKFUNC = CFUNCTYPE(c_int, POINTER(StatusCallbackInfo))  # returns c_int
 
-class FrameInfo(Structure):
+class CameraInfo(Structure):
     _fields_ = [
         ("width", c_int),
         ("height", c_int),
         ("format", c_int),
         ("pixel_depth", c_int),
+        ("camera_bpp", c_int),
+        ("camera_model", c_char * 256),
         ("camera_id", c_char * 256)
         ]
 
@@ -69,8 +71,8 @@ class TemcaGraphDLL(object):
 
     fini = _TemcaGraphDLL.fini
 
-    frame_info = _TemcaGraphDLL.getFrameInfo
-    frame_info.restype = FrameInfo
+    camera_info = _TemcaGraphDLL.getCameraInfo
+    camera_info.restype = CameraInfo
 
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p, c_int, c_int]
@@ -122,14 +124,14 @@ class TemcaGraph(object):
         '''
         TemcaGraphDLL.fini()
 
-    def get_frame_info(self):
+    def get_camera_info(self):
         ''' 
-        Fills FrameInfo structure with details of the capture format including width, height, and bytes per pixel.
+        Fills CameraInfo structure with details of the capture format including width, height, and bytes per pixel.
         '''
-        fi = TemcaGraphDLL.frame_info()
-        self.frame_width = fi.width
-        self.frame_height = fi.height
-        return fi
+        ci = TemcaGraphDLL.camera_info()
+        #self.frame_width = ci.width
+        #self.frame_height = ci.height
+        return ci
 
     def get_status(self):
         return TemcaGraphDLL.get_status()
@@ -202,7 +204,7 @@ if __name__ == '__main__':
     #temcaGraph.init('dummy')
 
     # get info about frame dimensions
-    fi = temcaGraph.get_frame_info()
+    fi = temcaGraph.get_camera_info()
     w = fi.width
     h = fi.height
     pixel_depth = fi.pixel_depth
