@@ -259,15 +259,7 @@ namespace openCVGraph
         //
         // ITemcaCamera, external I/F accessed by clients
         //
-        int getWidth() override {
-            return 3840;
-        }
-        int getHeight() override {
-            return 3840;
-        }
-        int getActualBpp() override {
-            return 12;
-        }
+ 
         int getGain() override {
             return m_gain;
         }

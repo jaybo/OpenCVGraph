@@ -304,13 +304,7 @@ public:
         CameraInfo fi;
         if (m_ITemcaCamera) {
             ITemcaCamera* pCam = dynamic_cast<ITemcaCamera *> (m_ITemcaCamera.get());
-            fi.width = pCam->getWidth();
-            fi.height = pCam->getHeight();
-            fi.format = pCam->getFormat();
-            fi.pixel_depth = pCam->getBytesPerPixel();
-            fi.camera_bpp = pCam->getActualBpp();
-            strncpy_s(fi.camera_model, pCam->getCameraModel(), sizeof(fi.camera_model) - 1);
-            strncpy_s(fi.camera_id, pCam->getCameraId(), sizeof(fi.camera_id) - 1);
+            fi = pCam->getCameraInfo();
         }
         return fi;
     }

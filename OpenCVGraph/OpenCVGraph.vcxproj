@@ -161,7 +161,7 @@
   <ItemGroup>
     <ClInclude Include="Capture\CamDefault.hpp" />
     <ClInclude Include="Capture\CamXimea.hpp" />
-    <ClInclude Include="Capture\ITemcaCamera.hpp" />
+    <ClInclude Include="ITemcaCamera.hpp" />
     <ClInclude Include="Filters\Cartoon.hpp" />
     <ClInclude Include="Filters\FileWriter.hpp" />
     <ClInclude Include="GraphManager.hpp" />
@@ -172,6 +172,7 @@
     <ClInclude Include="include\spdlog\logger.h" />
     <ClInclude Include="include\spdlog\spdlog.h" />
     <ClInclude Include="include\spdlog\tweakme.h" />
+    <ClInclude Include="ITemcaFocus.hpp" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="include\dirent.h" />
     <ClInclude Include="Config.h" />

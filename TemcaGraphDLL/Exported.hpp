@@ -10,23 +10,9 @@ typedef struct tStatusCallbackInfo {
 } StatusCallbackInfo;
 
 typedef int (*StatusCallbackType)(StatusCallbackInfo* callbackinfo);
-// typedef int (*StatusCallbackType)();
 
-typedef struct tCameraInfo {
-    int width;
-    int height;
-    int format;             // CV_16UC1
-    int pixel_depth;        // bytes per pixel
-    int camera_bpp;         
-    char camera_model[256];
-    char camera_id[256];
-} CameraInfo;
 
-typedef struct tFocusInfo {
-    float score;
-    float astigmatism;
-    float angle;
-} FocusInfo;
+
 
 typedef struct tROIInfo {
     int gridX;
