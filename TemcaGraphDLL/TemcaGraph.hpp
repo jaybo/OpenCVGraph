@@ -285,7 +285,14 @@ public:
     }
 
     void setROIInfo(const ROIInfo * roiInfo) {
-        m_ROIInfo = *roiInfo;
+        m_graphCommonData->m_ROISizeX = roiInfo->gridX;
+        m_graphCommonData->m_ROISizeY = roiInfo->gridY;
+    }
+
+    void getLastFrame(UINT16 * image) {
+        GraphData * gd = m_gmCapture->getGraphData();
+        
+        memcpy(image, gd->m_imCapture.data, size_t( gd->m_imCapture.size().area() * sizeof (UINT16)));
     }
 
 private:
@@ -330,9 +337,7 @@ private:
     StatusCallbackInfo m_PythonInfo = { 0 };
     StatusCallbackType m_PythonCallback = NULL;
 
-    ROIInfo m_ROIInfo = { 0 };
-
-    bool PythonCallback(int status, int error, char * errorString) {
+    bool PythonCallback(int status, int error, const char * errorString) {
         bool fOK = true;
         if (m_PythonCallback) {
             m_PythonInfo.status = status;
@@ -344,6 +349,7 @@ private:
     }
 
     enum StatusCodes {
+        FatalError = -1,
         InitFinished = 0,
         StartNewFrame = 1,
         CaptureFinished = 2,
@@ -355,6 +361,7 @@ private:
     bool ProcessLoop()
     {
         bool fOK = true;
+        string s;
 
         fOK = PythonCallback(InitFinished, 0, "");
 
@@ -372,13 +379,19 @@ private:
                 if (!m_Aborting) {
 
                     if (!(fOK = m_StepCapture->Step())) {
-                        m_Logger->error(m_StepCapture->GetName() + " failed Capture Step.");
+                        s = m_StepCapture->GetName() + " failed Capture Step.";
+                        m_Logger->error(s);
+                        PythonCallback(FatalError, 0, s.c_str());
+                        m_Aborting = true;
                     }
                     else {
                         fOK &= PythonCallback(CaptureFinished, 0, "");
 
-                        if (!(fOK = m_StepCapture->WaitStepCompletion())) {
-                            m_Logger->error(m_StepCapture->GetName() + " failed Capture WaitStepCompletion.");
+                        if (!(fOK &= m_StepCapture->WaitStepCompletion())) {
+                            s = m_StepCapture->GetName() + " Capture WaitStepCompletion.";
+                            m_Logger->error(s);
+                            PythonCallback(FatalError, 0, s.c_str());
+                            m_Aborting = true;
                         }
                         else {
                             // copy capture image reference to all graphs
@@ -389,13 +402,19 @@ private:
 
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
-                                if (!(fOK = step->Step())) {
-                                    m_Logger->error(step->GetName() + " failed to Step.");
+                                if (!(fOK &= step->Step())) {
+                                    s = m_StepCapture->GetName() + " failed to Step.";
+                                    m_Logger->error(s);
+                                    PythonCallback(FatalError, 0, s.c_str());
+                                    m_Aborting = true;
                                     break;
                                 }
                                 if (fOK) {
-                                    if (!(fOK = step->WaitStepCompletion())) {
-                                        m_Logger->error(step->GetName() + " failed WaitStepCompletion.");
+                                    if (!(fOK &= step->WaitStepCompletion())) {
+                                        s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
+                                        m_Logger->error(s);
+                                        PythonCallback(FatalError, 0, s.c_str());
+                                        m_Aborting = true;
                                         break;
                                     }
                                 }
@@ -481,10 +500,12 @@ FocusInfo getFocus() {
 
 void setROI(const ROIInfo *  roiInfo) {
     if (pTemca) {
-        //pTemca->setROIInfo(roiInfo);
+        pTemca->setROIInfo(roiInfo);
     }
 }
 
-void getLastFrame(unsigned char * image) {
-
+void getLastFrame(UINT16 * image) {
+    if (pTemca) {
+        pTemca->getLastFrame(image);
+    }
 }

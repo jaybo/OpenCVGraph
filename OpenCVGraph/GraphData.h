@@ -14,8 +14,10 @@ namespace openCVGraph
     class GraphCommonData {
     public:
         int m_FrameNumber = 0;                  // Current frame being processed.
-        int m_roiX;                             // position in ROI grid
-        int m_roiY;                             
+        int m_ROISizeX = 0;                     // Overall dimensions of ROI grid
+        int m_ROISizeY = 0;
+        int m_roiX = 0;                         // Current position in ROI grid
+        int m_roiY = 0;                             
         string m_SourceFileName;                // Used when source images come from file, directory, or movie
         string m_DestinationFileName;           // Name of output file
 

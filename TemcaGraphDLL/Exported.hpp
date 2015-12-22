@@ -4,7 +4,7 @@
 #define OPENCV_GRAPH_EXPORTED_H
 
 typedef struct tStatusCallbackInfo {
-    int status; // 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
+    int status; // -1: fatal error, 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
     int error_code; // 0: OK, 
     char error_string[256];
 } StatusCallbackInfo;
@@ -38,7 +38,7 @@ extern "C" {
     __declspec(dllexport) void setROI(const ROIInfo * roiInfo);
 
     __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
-    __declspec(dllexport) void getLastFrame(unsigned char * image);
+    __declspec(dllexport) void getLastFrame(UINT16 * image);
 
     __declspec(dllexport) tFrameInfo getFrameInfo();
     __declspec(dllexport) tStatusCallbackInfo getStatus();
