@@ -13,7 +13,6 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
-        int m_FrameNumber = 0;                  // Current frame being processed.
         int m_ROISizeX = 0;                     // Overall dimensions of ROI grid
         int m_ROISizeY = 0;
         int m_roiX = 0;                         // Current position in ROI grid
@@ -77,6 +76,7 @@ namespace openCVGraph
 
         GraphCommonData * m_CommonData;
         std::shared_ptr<logger> m_Logger;
+        int m_FrameNumber = 0;                  // Current frame being processed.
 
         // A capture or source filter has already put an image into m_imCapture.
         // Now convert it into formats needed by the rest of the graph.

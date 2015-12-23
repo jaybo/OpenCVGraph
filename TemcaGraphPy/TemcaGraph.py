@@ -200,8 +200,8 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     temcaGraph = TemcaGraph()
-    #temcaGraph.init()
-    temcaGraph.init('dummy')
+    temcaGraph.init()
+    #temcaGraph.init('dummy')
 
     # get info about frame dimensions
     fi = temcaGraph.get_camera_info()

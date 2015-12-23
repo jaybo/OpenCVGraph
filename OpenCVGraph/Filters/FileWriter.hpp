@@ -68,7 +68,7 @@ namespace openCVGraph
                         fullName = graphData.m_CommonData->m_DestinationFileName;
                     }
                     else {
-                        fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_CommonData->m_FrameNumber) + m_Ext;
+                        fullName = m_Directory + '/' + m_BaseFileName + std::to_string(graphData.m_FrameNumber) + m_Ext;
                     }
                 }
                 vector<int> params = { 

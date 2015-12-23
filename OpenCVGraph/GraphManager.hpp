@@ -122,7 +122,7 @@ namespace openCVGraph
                 }
                 if (result != ProcessResult::OK) break;
             }
-            m_GraphData.m_CommonData->m_FrameNumber++;
+            m_GraphData.m_FrameNumber++;
 
             return result;
         }

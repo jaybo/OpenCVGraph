@@ -5,7 +5,8 @@ using namespace cv;
 
 namespace openCVGraph
 {
-#define MAX_MIMEA_FOCUS_STEPS 4  // Defines size of slider and size of steps, plus or minus
+#define MAX_MIMEA_FOCUS_STEPS 4     // Defines size of slider and size of steps, plus or minus
+#define SOFTWARE_TRIGGER 1          // else free run
 
     class CamXimea : public CamDefault {
     public:
@@ -76,6 +77,11 @@ namespace openCVGraph
                         }
                     }
                 }
+
+#if SOFTWARE_TRIGGER
+                cap.set(CV_CAP_PROP_XI_TRG_SOURCE, XI_TRG_SOFTWARE);
+                cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
+#endif
                 fOK = cap.read(graphData.m_imCapture);
 
                 if (!graphData.m_imCapture.data)   // Check for invalid input
@@ -99,6 +105,9 @@ namespace openCVGraph
             m_firstTime = false;
             bool fOK = true;
 
+#if SOFTWARE_TRIGGER
+            cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
+#endif
             fOK = cap.read(graphData.m_imCapture);
 
             if (graphData.m_imCapture.depth() == CV_16U) {
