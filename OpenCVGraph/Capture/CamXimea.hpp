@@ -5,8 +5,10 @@ using namespace cv;
 
 namespace openCVGraph
 {
+
 #define MAX_MIMEA_FOCUS_STEPS 4     // Defines size of slider and size of steps, plus or minus
 #define SOFTWARE_TRIGGER 1          // else free run
+#define PINNED_MEMORY 0             // page lock the main capture buffer
 
     class CamXimea : public CamDefault {
     public:
@@ -77,6 +79,11 @@ namespace openCVGraph
                         }
                     }
                 }
+#if PINNED_MEMORY
+                // This doesn't work
+                //cuda::HostMem page_locked(Size(3840, 3840), CV_16UC1);
+                //graphData.m_imCapture = page_locked.createMatHeader();
+#endif
 
 #if SOFTWARE_TRIGGER
                 cap.set(CV_CAP_PROP_XI_TRG_SOURCE, XI_TRG_SOFTWARE);
