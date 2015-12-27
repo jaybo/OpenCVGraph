@@ -173,12 +173,15 @@ void GraphXimea()
 
 int main()
 {
+#if false
     // GraphCopyOldTEMCAUpshifted();
+    // GraphImageDir();
+#endif
 
-    // GraphWebCam();
-    //GraphImageDir();
 #ifdef WITH_CUDA
     GraphXimea();
+#else
+    GraphWebCam();
 #endif
     return 0;
 }
