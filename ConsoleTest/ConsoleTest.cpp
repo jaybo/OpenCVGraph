@@ -179,7 +179,8 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
-    GraphXimea();
+    GraphWebCam();
+    //GraphXimea();
 #else
     GraphWebCam();
 #endif
