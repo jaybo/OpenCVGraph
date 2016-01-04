@@ -79,8 +79,9 @@ CMake is used to create the .sln and .proj files for VisualStudio.
 
 - Open OPENCV.sln in "dest_dir"
 - Build Debug (this will take a few hours)
+- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL" (Debug)
 - Build Release (this will take a few hours)
-- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL"
+- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL" (Release)
 - At this point you should have a complete build
 
 #### Setting environment variables
