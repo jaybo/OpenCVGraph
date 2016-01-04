@@ -18,8 +18,8 @@ Normally the first component in a graph is a capture Filter.  The base class **C
 Each Filter can have associated view window(s) and can hook mouse and keyboard input. The **ZoomView** class implements synchronized viewing and pan operations between consenting filters.
 
 
-Example
--------
+### Example
+
 
     #include "OpenCVGraph.h"
     
@@ -48,3 +48,39 @@ Example
         graph1.JoinThread();
     }
  
+### Building OpenCV with CUDA and Ximea support
+The stock distribution of OpenCV does not include Cuda support or Ximea support so we need to create a custom build from the OpenCV source tree.
+
+
+#### Install Tools
+
+- VS2013 Community Edition (required for building CUDA in OpenCV)  It is likely VS2015 will be supported when CUDA 8.0 is released.
+- CMake
+- NVidia CUDA 7.5
+
+#### Download OpenCV
+
+- Use at least (tag) 3.1.0 of OpenCV. This is the first version which supports Ximea in 16bpp mode.
+- From GitHub, download or fork the following projects:
+
+        Itseez/opencv (hereafter "opencv")
+        Itseez/opencv_contrib (hereafter "opencv_contrib")
+
+#### Use CMake GUI to create solution files
+
+CMake is used to create the .sln and .proj files for VisualStudio.
+-  "Where is the source code" select the "opencv" directory 
+-  "Where to build the binaries" select a new directory (not within opencv) hereafter "dest_dir"
+-  Click "Configure"
+-  Check "WITH_XIMEA"
+-  (optionally) Check "BUILD_EXAMPLES" if you want all the examples to be pre-built.
+-  Find "OPENCV_EXTRA_MODULES_PATH" and set the path to "opencv_contrib" + "/modules" as in "J:/dev/opencv_contrib/modules"
+-  Click "Generate".  When asked what compiler to use, select "Visual Studio 2013 x64".  VS2015 isn't supported yet to generate the CUDA code, although it can be used for everything else other than actually building OpenCV.
+
+#### Build with Visual Studio 2013
+
+- Open OPENCV.sln in "dest_dir"
+- Build Debug (this will take a few hours)
+- Build Release (this will take a few hours)
+- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL"
+- At this point you should have a complete build
