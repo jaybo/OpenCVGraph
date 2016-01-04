@@ -85,7 +85,7 @@ CMake is used to create the .sln and .proj files for VisualStudio.
 
 #### Setting environment variables
 
-OPENCVEXE_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
-OPENCVLIB_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/lib
-OPENCV_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install
-PATH = %PATH%;J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
+    OPENCVEXE_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
+    OPENCVLIB_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/lib
+    OPENCV_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install
+    PATH = %PATH%;J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
