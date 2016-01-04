@@ -8,7 +8,9 @@ The graph has the following states:
 - Stop - no resources are allocated  
 - Pause - resources are allocated, and the graph can be single stepped.  
 - Run - continuously process frames  
-    
+
+The **GraphParallelStep** class handles grouping multiple graphs together and running them all in parallel.  
+
 Normally the first component in a graph is a capture Filter.  The base class **CamGeneric** Filter can source images from:  
 - A camera  
 - A still image  
@@ -26,25 +28,21 @@ Each Filter can have associated view window(s) and can hook mouse and keyboard i
     int main()
     {
         // Create a graph
-        GraphManager graph1("Graph1");
-        
-        // Add a camera source
-        CvFilter fpImage1(new CamXimea("CamXimea", graph1.gd, true));
-        graph1.AddFilter(fpImage1);
+        GraphCommonData * commonData = new GraphCommonData();
+        GraphManager graph1("GraphWebCam", true, graphCallback, commonData);
+        GraphData* gd = graph1.getGraphData();
     
-        // Add an image statistics processor
-        CvFilter runningStats(new ImageStatistics("RunningStats", graph1.gd, true));
-        graph1.AddFilter(runningStats);
-        
-        // Add a Canny edge detection filter
-        CvFilter canny(new openCVGraph::Canny("Canny", graph1.gd, true));
-        graph1.AddFilter(canny);
-
+        // Add an image source (could be camera, single image, directory, noise, movie)
+        CvFilter cap1(new CamDefault("CamDefault", *gd));
+        graph1.AddFilter(cap1);
+    
+        CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
+        graph1.AddFilter(canny1);
+    
         // Start the thread for that graph running
         graph1.StartThread();
         graph1.GotoState(GraphManager::GraphState::Run);
-
-        // Wait for the graph to finish
+    
         graph1.JoinThread();
     }
  
