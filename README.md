@@ -75,10 +75,17 @@ CMake is used to create the .sln and .proj files for VisualStudio.
 -  Find "OPENCV_EXTRA_MODULES_PATH" and set the path to "opencv_contrib" + "/modules" as in "J:/dev/opencv_contrib/modules"
 -  Click "Generate".  When asked what compiler to use, select "Visual Studio 2013 x64".  VS2015 isn't supported yet to generate the CUDA code, although it can be used for everything else other than actually building OpenCV.
 
-#### Build with Visual Studio 2013
+#### Build OpenCV with Visual Studio 2013
 
 - Open OPENCV.sln in "dest_dir"
 - Build Debug (this will take a few hours)
 - Build Release (this will take a few hours)
 - Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL"
 - At this point you should have a complete build
+
+#### Setting environment variables
+
+OPENCVEXE_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
+OPENCVLIB_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/lib
+OPENCV_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install
+PATH = %PATH%;J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
