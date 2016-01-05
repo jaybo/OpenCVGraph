@@ -212,11 +212,12 @@ namespace openCVGraph
 
             MatZoomed = MatView(Rect(tl, Size(srcWidth, srcHeight)));
 
-            //getRectSubPix(MatView, Size(srcWidth, srcHeight),
-            //    Point(m_cx - m_dx, m_cy - m_dy),
-            //    MatZoomed);
-
             cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0, INTER_NEAREST);
+
+            int nChannels = MatZoomed.channels();
+            if (nChannels != 3) {
+                cvtColor(MatZoomed, MatZoomed, CV_GRAY2RGB);
+            }
 
             // merge in the (usually) text overlay
             if (!matOverlay.empty()) {

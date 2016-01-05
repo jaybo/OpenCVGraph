@@ -134,10 +134,10 @@ namespace openCVGraph
             if (!fOK) {
                 source = Noise;
                 if (graphData.m_NeedCV_16UC1) {
-                    graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_16UC1);
+                    graphData.m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_16UC1);
                 }
                 else if (graphData.m_NeedCV_8UC3) {
-                    graphData.m_imCapture = Mat::zeros(m_width, m_height, CV_8UC3);
+                    graphData.m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_8UC3);
                 }
                 fOK = true;
             }

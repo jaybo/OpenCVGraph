@@ -68,7 +68,7 @@ namespace openCVGraph
                 if (m_showView) {
                     // To write on the overlay, you must allocate it.
                     // This indicates to the renderer the need to merge it with the final output image.
-                    // m_imViewTextOverlay = Mat(m_width, m_height, CV_8U);
+                    // m_imViewTextOverlay = Mat(m_ViewWidth, m_ViewHeight, CV_8U);
 
                     if (m_showSlider) {
                         createTrackbar("BrightDarkFieldCorrection", m_CombinedName, &m_FieldToView, 4, SliderCallback, this);

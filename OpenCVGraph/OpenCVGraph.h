@@ -1,7 +1,7 @@
 #pragma once
 
 // Comment out the following to disable all CUDA processing
-// #define WITH_CUDA
+#define WITH_CUDA
 
 #include <cstring>
 #include <sstream>

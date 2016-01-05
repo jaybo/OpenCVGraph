@@ -10,6 +10,8 @@ namespace openCVGraph
 #define SOFTWARE_TRIGGER 1          // else free run
 #define PINNED_MEMORY 0             // page lock the main capture buffer
 
+    // Filter which hosts the Ximea 20MPix camera
+
     class CamXimea : public CamDefault {
     public:
         CamXimea(std::string name, GraphData& graphData,

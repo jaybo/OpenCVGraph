@@ -29,8 +29,8 @@ namespace openCVGraph
     {
     public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, int sourceFormat = -1, int width = 512, int height = 512)
-            : m_FilterName(name), m_SourceFormat(sourceFormat), m_width(width), m_height(height)
+        Filter::Filter(std::string name, GraphData& data, int sourceFormat = -1, int viewWidth = 512, int viewHeight = 512)
+            : m_FilterName(name), m_SourceFormat(sourceFormat), m_ViewWidth(viewWidth), m_ViewHeight(viewHeight)
         {
             m_Logger = data.m_Logger;
 
@@ -71,7 +71,7 @@ namespace openCVGraph
             if (m_Enabled) {
                 if (m_showView) {
                     m_ZoomView = ZoomView(m_CombinedName);
-                    m_ZoomView.Init(m_width, m_height, m_MouseCallback);
+                    m_ZoomView.Init(m_ViewWidth, m_ViewHeight, m_MouseCallback);
                 }
 
                 m_IsInitialized = true;
@@ -197,7 +197,7 @@ namespace openCVGraph
         {
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_height, m_width, CV_8U);
+                m_imViewTextOverlay = Mat(m_ViewHeight, m_ViewWidth, CV_8U);
             }
 
             cv::putText(m_imViewTextOverlay, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(255, 255, 255));
@@ -207,7 +207,7 @@ namespace openCVGraph
         { 
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_height, m_width, CV_8UC3);
+                m_imViewTextOverlay = Mat(m_ViewHeight, m_ViewWidth, CV_8UC3);
             }
             m_imViewTextOverlay.setTo(0);
         }
@@ -237,7 +237,7 @@ namespace openCVGraph
 
         double m_TickFrequency;
 
-        int m_width, m_height;
+        int m_ViewWidth, m_ViewHeight;
 
         cv::Mat m_imView;               // image to display
         cv::Mat m_imViewTextOverlay;        // overlay for that image
