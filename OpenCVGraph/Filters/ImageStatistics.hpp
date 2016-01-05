@@ -246,7 +246,7 @@ namespace openCVGraph
 
             str.str("");
             str << "         min   mean   max";
-            DrawOverlayText(str.str(), Point(posLeft, 30), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 30), scale, CV_RGB(128,128,128));
 
             str.str("");
             str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
