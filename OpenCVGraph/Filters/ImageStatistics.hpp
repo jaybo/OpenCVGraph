@@ -77,9 +77,9 @@ namespace openCVGraph
         double dCapMax, dCapMin;
         double dMean, dMeanMin, dMeanMax, dStdDevMean, dStdDevMin, dStdDevMax, dVarMin, dVarMax;
         cv::Mat m_oldM, m_newM, m_oldS, m_newS, m_capF, m_imVariance, m_dOld, m_dNew;
-
+#ifdef WITH_CUDA
         cv::cuda::GpuMat m_oldMGpu, m_newMGpu, m_oldSGpu, m_imVarianceGpu, m_newSGpu, m_dOldGpu, m_dNewGpu, m_TGpu;
-
+#endif
 
         void ImageStatistics::Accumulate(GraphData& graphData) {
             graphData.m_imOut8UC1.convertTo(m_capF, CV_32F);
@@ -104,6 +104,7 @@ namespace openCVGraph
             }
         }
 
+#ifdef WITH_CUDA
         void ImageStatistics::AccumulateGpu(GraphData& graphData) {
             if (m_N == 1)
             {
@@ -126,6 +127,7 @@ namespace openCVGraph
                 m_newSGpu.copyTo(m_oldSGpu);
             }
         }
+#endif
 
         void ImageStatistics::Calc(GraphData& graphData)
         {
@@ -155,7 +157,7 @@ namespace openCVGraph
             dStdDevMax = sqrt(dVarMax);
 
         }
-
+#ifdef WITH_CUDA
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
             cv::Point ptMin, ptMax;
@@ -184,6 +186,7 @@ namespace openCVGraph
             dStdDevMin = sqrt(dVarMin);
             dStdDevMax = sqrt(dVarMax);
         }
+#endif
 
         ProcessResult ImageStatistics::process(GraphData& graphData)
         {
@@ -194,10 +197,24 @@ namespace openCVGraph
 
             m_N++;  // count of frames processed
 
-            m_UseCuda ? AccumulateGpu(graphData) : Accumulate(graphData);
+            if (m_UseCuda) {
+#ifdef WITH_CUDA
+                AccumulateGpu(graphData);
+#endif
+            }
+            else {
+                Accumulate(graphData);
+            }
 
             if (m_N >= 2) {
-                m_UseCuda ? CalcGpu(graphData) : Calc(graphData);
+                if (m_UseCuda) {
+#ifdef WITH_CUDA
+                    CalcGpu(graphData);
+#endif
+                }
+                else {
+                    Calc(graphData);
+                }
             }
             return ProcessResult::OK;
         }

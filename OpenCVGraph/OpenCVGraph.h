@@ -1,7 +1,7 @@
 #pragma once
 
 // Comment out the following to disable all CUDA processing
-#define WITH_CUDA
+// #define WITH_CUDA
 
 #include <cstring>
 #include <sstream>
@@ -47,11 +47,11 @@
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
-
+#include "Filters/ImageStatistics.hpp"
 #include "Filters/FileWriter.hpp"
 
 #ifdef WITH_CUDA
-#include "Filters/ImageStatistics.hpp"
+
 #include "Filters/FocusSobel.hpp"
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
