@@ -88,11 +88,11 @@ namespace openCVGraph
 
             str.str("");
             str << "Focus: Laplacian";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << std::setfill(' ') << m_var;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
         }

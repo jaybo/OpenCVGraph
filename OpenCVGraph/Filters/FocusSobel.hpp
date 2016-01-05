@@ -96,11 +96,11 @@ namespace openCVGraph
 
             str.str("");
             str << "  meanXY    X      Y";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << std::setfill(' ') << setw(7) << (int) meanXY << setw(7) << (int) meanX << setw(7) << (int) meanY;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
         }

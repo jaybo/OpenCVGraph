@@ -193,14 +193,14 @@ namespace openCVGraph
             }
         }
 
-        void Filter::DrawOverlayTextMono(string str, cv::Point p, double scale)
+        void Filter::DrawOverlayText(string str, cv::Point p, double scale, CvScalar color = CV_RGB(255,255,255))
         {
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_ViewHeight, m_ViewWidth, CV_8U);
+                m_imViewTextOverlay = Mat(m_ViewHeight, m_ViewWidth, CV_8UC3);
             }
 
-            cv::putText(m_imViewTextOverlay, str, p, CV_FONT_HERSHEY_DUPLEX, scale, CV_RGB(255, 255, 255));
+            cv::putText(m_imViewTextOverlay, str, p, CV_FONT_HERSHEY_DUPLEX, scale, color);
         }
 
         void Filter::ClearOverlayText()

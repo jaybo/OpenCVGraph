@@ -246,23 +246,23 @@ namespace openCVGraph
 
             str.str("");
             str << "         min   mean   max";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 30), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 30), scale);
 
             str.str("");
             str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 70), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 70), scale);
 
             str.str("");
             str << "SD: " << std::setfill(' ') << setw(7) << (int)dStdDevMin << setw(7) << (int)dStdDevMean << setw(7) << (int)dStdDevMax;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 120), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 120), scale);
 
             str.str("");
             str << "SPACE to reset";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 460), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 460), scale);
 
             str.str("");
             str << m_N << "/" << graphData.m_FrameNumber;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 500), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 500), scale);
 
             auto histSize = Size(512, 200);
             Mat histo = createGrayHistogram(graphData.m_imCapture, 256, histSize.width, histSize.height);

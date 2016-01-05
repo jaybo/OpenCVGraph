@@ -158,11 +158,11 @@ namespace openCVGraph
 
             str.str("");
             str << "FFT:  focus   astig  angle";
-            DrawOverlayTextMono(str.str(), Point(posLeft, 50), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
             str << std::setfill(' ') << setw(10) << m_FocusScore  << m_AstigmatismScore << m_AstigmatismAngle;
-            DrawOverlayTextMono(str.str(), Point(posLeft, 100), scale);
+            DrawOverlayText(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
         }
