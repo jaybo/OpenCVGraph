@@ -51,7 +51,6 @@
 #include "Filters/FileWriter.hpp"
 
 #ifdef WITH_CUDA
-
 #include "Filters/FocusSobel.hpp"
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"

@@ -1,4 +1,11 @@
+
+#pragma once
+
+#ifndef INCLUDE_OCVG_CAMXIMEA
+#define INCLUDE_OCVG_CAMXIMEA
+
 #include "..\stdafx.h"
+#include "xiApi.h"
 
 using namespace std;
 using namespace cv;
@@ -9,8 +16,9 @@ namespace openCVGraph
 #define MAX_MIMEA_FOCUS_STEPS 4     // Defines size of slider and size of steps, plus or minus
 #define SOFTWARE_TRIGGER 1          // else free run
 #define PINNED_MEMORY 0             // page lock the main capture buffer
+#define XI_TIMEOUT 5000             // No operation should take longer than 5 seconds
 
-    // Filter which hosts the Ximea 20MPix camera
+    // Filter which hosts the Ximea 20MPix camera without using OpenCV capture
 
     class CamXimea : public CamDefault {
     public:
@@ -20,6 +28,14 @@ namespace openCVGraph
             : CamDefault(name, graphData, sourceFormat, width, height)
         {
             m_Logger = graphData.m_Logger;
+            m_image.size = sizeof(XI_IMG);
+        }
+
+        void LogErrors(XI_RETURN stat, string msg) {
+            if (stat != XI_OK) {
+                m_Logger->error("Ximea error: " + msg);
+                m_InitOK = false;
+            }
         }
 
         //Allocate resources if needed
@@ -35,52 +51,40 @@ namespace openCVGraph
                 graphData.m_NeedCV_8UC1 = true;
             }
 
-            bool fOK = false;
+            XI_RETURN stat;
+            stat = xiOpenDevice(camera_index, &m_xiH);
+            if (stat == XI_OK) {
+                // 3840x3840
+                stat = xiSetParamInt(m_xiH, XI_PRM_WIDTH, 3840);
+                LogErrors(stat, "XI_PRM_WIDTH");
+                stat = xiSetParamInt(m_xiH, XI_PRM_OFFSET_X, 640);
+                LogErrors(stat, "XI_PRM_OFFSET_X");
 
-            fOK = cap.open(camera_index);
-            if (fOK) {
-                // set camera specific properties
-                if (fOK) {
-                    // Limit the number of buffers
-                    if (m_minimumBuffers) {
-                        fOK = cap.set(CV_CAP_PROP_XI_BUFFERS_QUEUE_SIZE, (double)2);
-                        fOK = cap.set(CV_CAP_PROP_XI_RECENT_FRAME, 1);
-                    }
+                // 16bpp
+                stat = xiSetParamInt(m_xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_MONO16);
+                LogErrors(stat, "XI_PRM_IMAGE_DATA_FORMAT");
 
-                    if (m_isSquare) {
-                        // only capture 3840x3840@16bpp
-                        fOK = cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
-                        fOK = cap.set(CV_CAP_PROP_XI_OFFSET_X, 640);
-                    }
-                    fOK = cap.set(CV_CAP_PROP_XI_IMAGE_DATA_FORMAT, m_is16bpp ? XI_MONO16 : XI_MONO8);
+                // AutoGain off
+                stat = xiSetParamInt(m_xiH, XI_PRM_AEAG, 0);
+                LogErrors(stat, "XI_PRM_AEAG");
 
-                    // Autogain off
-                    fOK = cap.set(CV_CAP_PROP_XI_AEAG, 0);
+                // Enable lens control
+                stat = xiSetParamInt(m_xiH, XI_PRM_LENS_MODE, 1);
+                LogErrors(stat, "XI_PRM_LENS_MODE");
 
-                    // Enable aperature and focus
-                    cap.set(CV_CAP_PROP_XI_LENS_MODE, 1);
-                    //m_focalDistance = (int) (1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCUS_DISTANCE));
-                    //m_focalLength = (int)(1000 * cap.get(CV_CAP_PROP_XI_LENS_FOCAL_LENGTH));
-                    //m_aperatureValue = (int)(1000 * (cap.get(CV_CAP_PROP_XI_LENS_APERTURE_VALUE));
+                // Init exposure and gain
+                stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE, m_exposure);
+                LogErrors(stat, "XI_PRM_EXPOSURE");
+                stat = xiSetParamInt(m_xiH, XI_PRM_GAIN, m_gain / 1000);
+                LogErrors(stat, "XI_PRM_GAIN");
 
-                    fOK = cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
-                    fOK = cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
-
-                    if (m_showView) {
-                        if (m_showExposureSlider) {
-                            createTrackbar("Exposure", m_CombinedName, &m_exposure, m_exposureSliderMax, ExposureCallback, this);
-                        }
-                        if (m_showGainSlider) {
-                            createTrackbar("Gain", m_CombinedName, &m_gain, m_gainSliderMax, GainCallback, this);
-                        }
-                        if (m_showFocusSlider) {
-                            createTrackbar("Focus", m_CombinedName, &m_focusMovementSliderPos, MAX_MIMEA_FOCUS_STEPS * 2, FocusCallback, this);
-                        }
-                        if (m_showApertureSlider) {
-                            createTrackbar("Aperture", m_CombinedName, &m_aperture, 22000, ApertureCallback, this);
-                        }
-                    }
+                if (m_minimumBuffers) {
+                    stat = xiSetParamInt(m_xiH, XI_PRM_BUFFERS_QUEUE_SIZE, 2);
+                    LogErrors(stat, "XI_PRM_BUFFERS_QUEUE_SIZE");
+                    stat = xiSetParamInt(m_xiH, XI_PRM_RECENT_FRAME, 1);
+                    LogErrors(stat, "XI_PRM_RECENT_FRAME");
                 }
+
 #if PINNED_MEMORY
                 // This doesn't work
                 //cuda::HostMem page_locked(Size(3840, 3840), CV_16UC1);
@@ -88,41 +92,68 @@ namespace openCVGraph
 #endif
 
 #if SOFTWARE_TRIGGER
-                cap.set(CV_CAP_PROP_XI_TRG_SOURCE, XI_TRG_SOFTWARE);
-                cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
+                // software trigger mode
+                stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
+                LogErrors(stat, "XI_PRM_TRG_SOURCE");
 #endif
-                fOK = cap.read(graphData.m_imCapture);
+                // perform a single frame test capture to verify operation before streaming
+                stat = xiStartAcquisition(m_xiH);
+                LogErrors(stat, "xiStartAcquisition");
 
-                if (!graphData.m_imCapture.data)   // Check for invalid input
-                {
-                    fOK = false;
-                    graphData.m_Logger->error() << "Could not read from capture device #" << camera_index;
-                }
-                else {
-                    source = Camera;
-                    fOK = true;
-                }
+#if SOFTWARE_TRIGGER
+                // trigger
+                stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
+                LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
+#endif
+                stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
+                LogErrors(stat, "xiGetImage");
+
+                copyCaptureImage(graphData);
+            }
+            else {
+                LogErrors(stat, "xiOpenDevice" + camera_index);
+                return false;
             }
 
-
-            return fOK;
+            if (m_showView) {
+                if (m_showExposureSlider) {
+                    createTrackbar("Exposure", m_CombinedName, &m_exposure, m_exposureSliderMax, ExposureCallback, this);
+                }
+                if (m_showGainSlider) {
+                    createTrackbar("Gain", m_CombinedName, &m_gain, m_gainSliderMax, GainCallback, this);
+                }
+                if (m_showFocusSlider) {
+                    createTrackbar("Focus", m_CombinedName, &m_focusMovementSliderPos, MAX_MIMEA_FOCUS_STEPS * 2, FocusCallback, this);
+                }
+                if (m_showApertureSlider) {
+                    createTrackbar("Aperture", m_CombinedName, &m_aperture, 22000, ApertureCallback, this);
+                }
+            }
+            return m_InitOK;
         }
 
+        // bugbug, todo. Capture directly to CUDA contiguous buffer...
+        void copyCaptureImage(GraphData& graphData) {
+            graphData.m_imCapture = Mat(m_image.width, m_image.height, CV_16UC1, m_image.bp);
+        }
 
         ProcessResult process(GraphData& graphData) override
         {
             m_firstTime = false;
             bool fOK = true;
+            XI_RETURN stat;
 
 #if SOFTWARE_TRIGGER
-            cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
+            stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
+            LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
 #endif
-            fOK = cap.read(graphData.m_imCapture);
+            stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
+            LogErrors(stat, "xiGetImage");
+            
+            copyCaptureImage(graphData);
 
-            if (graphData.m_imCapture.depth() == CV_16U) {
-                // make 16bpp full range
-                graphData.m_imCapture *= 16;
-            }
+            // always bump up to full 16 bit range
+            graphData.m_imCapture *= 16;
 
             graphData.CopyCaptureToRequiredFormats();
 
@@ -150,13 +181,12 @@ namespace openCVGraph
         // deallocate resources
         bool fini(GraphData& graphData) override
         {
-            if (cap.isOpened()) {
-                cap.release();
+            if (m_xiH != NULL) {
+                xiStopAcquisition(m_xiH);
+                xiCloseDevice(m_xiH);
             }
             return true;
         }
-
-
 
         void  saveConfig(FileStorage& fs, GraphData& data) override
         {
@@ -192,43 +222,6 @@ namespace openCVGraph
             fs["show_aperature_slider"] >> m_showApertureSlider;
         }
 
-        //void Trigger(TRIGGER trigger) {
-        //    bool fOK = true;
-        //    triggerType = trigger;
-        //    switch (triggerType)
-        //    {
-        //    case FreeRun:
-        //        // no trigger, use internal camera clock to run as fast as you can Forrest
-        //        isGrabOnly = false;
-        //        fOK = cap.set(XI_TRG_OFF, 0);
-        //        Log(fOK, "FreeRun");
-        //        break;
-        //    case ManualGrab:
-        //        // Wait for key hit
-        //        isGrabOnly = true;
-        //        fOK = cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, XI_TRG_SEL_FRAME_START);
-        //        Log(fOK, "ManualGrab");
-        //        break;
-        //    case SoftwareTrigger:
-        //        // We're telling you when to capture buddy
-        //        isGrabOnly = false;
-        //        fOK = cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, XI_TRG_SEL_FRAME_START);
-        //        Log(fOK, "SoftwareTrigger");
-        //        break;
-        //    }
-        //}
-
-        //// Initiate acqusition via software
-        //void TriggerSoftwareCapture() {
-        //    bool fOK = true;
-        //    fOK = cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, XI_TRG_SEL_FRAME_START);
-        //}
-
-        //// get a new frame from camera
-        //void Grab() {
-        //    cap >> frame;
-        //}
-
         void Exposure(bool up) {
             bool fOK = true;
             if (!m_isAutoGain) {
@@ -253,7 +246,9 @@ namespace openCVGraph
 
         bool FocusStep() {
             bool fOK = true;
-            fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVE, 0);                    // do the move
+            //fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVE, 0);                    // do the move
+            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_LENS_FOCUS_MOVE, 0);
+            LogErrors(stat, "XI_PRM_LENS_FOCUS_MOVE");
             m_Logger->info("Focus stepped");
             return fOK;
         }
@@ -262,7 +257,9 @@ namespace openCVGraph
         void FocusViaSlider(int v) {
             bool fOK = true;
             m_focusMovementStepSize = m_minFocusMovementValue * v;
-            fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, m_focusMovementStepSize);   // may be pos or net
+            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_LENS_FOCUS_MOVEMENT_VALUE, m_focusMovementStepSize);
+            LogErrors(stat, "XI_PRM_LENS_FOCUS_MOVEMENT_VALUE");
+            // fOK = cap.set(CV_CAP_PROP_XI_LENS_FOCUS_MOVEMENT_VALUE, m_focusMovementStepSize);   // may be pos or net
             fOK = FocusStep();
             m_Logger->info("Focus moved: " + std::to_string(m_focusMovementStepSize));
         }
@@ -270,7 +267,8 @@ namespace openCVGraph
         void Aperature(int v) {
             bool fOK = true;
             m_aperture = v;
-            fOK = cap.set(CV_CAP_PROP_XI_LENS_APERTURE_VALUE, m_aperture / 1000);
+            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_LENS_APERTURE_VALUE, m_aperture / 1000);
+            LogErrors(stat, "XI_PRM_LENS_APERTURE_VALUE");
             m_Logger->info("Aperature " + std::to_string(m_aperture));
         }
 
@@ -284,7 +282,8 @@ namespace openCVGraph
         void setGain(int value) override {
             if (!m_isAutoGain) {
                 m_gain = value;
-                cap.set(CV_CAP_PROP_XI_GAIN, m_gain / 1000);
+                XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_GAIN, m_gain / 1000);
+                LogErrors(stat, "XI_PRM_GAIN");
                 m_Logger->info("Gain " + std::to_string(m_gain));
             }
         }
@@ -293,15 +292,17 @@ namespace openCVGraph
         }
         void setExposure(int value) override {
             m_exposure = value;
-            cap.set(CV_CAP_PROP_XI_EXPOSURE, m_exposure);
+            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE, m_exposure);
+            LogErrors(stat, "XI_PRM_EXPOSURE");
             m_Logger->info("Exposure " + std::to_string(m_exposure));
         }
 
     private:
+        bool m_InitOK = true;
+        XI_IMG m_image = { 0 };
+        HANDLE m_xiH = NULL;
 
         bool m_isAutoGain = false;
-        bool m_is16bpp = true;
-        bool m_isSquare = true;
         bool m_minimumBuffers = true;
         int m_gain = 1000;                  // * 1000
         int m_gainSliderMax = 10000;        // * 1000
@@ -340,3 +341,4 @@ namespace openCVGraph
     };
 }
 
+#endif

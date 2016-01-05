@@ -1,4 +1,9 @@
 
+#pragma once
+
+#ifndef INCLUDE_OCVG_CAMDEFAULT
+#define INCLUDE_OCVG_CAMDEFAULT
+
 #include "../stdafx.h"
 
 using namespace std;
@@ -257,3 +262,5 @@ namespace openCVGraph
         int imageIndex = 0;
     };
 }
+
+#endif
