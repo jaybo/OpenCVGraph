@@ -57,6 +57,12 @@ Mat createGrayHistogram(Mat& img, int bins, int width, int height)
         return m;
     }
 
+    Mat img2(img);
+    if (nc == 3) {
+        // using WebCam, fake it
+        cv::cvtColor(img, img2, CV_RGB2GRAY);
+    }
+
     /// Establish the number of bins
     int histSize = bins;
 
@@ -69,7 +75,7 @@ Mat createGrayHistogram(Mat& img, int bins, int width, int height)
     Mat hist;
 
     /// Compute the histograms:
-    cv::calcHist(&img, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+    cv::calcHist(&img2, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
 
     // Draw the histogram
     int hist_w = width; int hist_h = height;

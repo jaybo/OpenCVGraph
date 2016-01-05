@@ -49,6 +49,9 @@ void GraphWebCam()
     //CvFilter fpSimple(new Simple("Simple", gd, CV_16UC1));
     //graph1.AddFilter(fpSimple);
 
+    CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
+    graph1.AddFilter(fpRunningStats);
+
     CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
     graph1.AddFilter(canny1);
 
@@ -179,8 +182,8 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
-    // GraphWebCam();
-    GraphXimea();
+    GraphWebCam();
+    // GraphXimea();
 #else
     GraphWebCam();
 #endif

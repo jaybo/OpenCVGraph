@@ -241,7 +241,6 @@ namespace openCVGraph
 
         int m_winWidth, m_winHeight;
         int m_ZoomFactor = 0;     // 0 is 1:1 pixelwise
-        static ZoomView* s_ActiveZoomView;
         bool m_MouseLButtonDown = false;
         int m_SampledPixelU16;
 

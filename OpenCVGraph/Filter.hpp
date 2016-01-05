@@ -207,7 +207,7 @@ namespace openCVGraph
         { 
             if (m_imViewTextOverlay.empty())
             {
-                m_imViewTextOverlay = Mat(m_height, m_width, CV_8U);
+                m_imViewTextOverlay = Mat(m_height, m_width, CV_8UC3);
             }
             m_imViewTextOverlay.setTo(0);
         }
