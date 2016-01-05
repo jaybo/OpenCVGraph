@@ -16,7 +16,6 @@ using namespace cv;
     bool dirExists(const std::string& path);
 
     void createDir(std::string& dir);
-    // void createDir();
 
     void DrawOverlayText(cv::Mat m, string str, cv::Point p, double scale, CvScalar color = CV_RGB(255, 255, 255));
 

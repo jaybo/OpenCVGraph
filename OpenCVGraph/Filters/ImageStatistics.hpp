@@ -266,9 +266,10 @@ namespace openCVGraph
 
             auto histSize = Size(512, 200);
             Mat histo = createGrayHistogram(graphData.m_imCapture, 256, histSize.width, histSize.height);
+            cv::cvtColor(histo, histo, CV_GRAY2RGB);
 
             Mat t = Mat(m_imViewTextOverlay, Rect(Point(0, 180), histSize));
-            //cv::bitwise_or(t, histo, t);
+            cv::bitwise_or(t, histo, t);
         }
 
     };
