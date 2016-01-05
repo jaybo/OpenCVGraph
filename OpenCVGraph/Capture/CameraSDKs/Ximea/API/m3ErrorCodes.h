@@ -55,7 +55,7 @@ typedef int MM40_RETURN;
 #define MM40_ACQUISITION_ALREADY_UP       41 //!< Acquisition already started
 #define MM40_OLD_DRIVER_VERSION           42 //!< Old version of device driver installed to the system.
 #define MM40_GET_LAST_ERROR               43 //!< To get error code please call GetLastError function.
-#define MM40_CANT_PROCESS                 44 //!< Data can't be processed
+#define MM40_CANT_PROCESS                 44 //!< Data cant be processed
 #define MM40_ACQUISITION_STOPED           45 //!< Acquisition has been stopped. It should be started before GetImage.
 #define MM40_ACQUISITION_STOPED_WERR      46 //!< Acquisition has been stoped with error.
 #define MM40_INVALID_INPUT_ICC_PROFILE    47 //!< Input ICC profile missed or corrupted
@@ -63,14 +63,15 @@ typedef int MM40_RETURN;
 #define MM40_DEVICE_NOT_READY             49 //!< Device not ready to operate
 #define MM40_SHADING_TOOCONTRAST          50 //!< Shading too contrast
 #define MM40_ALREADY_INITIALIZED          51 //!< Module already initialized
-#define MM40_NOT_ENOUGH_PRIVILEGES        52 //!< Application doesn't enough privileges(one or more app
+#define MM40_NOT_ENOUGH_PRIVILEGES        52 //!< Application doesnt enough privileges(one or more app
 #define MM40_NOT_COMPATIBLE_DRIVER        53 //!< Installed driver not compatible with current software
 #define MM40_TM_INVALID_RESOURCE          54 //!< TM file was not loaded successfully from resources
 #define MM40_DEVICE_HAS_BEEN_RESETED      55 //!< Device has been reseted, abnormal initial state
 #define MM40_NO_DEVICES_FOUND             56 //!< No Devices Found
 #define MM40_RESOURCE_OR_FUNCTION_LOCKED  57 //!< Resource(device) or function locked by mutex
 #define MM40_BUFFER_SIZE_TOO_SMALL        58 //!< Buffer provided by user is too small
-#define MM40_COULDNT_INIT_PROCESSOR       59 //!< Couldn't initialize processor.
+#define MM40_COULDNT_INIT_PROCESSOR       59 //!< Couldnt initialize processor.
 #define MM40_NOT_INITIALIZED              60 //!< The object/module/procedure/process being referred to has not been started.
+#define MM40_RESOURCE_NOT_FOUND           61 //!< Resource not found(could be processor, file, item..).
 /** @} */
 #endif // _ERROR_CODES_H_

@@ -61,4 +61,4 @@
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"
 #include "Capture/CamXimea.hpp"
-
+#include "Capture/CamXimeaOpenCV.hpp"

@@ -73,6 +73,42 @@ MM40_API MM40_RETURN __cdecl mmSetExtention			(IN HANDLE hDevice, IN DWORD dwExt
 MM40_API MM40_RETURN __cdecl mmGetExtentionDouble	(IN HANDLE hDevice, IN DWORD dwExtension, OUT double * lpValue );
 MM40_API MM40_RETURN __cdecl mmSetExtentionDouble	(IN HANDLE hDevice, IN DWORD dwExtension, IN double Value );
 
+
+//
+// Definitions of device units for register access
+//
+
+#define DEVICE_UNIT_SENSOR1       0 // Selects first sensor on device
+#define DEVICE_UNIT_FPGA1         1 // Selects first FPGA on device
+#define DEVICE_UNIT_SAL           2 // Selects sensor abstraction layer
+#define DEVICE_UNIT_DAL           3 // Selects driver abstraction layer
+#define DEVICE_UNIT_SCM           4 // Selects sensor correction module
+#define DEVICE_UNIT_FGENTL        5 // Selects register in underlying GenTL layer
+#define DEVICE_UNIT_MCU1          6 // Selects first MCU on device
+#define DEVICE_UNIT_MCU2          7 // Selects second MCU on device
+
+/**
+   \brief Read camera lowlevel register value.
+   
+   @param[in]  h_device			handle to device
+   @param[in]  reg_unit_sel   	register unit selector
+   @param[in]  offset          	register offset value
+   @param[out] preg_value	    buffer for register value to be read
+   @return MM40_OK on success, error value otherwise.
+ */
+MM40_API MM40_RETURN __cdecl mmReadRegEx (IN HANDLE h_device, IN DWORD reg_unit_sel, IN DWORD reg_offset, OUT LPDWORD preg_value);
+
+/**
+   \brief Write camera lowlevel register value.
+   
+   @param[in]  h_device			handle to device
+   @param[in]  reg_unit_sel   	register unit selector
+   @param[in]  offset          	register offset value
+   @param[in]  reg_value  	    buffer for register value to be set
+   @return MM40_OK on success, error value otherwise.
+ */
+MM40_API MM40_RETURN __cdecl mmWriteRegEx (IN HANDLE h_device, IN DWORD reg_unit_sel, IN DWORD reg_offset, IN DWORD reg_value);
+
 enum MM_EXTENSION {
 	/*************MR*************/
 	EXT_VSUB			= 1000,
@@ -179,6 +215,22 @@ enum MM_EXTENSION {
 	EXT_DEV_HARDWARE_REVISION  = 1102,     // hardware revision of camera
 	EXT_IS_USB20				= 1103,
     EXT_PYTHON_ZROT_EN      = 1104,
+    EXT_REGION_SELECTOR     = 1105,         //set region selector in multi ROI mode
+    EXT_REGION_SELECTOR_MAX = 1106,         //Max selector value readonly. 
+    EXT_REGION_MODE         = 1107,
+    EXT_REGION_WIDTH        = 1108,         //ROI WIDHT readonly
+    EXT_REGION_HEGIHT       = 1109,         //ROI HEIGHT readonly
+    EXT_REGION_OFFSET_X     = 1110,         //ROI OFFSET_X readonly
+    EXT_REGION_OFFSET_Y     = 1111,         //ROI OFFSET_Y readonly
+    EXT_TOTAL_WIDTH         = 1112,         //ROI WIDHT readonly
+    EXT_TOTAL_HEIGHT        = 1113,         //ROI HEIGHT readonly
+    EXT_TOTAL_OFFSET_X      = 1114,         //image OFFSET_X readonly
+    EXT_TOTAL_OFFSET_Y      = 1115,         //image OFFSET_Y readonly
+    EXT_DISABLE_MULTI_ROI   = 1116,         //will disable all ROI except ROI 0
+    EXT_MULTI_ROI_ACTIVE    = 1117,         //multiROI active read only
+    EXT_END_OF_PREVIOUS_REGION_Y = 1118,    //will return where active regions with selector less than curent end
+    EXT_START_OF_NEXT_REGION_Y = 1119,      //will return where active regions with selector higher than curent start (offset of next active region, or end of frame. 
+    EXT_EXPOSURE_INCREMENT  = 1120,         //return real exposure increment
 	/************CMV300 Calib***********/
 	EXT_CMV300_FREQ_BL_TOP_OFFSET = 1203,
 	EXT_CMV300_FREQ_BL_BOT_OFFSET = 1204,

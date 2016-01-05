@@ -368,6 +368,8 @@ typedef struct{
 	DWORD totalHeight;		//T+V+B	
 	DWORD AbsoluteOffsetX;	//Horizontal offset origin of sensor 0,0	
 	DWORD AbsoluteOffsetY;	//Vertical offset origin of sensor 0,0	
+	DWORD DownsamplingX;	//Horizontal downsampling
+	DWORD DownsamplingY;	//Vertical downsampling
 	DWORD format; //Input image format (see XI_GenTL_Image_Format_e)
 }INPUT_IMAGE_API, *LPINPUT_IMAGE_API;
 
@@ -387,6 +389,7 @@ typedef	struct {
 #define RAW_BPC_DONE				0x00000004//Bad pixels correction done on raw data
 #define GET_TRANSPORT_DATA			0x00000008//Return received transport data
 #define COLOR_INTERPOLATION_DONE	0x00000010//If color interpolation done on incoming data
+#define IMAGE_CORRECTION_2D_DONE	0x00000020//Image correction on raw data done(before interpolation or transformation).
 	DWORD				flags;
 	INPUT_IMAGE_API		input;	
 	OUTPUT_IMAGE_API	output;
@@ -959,6 +962,8 @@ MM40_API MM40_RETURN __cdecl mmGetModelFamilyById (IN DWORD nIndex, OUT LPDWORD 
  */
 MM40_API MM40_RETURN __cdecl mmGetDeviceInstancePath	(IN HANDLE hDevice, OUT char * path, IN DWORD str_lenght );
 MM40_API MM40_RETURN __cdecl mmGetDeviceInstancePathById ( IN DWORD nIndex,	OUT char * path, IN DWORD str_lenght );
+MM40_API MM40_RETURN __cdecl mmGetDeviceLocationPath	(IN HANDLE hDevice, OUT char * path, IN DWORD str_lenght );
+MM40_API MM40_RETURN __cdecl mmGetDeviceLocationPathById ( IN DWORD nIndex,	OUT char * path, IN DWORD str_lenght );
 
 // HWN2:  CCCM.FRA
 /**
@@ -1008,6 +1013,17 @@ MM40_API MM40_RETURN __cdecl mmGetSensorSerialNumber (IN HANDLE hDevice, OUT cha
 */
 
 MM40_API MM40_RETURN __cdecl mmGetDeviceUserID ( IN HANDLE hDevice, OUT char * user_id, IN DWORD* str_lenght );
+
+/**
+	\brief Get camera manifest capability description XML.
+
+   @param[in] hDevice			handle of the specified device
+   @param[out] string			string with manifest XML
+   @param[in] str_lenght		returns lenght of string buffer
+   @return MM40_OK on success, error value otherwise.
+*/
+
+MM40_API MM40_RETURN __cdecl mmGetDeviceManifest ( IN HANDLE hDevice, OUT char * manifest, IN DWORD* str_lenght );
 
 /**
 	\brief Get custom user ID from camera by camera index.

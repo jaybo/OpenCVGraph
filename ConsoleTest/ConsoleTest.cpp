@@ -134,7 +134,7 @@ void GraphXimea()
     GraphManager graph1("GraphXimea", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 1024, 1024));
+    CvFilter cam2(new CamXimeaOpenCV("CamXimea", *gd, CV_16UC1, 1024, 1024));
     graph1.AddFilter(cam2);
 
     CvFilter faverage(new Average("Average", *gd));
