@@ -137,9 +137,7 @@ class TemcaGraph(object):
         return TemcaGraphDLL.get_status()
 
     def grab_frame(self, filename = "none", roiX = 0, roiY = 0):
-        ''' 
-        Trigger capture of a frame.
-        '''
+        ''' Trigger capture of a frame. '''
         TemcaGraphDLL.grab_frame(filename, roiX, roiY)
 
     def get_last_frame(self, img):
