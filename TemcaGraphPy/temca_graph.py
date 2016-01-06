@@ -217,8 +217,8 @@ if __name__ == '__main__':
 
     # set ROI grid size (for stitching only)
     roiInfo = ROIInfo()
-    roiInfo.gridX = 30
-    roiInfo.gridY = 30
+    roiInfo.gridX = 10
+    roiInfo.gridY = 10
     temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
@@ -228,7 +228,7 @@ if __name__ == '__main__':
             if temcaGraph.aborting:
                 break
             temcaGraph.eventStartNewFrame.wait(waitTime)
-            temcaGraph.grab_frame('j:/junk/frame' + str(frameCounter) + '.tif', x, y)
+            temcaGraph.grab_frame('j:/junk/pyframe' + str(frameCounter) + '.tif', x, y)
             temcaGraph.eventCaptureCompleted.wait(waitTime)
 
             # move stage here

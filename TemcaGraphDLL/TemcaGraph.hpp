@@ -7,8 +7,10 @@
 using namespace std;
 using namespace openCVGraph;
 
-// This function is called at the completion of each loop through a graph to check for 
-// user input.
+// -----------------------------------------------------------------------------------
+// Called at the completion of each loop through a graph to check for user input.
+// -----------------------------------------------------------------------------------
+
 bool graphCallback(GraphManager* graphManager)
 {
     // waitKey is required in OpenCV to make graphs display, 
@@ -26,6 +28,10 @@ bool graphCallback(GraphManager* graphManager)
     }
     return true;
 }
+
+// -----------------------------------------------------------------------------------
+// The graphs.  Graphs are run in parallel, each with own thread.
+// -----------------------------------------------------------------------------------
 
 GraphManager* GraphWebCam(GraphCommonData * commonData)
 {
@@ -55,7 +61,6 @@ GraphManager* GraphCamXimea(GraphCommonData * commonData)
 #endif
     return graph;
 }
-
 
 GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
 {
@@ -94,13 +99,13 @@ GraphManager* GraphQC(GraphCommonData * commonData)
 #ifdef WITH_CUDA
     CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
     graph->AddFilter(fFocusSobel);
+
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
+    graph->AddFilter(fFocusFFT);
+
+    CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
+    graph->AddFilter(filter);
 #endif
-
-    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
-    //graph->AddFilter(fFocusFFT);
-
-    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
-    //graph->AddFilter(filter);
 
     return graph;
 }
@@ -135,47 +140,11 @@ GraphManager* GraphImageDir(GraphCommonData * commonData)
     return graph;
 }
 
-#ifdef WITH_CUDA
-//void GraphXimea()
-//{
-//    // Create a graph
-//    GraphManager graph1("GraphXimea", true, graphCallback);
-//    GraphData gd = graph1.getGraphData();
-//
-//    CvFilter cam(new CamXimea("CamXimea", gd, CV_16UC1, 1024, 1024));
-//    graph1.AddFilter(cam);
-//
-//    //CvFilter faverage(new Average("Average", gd));
-//    //graph1.AddFilter(faverage);
-//
-//    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", gd));
-//    graph1.AddFilter(fbrightDark);
-//
-//    //CvFilter fpRunningStats(new ImageStatistics("Stats", gd));
-//    //graph1.AddFilter(fpRunningStats);
-//
-//    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", gd, CV_16UC1, 512, 150));
-//    //graph1.AddFilter(fFocusSobel);
-//
-//    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", gd, CV_16UC1, 512, 512));
-//    //graph1.AddFilter(fFocusFFT);
-//
-//    //CvFilter canny(new openCVGraph::Canny("Canny", gd));
-//    //graph1.AddFilter(canny);
-//
-//    //CvFilter fpSimple(new Simple("Simple", gd));
-//    //graph1.AddFilter(fpSimple);
-//
-//    //CvFilter fileWriter(new FileWriter("FileWriter", gd));
-//    //graph1.AddFilter(fileWriter);
-//
-//    // Start the thread for that graph running
-//    graph1.StartThread();
-//    graph1.GotoState(GraphManager::GraphState::Run);
-//
-//    graph1.JoinThread();
-//}
-#endif
+
+
+// -----------------------------------------------------------------------------------
+// The Temca Class used by Python
+// -----------------------------------------------------------------------------------
 
 class Temca
 {
