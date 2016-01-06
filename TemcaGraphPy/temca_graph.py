@@ -173,17 +173,23 @@ class TemcaGraph(object):
             logging.error ('callback error is' + error_string)
             return False
         elif status == 0:
+            # finished initialization of all graphs
             self.eventInitCompleted.set()
         elif status == 1:
+            # ready to start the next frame
             self.eventProcessingCompleted.clear()
             self.eventStartNewFrame.set()
         elif status == 2:
+            # capture frame is now available
+            # (move the stage now)
             self.eventCaptureCompleted.set()
         elif status == 3:
+            # all processing for the frame is complete
             self.eventCaptureCompleted.clear()
             self.eventStartNewFrame.clear()
             self.eventProcessingCompleted.set()
         elif status == 4:
+            # graph is finished all processing. Close app.
             self.eventFiniCompleted.set()
         return True
     
