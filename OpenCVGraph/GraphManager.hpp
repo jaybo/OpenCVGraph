@@ -156,6 +156,8 @@ namespace openCVGraph
                 }
             }
 
+            m_TimeStart = static_cast<double>(cv::getTickCount());
+
             // main processing loop
             while (fOK && !m_Aborting) {
                 // This should be the only waitKey() in the entire graph
@@ -203,6 +205,7 @@ namespace openCVGraph
                     fOK = (*m_GraphCallback)(this);
                 }
             }
+            m_TimeEnd = static_cast<double>(cv::getTickCount());
 
             saveConfig();
 
@@ -289,6 +292,7 @@ namespace openCVGraph
             cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
 
             fs << "LogLevel" << m_LogLevel;
+            fs << "FPS" << m_GraphData.m_FrameNumber / ((m_TimeEnd - m_TimeStart) / cv::getTickFrequency());
             fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
             fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
             fs << "UseCuda" << m_UseCuda;
@@ -367,7 +371,8 @@ namespace openCVGraph
         bool m_UseCuda = true;
         int m_LogLevel = spd::level::info;
         std::shared_ptr<spdlog::logger> m_Logger;
-
+        double m_TimeStart;
+        double m_TimeEnd;
     };
 
 }

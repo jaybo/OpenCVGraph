@@ -75,7 +75,7 @@ namespace openCVGraph
                 // Init exposure and gain
                 stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE, m_exposure);
                 LogErrors(stat, "XI_PRM_EXPOSURE");
-                stat = xiSetParamInt(m_xiH, XI_PRM_GAIN, m_gain / 1000);
+                stat = xiSetParamFloat(m_xiH, XI_PRM_GAIN, (float) (m_gain / 1000.0));
                 LogErrors(stat, "XI_PRM_GAIN");
 
                 if (m_minimumBuffers) {
@@ -267,7 +267,7 @@ namespace openCVGraph
         void Aperature(int v) {
             bool fOK = true;
             m_aperture = v;
-            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_LENS_APERTURE_VALUE, m_aperture / 1000);
+            XI_RETURN stat = xiSetParamFloat(m_xiH, XI_PRM_LENS_APERTURE_VALUE, (float)(m_aperture / 1000.0));
             LogErrors(stat, "XI_PRM_LENS_APERTURE_VALUE");
             m_Logger->info("Aperature " + std::to_string(m_aperture));
         }
@@ -282,7 +282,7 @@ namespace openCVGraph
         void setGain(int value) override {
             if (!m_isAutoGain) {
                 m_gain = value;
-                XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_GAIN, m_gain / 1000);
+                XI_RETURN stat = xiSetParamFloat(m_xiH, XI_PRM_GAIN, (float) (m_gain / 1000.));
                 LogErrors(stat, "XI_PRM_GAIN");
                 m_Logger->info("Gain " + std::to_string(m_gain));
             }
