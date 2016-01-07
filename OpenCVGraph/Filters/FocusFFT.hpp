@@ -36,8 +36,7 @@ namespace openCVGraph
             if (m_Enabled) {
                 if (m_showView) {
                     if (m_showViewControls) {
-                        createTrackbar("omega", m_CombinedName, &m_Omega, 30, OmegaSliderCallback, this);
-                        createTrackbar("ignoreTop", m_CombinedName, (int*)&m_IgnoreTopFrequencies, 30);
+                        createTrackbar("omega", m_CombinedName, &m_Omega, m_DFTSize-1);
                         createTrackbar("view", m_CombinedName, (int*) &m_ImageIndex, PowerSpectrumROI);
                     }
                 }
@@ -131,7 +130,7 @@ namespace openCVGraph
                 // polar transform
                 cv::linearPolar(tmp, polar, Point (rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
-                m_roiPowerSpectrum = polar (Range::all(), Range(rCropped.width - m_Omega, rCropped.width - m_IgnoreTopFrequencies));
+                m_roiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
                 auto s = cv::mean(m_roiPowerSpectrum);
                 m_FocusScore = s[0];
                  
@@ -164,7 +163,7 @@ namespace openCVGraph
             DrawOverlayText(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
-            str << std::setfill(' ') << setw(10) << m_FocusScore  << m_AstigmatismScore << m_AstigmatismAngle;
+            str << std::setfill(' ') << std::fixed << std::setprecision(3)  << std::setw(10) << m_FocusScore << std::setw(8) << m_AstigmatismScore << std::setw(8) << m_AstigmatismAngle;
             DrawOverlayText(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
@@ -176,7 +175,9 @@ namespace openCVGraph
             cvWriteComment((CvFileStorage *)*fs, "Power of 2 (256, 512, 1024, 2048)", 0);
             fs << "dft_size" << m_DFTSize;
             fs << "omega" << m_Omega;
-            fs << "ignoreTopFrequencies" << m_IgnoreTopFrequencies;
+            if (m_Omega >= m_DFTSize) {
+                m_Omega = 0;
+            }
         }
 
         void  FocusFFT::loadConfig(FileNode& fs, GraphData& data) override
@@ -184,7 +185,6 @@ namespace openCVGraph
             Filter::loadConfig(fs, data);
             fs["dft_size"] >> m_DFTSize;
             fs["omega"] >> m_Omega;
-            fs["ignoreTopFrequencies"] >> m_IgnoreTopFrequencies;
         }
 
         void FocusFFT::DFTSize(int dftSize) {
@@ -199,7 +199,6 @@ namespace openCVGraph
         };
 
         ImageToView m_ImageIndex;           // which image to view
-        int m_IgnoreTopFrequencies = 10;
         int m_DFTSize = 512;
         int m_Omega = 50;           // number of high frequency components to consider
         double m_FocusScore;
@@ -210,15 +209,6 @@ namespace openCVGraph
 
         Mat m_PowerSpectrum;
         Mat m_roiPowerSpectrum;
-
-
-        static void FocusFFT::OmegaSliderCallback(int pos, void * userData) {
-            FocusFFT* filter = (FocusFFT *)userData;
-            if (pos <= filter->m_IgnoreTopFrequencies + 1) {
-                pos = filter->m_IgnoreTopFrequencies + 1;
-            }
-            filter->m_Omega = pos;
-        }
     };
 }
 #endif

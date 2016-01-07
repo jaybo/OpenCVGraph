@@ -14,7 +14,7 @@
     <Name>TemcaGraphPy</Name>
     <RootNamespace>PythonTest</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>
     </Environment>
     <IsWindowsApplication>False</IsWindowsApplication>
