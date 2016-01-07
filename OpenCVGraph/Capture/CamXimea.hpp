@@ -55,6 +55,13 @@ namespace openCVGraph
             XI_RETURN stat;
             stat = xiOpenDevice(camera_index, &m_xiH);
             if (stat == XI_OK) {
+
+
+
+                // We're doing software triggering, so buffers won't get overwritten in UNSAFE mode
+                stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
+                LogErrors(stat, "XI_PRM_BUFFER_POLICY");
+
                 // 3840x3840
                 stat = xiSetParamInt(m_xiH, XI_PRM_WIDTH, 3840);
                 LogErrors(stat, "XI_PRM_WIDTH");
@@ -65,6 +72,11 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_MONO16);
                 LogErrors(stat, "XI_PRM_IMAGE_DATA_FORMAT");
 
+#if LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT
+                stat = xiSetParamInt(m_xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
+                LogErrors(stat, "XI_PRM_LIMIT_BANDWIDTH");
+#endif
+                
                 // AutoGain off
                 stat = xiSetParamInt(m_xiH, XI_PRM_AEAG, 0);
                 LogErrors(stat, "XI_PRM_AEAG");
@@ -80,8 +92,16 @@ namespace openCVGraph
                 LogErrors(stat, "XI_PRM_GAIN");
 
                 if (m_minimumBuffers) {
+                    // Limit size of buffer pool 
+                    // Without this, the driver will allocate an extra unused 1GB of buffer space!
+                    stat = xiSetParamInt(m_xiH, XI_PRM_ACQ_BUFFER_SIZE, 5120 * 3840 * 2 * 4); // (x * y * bytes_per_pixel * buffers)
+                    LogErrors(stat, "XI_PRM_ACQ_BUFFER_SIZE");
+
+                    // only 2 buffers (ping and pong), although we should only really need 1
                     stat = xiSetParamInt(m_xiH, XI_PRM_BUFFERS_QUEUE_SIZE, 2);
                     LogErrors(stat, "XI_PRM_BUFFERS_QUEUE_SIZE");
+                    
+                    // always get the most recent frame captured
                     stat = xiSetParamInt(m_xiH, XI_PRM_RECENT_FRAME, 1);
                     LogErrors(stat, "XI_PRM_RECENT_FRAME");
                 }
@@ -97,11 +117,9 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
                 LogErrors(stat, "XI_PRM_TRG_SOURCE");
 #endif
-
-#if LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT
-                stat = xiSetParamInt(m_xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
-                LogErrors(stat, "XI_PRM_LIMIT_BANDWIDTH");
-#endif
+                // flash LED during acquisition?
+                stat = xiSetParamInt(m_xiH, XI_PRM_LED_MODE, m_LEDMode);
+                LogErrors(stat, "XI_PRM_LED_MODE");
 
                 // perform a single frame test capture to verify operation before streaming
                 stat = xiStartAcquisition(m_xiH);
@@ -289,7 +307,7 @@ namespace openCVGraph
         void setGain(int value) override {
             if (!m_isAutoGain) {
                 m_gain = value;
-                XI_RETURN stat = xiSetParamFloat(m_xiH, XI_PRM_GAIN, (float) (m_gain / 1000.));
+                XI_RETURN stat = xiSetParamFloat(m_xiH, XI_PRM_GAIN XI_PRMM_DIRECT_UPDATE, (float) (m_gain / 1000.));
                 LogErrors(stat, "XI_PRM_GAIN");
                 m_Logger->info("Gain " + std::to_string(m_gain));
             }
@@ -299,7 +317,7 @@ namespace openCVGraph
         }
         void setExposure(int value) override {
             m_exposure = value;
-            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE, m_exposure);
+            XI_RETURN stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE  XI_PRMM_DIRECT_UPDATE, m_exposure);
             LogErrors(stat, "XI_PRM_EXPOSURE");
             m_Logger->info("Exposure " + std::to_string(m_exposure));
         }
@@ -323,6 +341,7 @@ namespace openCVGraph
         bool m_showExposureSlider = false;
         bool m_showFocusSlider = false;
         bool m_showApertureSlider = false;
+        int m_LEDMode = XI_LED_EXPOSURE_ACTIVE;
         std::shared_ptr<logger> m_Logger;
 
         static void ExposureCallback(int pos, void * userData) {

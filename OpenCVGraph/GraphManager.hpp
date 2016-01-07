@@ -24,6 +24,7 @@ namespace openCVGraph
             Run
         };
 
+        GraphManager();
         GraphManager(const std::string name, bool abortOnESC, GraphCallback callback, GraphCommonData *commonData, bool useCuda = true)
         {
             // Set up logging

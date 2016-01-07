@@ -11,7 +11,7 @@ namespace openCVGraph
 
     // Container for data which is shared by ALL graphs
 
-    class GraphCommonData {
+    struct GraphCommonData {
     public:
         int m_ROISizeX = 0;                     // Overall dimensions of ROI grid
         int m_ROISizeY = 0;
@@ -75,6 +75,7 @@ namespace openCVGraph
 #endif
 
         GraphCommonData * m_CommonData;
+        GraphCommonData & m_CommonData2;
         std::shared_ptr<logger> m_Logger;
         int m_FrameNumber = 0;                  // Current frame being processed.
 
