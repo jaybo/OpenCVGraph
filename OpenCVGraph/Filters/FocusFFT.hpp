@@ -15,6 +15,7 @@ namespace openCVGraph
     // effected by low - frequency effects.
     // See: http://www.csl.cornell.edu/~cbatten/pdfs/batten-image-processing-sem-ucthesis2000.pdf 
 
+
     class FocusFFT : public Filter
     {
     public:
@@ -35,7 +36,9 @@ namespace openCVGraph
             if (m_Enabled) {
                 if (m_showView) {
                     if (m_showViewControls) {
-                        //createTrackbar("Kernel", m_CombinedName, &m_kSize, 7, SliderCallback, this);
+                        createTrackbar("omega", m_CombinedName, &m_Omega, 30, OmegaSliderCallback, this);
+                        createTrackbar("ignoreTop", m_CombinedName, (int*)&m_IgnoreTopFrequencies, 30);
+                        createTrackbar("view", m_CombinedName, (int*) &m_ImageIndex, PowerSpectrumROI);
                     }
                 }
             }
@@ -128,8 +131,8 @@ namespace openCVGraph
                 // polar transform
                 cv::linearPolar(tmp, polar, Point (rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
-                Mat roiPowerSpectrum = polar (Range::all(), Range(rCropped.width - m_Omega, rCropped.width - 4));
-                auto s = cv::mean(roiPowerSpectrum);
+                m_roiPowerSpectrum = polar (Range::all(), Range(rCropped.width - m_Omega, rCropped.width - m_IgnoreTopFrequencies));
+                auto s = cv::mean(m_roiPowerSpectrum);
                 m_FocusScore = s[0];
                  
 
@@ -142,14 +145,14 @@ namespace openCVGraph
         {
             ClearOverlayText();
 
-            //if (graphData.m_UseCuda) {
-            //    graphData.m_imCapGpu8UC1.download(m_imView);
-            //}
-            //else
-            //{
-            //    m_imView = graphData.m_imCap8UC1;
-            //}
-            m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
+            switch (m_ImageIndex) {
+            case ImageToView::PowerSpectrum:
+                m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
+                break;
+            case ImageToView::PowerSpectrumROI:
+                m_roiPowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
+                break;
+            }
 
             std::ostringstream str;
 
@@ -173,6 +176,7 @@ namespace openCVGraph
             cvWriteComment((CvFileStorage *)*fs, "Power of 2 (256, 512, 1024, 2048)", 0);
             fs << "dft_size" << m_DFTSize;
             fs << "omega" << m_Omega;
+            fs << "ignoreTopFrequencies" << m_IgnoreTopFrequencies;
         }
 
         void  FocusFFT::loadConfig(FileNode& fs, GraphData& data) override
@@ -180,6 +184,7 @@ namespace openCVGraph
             Filter::loadConfig(fs, data);
             fs["dft_size"] >> m_DFTSize;
             fs["omega"] >> m_Omega;
+            fs["ignoreTopFrequencies"] >> m_IgnoreTopFrequencies;
         }
 
         void FocusFFT::DFTSize(int dftSize) {
@@ -187,6 +192,14 @@ namespace openCVGraph
         }
 
     private:
+
+        enum ImageToView {
+            PowerSpectrum,
+            PowerSpectrumROI
+        };
+
+        ImageToView m_ImageIndex;           // which image to view
+        int m_IgnoreTopFrequencies = 10;
         int m_DFTSize = 512;
         int m_Omega = 50;           // number of high frequency components to consider
         double m_FocusScore;
@@ -196,13 +209,15 @@ namespace openCVGraph
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
 
         Mat m_PowerSpectrum;
+        Mat m_roiPowerSpectrum;
 
-        static void FocusFFT::SliderCallback(int pos, void * userData) {
+
+        static void FocusFFT::OmegaSliderCallback(int pos, void * userData) {
             FocusFFT* filter = (FocusFFT *)userData;
-            if (!(pos & 1)) {
-                pos++;      // kernels must be odd
+            if (pos <= filter->m_IgnoreTopFrequencies + 1) {
+                pos = filter->m_IgnoreTopFrequencies + 1;
             }
-            // filter->KernelSize(pos);
+            filter->m_Omega = pos;
         }
     };
 }

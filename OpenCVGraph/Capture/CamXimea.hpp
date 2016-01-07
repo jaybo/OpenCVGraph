@@ -17,6 +17,7 @@ namespace openCVGraph
 #define SOFTWARE_TRIGGER 1          // else free run
 #define PINNED_MEMORY 0             // page lock the main capture buffer
 #define XI_TIMEOUT 5000             // No operation should take longer than 5 seconds
+#define LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 1
 
     // Filter which hosts the Ximea 20MPix camera without using OpenCV capture
 
@@ -96,6 +97,12 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
                 LogErrors(stat, "XI_PRM_TRG_SOURCE");
 #endif
+
+#if LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT
+                stat = xiSetParamInt(m_xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
+                LogErrors(stat, "XI_PRM_LIMIT_BANDWIDTH");
+#endif
+
                 // perform a single frame test capture to verify operation before streaming
                 stat = xiStartAcquisition(m_xiH);
                 LogErrors(stat, "xiStartAcquisition");
