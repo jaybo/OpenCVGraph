@@ -54,9 +54,9 @@ namespace openCVGraph
                 fOK = cap.open(camera_index);
                 if (fOK) {
                     // set camera specific properties
-                    fOK = cap.read(graphData.m_imCapture);
+                    fOK = cap.read(graphData.m_CommonData->m_imCapture);
 
-                    if (!graphData.m_imCapture.data)   // Check for invalid input
+                    if (!graphData.m_CommonData->m_imCapture.data)   // Check for invalid input
                     {
                         fOK = false;
                         graphData.m_Logger->error() << "Could not read from capture device #" << camera_index;
@@ -80,7 +80,7 @@ namespace openCVGraph
                     graphData.m_Logger->error() << "Could not open or find the image";
                 }
                 else {
-                    graphData.m_imCapture = image;
+                    graphData.m_CommonData->m_imCapture = image;
                     source = SingleImage;
                     graphData.m_CommonData->m_SourceFileName = image_name;
                     fOK = true;
@@ -139,10 +139,10 @@ namespace openCVGraph
             if (!fOK) {
                 source = Noise;
                 if (graphData.m_NeedCV_16UC1) {
-                    graphData.m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_16UC1);
+                    graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_16UC1);
                 }
                 else if (graphData.m_NeedCV_8UC3) {
-                    graphData.m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_8UC3);
+                    graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_8UC3);
                 }
                 fOK = true;
             }
@@ -158,20 +158,20 @@ namespace openCVGraph
 
             switch (source) {
             case Camera:
-                fOK = cap.read(graphData.m_imCapture);
+                fOK = cap.read(graphData.m_CommonData->m_imCapture);
                 break;
             case SingleImage:
                 // nothing to do, already loaded
                 break;
             case Movie:
-                fOK = cap.read(graphData.m_imCapture);
+                fOK = cap.read(graphData.m_CommonData->m_imCapture);
                 break;
             case Directory:
                 if (images.size() > 0) {
                     string fname = images[imageIndex];
                     // cout << fname << endl;
                     graphData.m_CommonData->m_SourceFileName = fname;
-                    graphData.m_imCapture = imread(fname, CV_LOAD_IMAGE_UNCHANGED);
+                    graphData.m_CommonData->m_imCapture = imread(fname, CV_LOAD_IMAGE_UNCHANGED);
                     imageIndex++;
                     if (imageIndex >= images.size()) {
                         imageIndex = 0;
@@ -179,11 +179,11 @@ namespace openCVGraph
                 }
                 break;
             case Noise:
-                //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
-               //cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(255));
-               //graphData.m_imCapture = Mat::zeros(512, 512, CV_16U);
+                //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
+               //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(255));
+               //graphData.m_CommonData->m_imCapture = Mat::zeros(512, 512, CV_16U);
                 if (graphData.m_NeedCV_16UC1) {
-                    cv::randu(graphData.m_imCapture, Scalar::all(0), Scalar::all(65536));
+                    cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
                 }
 
                 break;
@@ -199,11 +199,11 @@ namespace openCVGraph
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
-                if (graphData.m_imCapture.depth() == CV_16U) {
-                    m_imView = graphData.m_imCap8UC1;
+                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                    m_imView = graphData.m_CommonData->m_imCap8UC1;
                 }
                 else {
-                    m_imView = graphData.m_imCapture;
+                    m_imView = graphData.m_CommonData->m_imCapture;
                 }
                 Filter::processView(graphData);
             }

@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace cuda;
 
 namespace openCVGraph
 {
@@ -58,9 +59,7 @@ namespace openCVGraph
 
 
 
-                // We're doing software triggering, so buffers won't get overwritten in UNSAFE mode
-                stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
-                LogErrors(stat, "XI_PRM_BUFFER_POLICY");
+
 
                 // 3840x3840
                 stat = xiSetParamInt(m_xiH, XI_PRM_WIDTH, 3840);
@@ -106,11 +105,7 @@ namespace openCVGraph
                     LogErrors(stat, "XI_PRM_RECENT_FRAME");
                 }
 
-#if PINNED_MEMORY
-                // This doesn't work
-                //cuda::HostMem page_locked(Size(3840, 3840), CV_16UC1);
-                //graphData.m_imCapture = page_locked.createMatHeader();
-#endif
+
 
 #if SOFTWARE_TRIGGER
                 // software trigger mode
@@ -130,10 +125,34 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
                 LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
 #endif
-                stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
-                LogErrors(stat, "xiGetImage");
 
+#if PINNED_MEMORY
+                // Create page locked memory to speed CUDA Xfers by 2X
+                // DANGER DANGER DANGER DANGER DANGER DANGER DANGER DANGER 
+
+                // If Pinned memory, we provide the buffer to Ximea (called SAFE because they won't overwrite)
+                stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_SAFE);
+                LogErrors(stat, "XI_PRM_BUFFER_POLICY");
+
+                HostMem page_locked(Size(3840, 3840), CV_16UC1);
+                graphData.m_CommonData->m_imCapture = page_locked.createMatHeader();
+
+                m_image.bp = page_locked.data;
+                m_image.padding_x = page_locked.step - (page_locked.cols * page_locked.elemSize());
+                stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
+
+#else
+                // We're doing software triggering, so buffers won't get overwritten in UNSAFE mode
+                stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
+                LogErrors(stat, "XI_PRM_BUFFER_POLICY");
+
+                stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
+                LogErrors(stat, "xiGetImage"); 
                 copyCaptureImage(graphData);
+#endif
+
+
+
             }
             else {
                 LogErrors(stat, "xiOpenDevice" + camera_index);
@@ -159,7 +178,7 @@ namespace openCVGraph
 
         // bugbug, todo. Capture directly to CUDA contiguous buffer...
         void copyCaptureImage(GraphData& graphData) {
-            graphData.m_imCapture = Mat(m_image.width, m_image.height, CV_16UC1, m_image.bp);
+            graphData.m_CommonData->m_imCapture = Mat(m_image.width, m_image.height, CV_16UC1, m_image.bp);
         }
 
         ProcessResult process(GraphData& graphData) override
@@ -178,7 +197,7 @@ namespace openCVGraph
             copyCaptureImage(graphData);
 
             // always bump up to full 16 bit range
-            graphData.m_imCapture *= 16;
+            graphData.m_CommonData->m_imCapture *= 16;
 
             graphData.CopyCaptureToRequiredFormats();
 
@@ -193,11 +212,11 @@ namespace openCVGraph
         {
             if (m_showView) {
                 // Convert back to 8 bits for the view
-                if (graphData.m_imCapture.depth() == CV_16U) {
-                    graphData.m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
                 }
                 else {
-                    m_imView = graphData.m_imCapture;
+                    m_imView = graphData.m_CommonData->m_imCapture;
                 }
                 Filter::processView(graphData);
             }

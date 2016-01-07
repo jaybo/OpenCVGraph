@@ -41,12 +41,12 @@ namespace openCVGraph
         ProcessResult FocusLaplace::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
-                graphData.m_imOutGpu16UC1 = graphData.m_imCapGpu16UC1;
-                auto nPoints = graphData.m_imCapGpu16UC1.size().area();
+                graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;
+                auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
 
-                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 
+                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 
                     (m_kSize == 1 || m_kSize == 3) ? m_kSize : 3);  // only 1 or 3 in cuda
-                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, m_imGpuLaplace);
+                m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, m_imGpuLaplace);
 
                 Scalar mean, std;
                 m_imGpuLaplace.convertTo(m_imGpuTemp, CV_8UC1, 1/256.0f);
@@ -55,8 +55,8 @@ namespace openCVGraph
                 m_var = std[0] * std[0];
             }
             else {
-                cv::Laplacian(graphData.m_imCapture, m_imLaplace,
-                    graphData.m_imCapture.depth(),
+                cv::Laplacian(graphData.m_CommonData->m_imCapture, m_imLaplace,
+                    graphData.m_CommonData->m_imCapture.depth(),
                     m_kSize,
                     1, 0
                     );

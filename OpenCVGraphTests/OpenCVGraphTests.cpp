@@ -202,13 +202,13 @@ public:
                 break;
             }
 
-            gdCan->m_imCapture = gdCap->m_imCapture;
+            gdCan->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
             gdCan->CopyCaptureToRequiredFormats();
 
-            gdFW->m_imCapture = gdCap->m_imCapture;
+            gdFW->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
             gdFW->CopyCaptureToRequiredFormats();
 
-            gdCar->m_imCapture = gdCap->m_imCapture;
+            gdCar->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
             gdCar->CopyCaptureToRequiredFormats();
 
             fOK &= postCapStep1.Step();

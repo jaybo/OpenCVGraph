@@ -42,30 +42,30 @@ namespace openCVGraph
         {
             if (graphData.m_UseCuda) {
                 Scalar s;
-                graphData.m_imOutGpu16UC1 = graphData.m_imCapGpu16UC1;
-                auto nPoints = graphData.m_imCapGpu16UC1.size().area();
+                graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;
+                auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
 
                 // X
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
+                m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
                 s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 meanX = s[0] / nPoints;
 
                 // Y
-                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
-                m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
+                m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
                 s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 meanY = s[0] / nPoints;
 
                 meanXY = (meanX + meanY) / 2;
             }
             else {
-                cv::Sobel(graphData.m_imCapture, m_imSx,
-                    graphData.m_imCapture.depth(),
+                cv::Sobel(graphData.m_CommonData->m_imCapture, m_imSx,
+                    graphData.m_CommonData->m_imCapture.depth(),
                     1, 0,
                     m_kSize);
-                cv::Sobel(graphData.m_imCapture, m_imSy,
-                    graphData.m_imCapture.depth(),
+                cv::Sobel(graphData.m_CommonData->m_imCapture, m_imSy,
+                    graphData.m_CommonData->m_imCapture.depth(),
                     0, 1,
                     m_kSize);
 
@@ -82,11 +82,11 @@ namespace openCVGraph
             ClearOverlayText();
 
             if (graphData.m_UseCuda) {
-                graphData.m_imCapGpu8UC1.download(m_imView);
+                graphData.m_CommonData->m_imCapGpu8UC1.download(m_imView);
             }
             else
             {
-                m_imView = graphData.m_imCap8UC1;
+                m_imView = graphData.m_CommonData->m_imCap8UC1;
             }
 
             std::ostringstream str;

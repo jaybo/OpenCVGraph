@@ -265,7 +265,7 @@ public:
     void getLastFrame(UINT16 * image) {
         GraphData * gd = m_gmCapture->getGraphData();
         
-        memcpy(image, gd->m_imCapture.data, size_t( gd->m_imCapture.size().area() * sizeof (UINT16)));
+        memcpy(image, gd->m_CommonData->m_imCapture.data, size_t( gd->m_CommonData->m_imCapture.size().area() * sizeof (UINT16)));
     }
 
 

@@ -44,14 +44,14 @@ namespace openCVGraph
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 auto canny = cuda::createCannyEdgeDetector(m_Threshold1, m_Threshold2);
-                canny->detect(graphData.m_imCapGpu8UC1, cannyOut8U);
+                canny->detect(graphData.m_CommonData->m_imCapGpu8UC1, cannyOut8U);
                 cannyOut8U.download(graphData.m_imOut8UC1);
 #else
                 assert(false);
 #endif
             }
             else {
-                cv::Canny(graphData.m_imCap8UC1, graphData.m_imOut8UC1, m_Threshold1, m_Threshold2);
+                cv::Canny(graphData.m_CommonData->m_imCap8UC1, graphData.m_imOut8UC1, m_Threshold1, m_Threshold2);
             }
             return ProcessResult::OK;  // if you return false, the graph stops
         }

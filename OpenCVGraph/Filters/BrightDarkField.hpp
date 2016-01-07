@@ -82,7 +82,7 @@ namespace openCVGraph
         {
             if (graphData.m_UseCuda) {
                 // sub darkfield
-                cuda::subtract(graphData.m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTemp16UGpu);
+                cuda::subtract(graphData.m_CommonData->m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTemp16UGpu);
                 // make 32F
                 m_imTemp16UGpu.convertTo(m_imTemp32FGpu, CV_32F);
                 // image - dark / bright - dark
@@ -111,7 +111,7 @@ namespace openCVGraph
                     graphData.m_imOutGpu8UC1.download(m_imView);
                     break;
                 case 1:
-                    graphData.m_imCapGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
+                    graphData.m_CommonData->m_imCapGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
                     graphData.m_imOutGpu8UC1.download(m_imView);
                     break;
                 case 2:

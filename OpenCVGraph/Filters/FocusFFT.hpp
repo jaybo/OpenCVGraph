@@ -49,18 +49,18 @@ namespace openCVGraph
             //if (graphData.m_UseCuda) {
             if (false) {
                 //Scalar s;
-                //graphData.m_imOutGpu16UC1 = graphData.m_imCapGpu16UC1;
-                //auto nPoints = graphData.m_imCapGpu16UC1.size().area();
+                //graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;
+                //auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
 
                 //// X
-                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
-                //m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
+                //m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
                 //s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 //meanX = s[0] / nPoints;
 
                 //// Y
-                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
-                //m_cudaFilter->apply(graphData.m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
+                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
+                //m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
                 //s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
                 //meanY = s[0] / nPoints;
 
@@ -70,14 +70,14 @@ namespace openCVGraph
                 
                 // http://docs.opencv.org/master/d8/d01/tutorial_discrete_fourier_transform.html#gsc.tab=0 
 
-                if (graphData.m_imCap16UC1.empty())
+                if (graphData.m_CommonData->m_imCap16UC1.empty())
                 {
-                    graphData.m_imCap16UC1 = graphData.m_imCapture;
+                    graphData.m_CommonData->m_imCap16UC1 = graphData.m_CommonData->m_imCapture;
                 }
-                int w = graphData.m_imCap16UC1.size().width;
-                int h = graphData.m_imCap16UC1.size().height;
+                int w = graphData.m_CommonData->m_imCap16UC1.size().width;
+                int h = graphData.m_CommonData->m_imCap16UC1.size().height;
                 Rect rCropped = Rect(Point(w - m_DFTSize, h - m_DFTSize), Size(m_DFTSize, m_DFTSize));
-                Mat IC = Mat(graphData.m_imCap16UC1, rCropped);
+                Mat IC = Mat(graphData.m_CommonData->m_imCap16UC1, rCropped);
                 
                 /*Mat I = Mat_<float>(IC);*/
                 Mat I;

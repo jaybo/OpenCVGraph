@@ -91,16 +91,16 @@ namespace openCVGraph
 #if PINNED_MEMORY_OCV
                 // This doesn't work
                 //cuda::HostMem page_locked(Size(3840, 3840), CV_16UC1);
-                //graphData.m_imCapture = page_locked.createMatHeader();
+                //graphData.m_CommonData->m_imCapture = page_locked.createMatHeader();
 #endif
 
 #if SOFTWARE_TRIGGER_OCV
                 cap.set(CV_CAP_PROP_XI_TRG_SOURCE, XI_TRG_SOFTWARE);
                 cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
 #endif
-                fOK = cap.read(graphData.m_imCapture);
+                fOK = cap.read(graphData.m_CommonData->m_imCapture);
 
-                if (!graphData.m_imCapture.data)   // Check for invalid input
+                if (!graphData.m_CommonData->m_imCapture.data)   // Check for invalid input
                 {
                     fOK = false;
                     graphData.m_Logger->error() << "Could not read from capture device #" << camera_index;
@@ -124,11 +124,11 @@ namespace openCVGraph
 #if SOFTWARE_TRIGGER_OCV
             cap.set(CV_CAP_PROP_XI_TRG_SOFTWARE, 1);
 #endif
-            fOK = cap.read(graphData.m_imCapture);
+            fOK = cap.read(graphData.m_CommonData->m_imCapture);
 
-            if (graphData.m_imCapture.depth() == CV_16U) {
+            if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
                 // make 16bpp full range
-                graphData.m_imCapture *= 16;
+                graphData.m_CommonData->m_imCapture *= 16;
             }
 
             graphData.CopyCaptureToRequiredFormats();
@@ -144,11 +144,11 @@ namespace openCVGraph
         {
             if (m_showView) {
                 // Convert back to 8 bits for the view
-                if (graphData.m_imCapture.depth() == CV_16U) {
-                    graphData.m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
                 }
                 else {
-                    m_imView = graphData.m_imCapture;
+                    m_imView = graphData.m_CommonData->m_imCapture;
                 }
                 Filter::processView(graphData);
             }

@@ -13,7 +13,7 @@ namespace openCVGraph
     // http://www.johndcook.com/blog/standard_deviation/
 
 
-    // This currently only works on m_imCapture.  It should be modified to use m_imOut...
+    // This currently only works on m_CommonData->m_imCapture.  It should be modified to use m_imOut...
 
     class ImageQC : public Filter
     {
@@ -76,13 +76,13 @@ namespace openCVGraph
         void ImageQC::Calc(GraphData& graphData)
         {
             cv::Point ptMin, ptMax;
-            if (graphData.m_imCapture.channels() > 1) {
+            if (graphData.m_CommonData->m_imCapture.channels() > 1) {
                 cv::Mat gray;
-                cv::cvtColor(graphData.m_imCapture, gray, CV_BGR2GRAY);
+                cv::cvtColor(graphData.m_CommonData->m_imCapture, gray, CV_BGR2GRAY);
                 cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
             }
             else {
-                cv::minMaxLoc(graphData.m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+                cv::minMaxLoc(graphData.m_CommonData->m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
             }
 
             cv::Scalar sMean, sStdDev;
@@ -135,11 +135,11 @@ namespace openCVGraph
         {
             if (m_showView) {
                 // Convert back to 8 bits for the view
-                //if (graphData.m_imCapture.depth() == CV_16U) {
-                //    graphData.m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
                 //}
                 //else {
-                //    m_imView = graphData.m_imCapture;
+                //    m_imView = graphData.m_CommonData->m_imCapture;
                 //}
                 //if (m_N >= 2) {
                 //    DrawOverlay(graphData);
@@ -177,7 +177,7 @@ namespace openCVGraph
             DrawOverlayText(str.str(), Point(posLeft, 500), scale);
 
             auto histSize = Size(512, 200);
-            Mat histo = createGrayHistogram(graphData.m_imCapture, 256, histSize.width, histSize.height);
+            Mat histo = createGrayHistogram(graphData.m_CommonData->m_imCapture, 256, histSize.width, histSize.height);
 
             Mat t = Mat(m_imViewTextOverlay, Rect(Point(0, 180), histSize));
             cv::bitwise_or(t, histo, t);
