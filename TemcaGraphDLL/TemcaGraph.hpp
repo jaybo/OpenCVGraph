@@ -33,18 +33,9 @@ bool graphCallback(GraphManager* graphManager)
 // The graphs.  Graphs are run in parallel, each with own thread.
 // -----------------------------------------------------------------------------------
 
-GraphManager* GraphWebCam(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter camera(new CamDefault("WebCam", *gd, CV_16UC1));
-    graph->AddFilter(camera);
-
-    return graph;
-}
-
+// -----------------------------------------------------------------------------------
+// Capture graphs
+// -----------------------------------------------------------------------------------
 
 GraphManager* GraphCamXimea(GraphCommonData * commonData)
 {
@@ -77,6 +68,35 @@ GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
 #endif
     return graph;
 }
+
+GraphManager* GraphWebCam(GraphCommonData * commonData)
+{
+    // Create a graph
+    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
+    GraphData* gd = graph->getGraphData();
+
+    CvFilter camera(new CamDefault("WebCam", *gd, CV_16UC1));
+    graph->AddFilter(camera);
+
+    return graph;
+}
+
+GraphManager* GraphImageDir(GraphCommonData * commonData)
+{
+    // Create a graph
+    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback, commonData);
+    GraphData* gd = graph->getGraphData();
+
+    // Add an image source (could be camera, single image, directory, noise, movie)
+    CvFilter cap(new CamDefault("CamDefault", *gd));
+    graph->AddFilter(cap);
+
+    return graph;
+}
+
+// -----------------------------------------------------------------------------------
+// Post capture graphs
+// -----------------------------------------------------------------------------------
 
 GraphManager* GraphFileWriter(GraphCommonData * commonData)
 {
@@ -116,31 +136,25 @@ GraphManager* GraphStitchingCheck(GraphCommonData * commonData)
     GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, commonData, true);
     GraphData* gd = graph->getGraphData();
 
-    //CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
-    //graph->AddFilter(filter);
+    // todo, bugbug fix
+    CvFilter filter(new Delay("Delay", *gd));
+    graph->AddFilter(filter);
 
     return graph;
 }
 
-GraphManager* GraphImageDir(GraphCommonData * commonData)
+
+GraphManager* GraphDelay(GraphCommonData * commonData, string graphName)
 {
     // Create a graph
-    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback, commonData);
+    GraphManager* graph = new GraphManager(graphName, true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    graph->UseCuda(false);
-
-    // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap(new CamDefault("CamDefault", *gd));
-    graph->AddFilter(cap);
-
-    //CvFilter canny(new openCVGraph::Canny("Canny", *gd));
-    //graph->AddFilter(canny);
+    CvFilter filter(new Delay("Delay", *gd));
+    graph->AddFilter(filter);
 
     return graph;
 }
-
-
 
 // -----------------------------------------------------------------------------------
 // The Temca Class used by Python
@@ -174,10 +188,14 @@ public:
         {
             std::cout << "Log failed: " << ex.what() << std::endl;
         }
-
     }
 
     // Create all graphs 
+    // allowed graphTypes:
+    //  "temca" - standard TEMCA graph
+    //  "dummy" - fake camera
+    //  "delay" - test with delay filters
+
     bool init(const char * graphType, StatusCallbackType callback)
     {
         bool fOK = true;
@@ -185,22 +203,42 @@ public:
         m_PythonCallback = callback;
 
         // Create the graphs
-        if (sGraphType == "dummy") {
-            m_gmCapture = GraphCamXimeaDummy(m_graphCommonData);
-        }
-        else {
+        if (sGraphType == "temca") {
             m_gmCapture = GraphCamXimea(m_graphCommonData);
-        }
-        m_gmFileWriter = GraphFileWriter(m_graphCommonData);
-        m_gmQC = GraphQC(m_graphCommonData);
-        m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
+            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
+            m_gmQC = GraphQC(m_graphCommonData);
+            m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
 
-        // Create the graphs steps.  
-        // Each step runs to completion.  
-        // Each graph in a step runs in parallel with other graphs in the step.
-        m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
-        // ... could have more steps here
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+        }
+        else if (sGraphType == "dummy") {
+            m_gmCapture = GraphCamXimeaDummy(m_graphCommonData);
+            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
+            m_gmQC = GraphQC(m_graphCommonData);
+            m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+            // ... could have more steps here
+        }
+        else if (sGraphType == "delay") {
+            // Experiment with adding delays at various points in the graph
+            m_gmCapture = GraphCamXimea(m_graphCommonData);
+            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
+            // fake out QC and Stitching
+            m_gmQC = GraphDelay(m_graphCommonData, "Delay1");
+            m_gmStitchingCheck = GraphDelay(m_graphCommonData, "Delay2");
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+        }
 
         // Create a list of all steps
         m_Steps.push_back(m_StepCapture);
@@ -264,8 +302,8 @@ public:
 
     void getLastFrame(UINT16 * image) {
         GraphData * gd = m_gmCapture->getGraphData();
-        
-        memcpy(image, gd->m_CommonData->m_imCapture.data, size_t( gd->m_CommonData->m_imCapture.size().area() * sizeof (UINT16)));
+
+        memcpy(image, gd->m_CommonData->m_imCapture.data, size_t(gd->m_CommonData->m_imCapture.size().area() * sizeof(UINT16)));
     }
 
 
@@ -314,6 +352,7 @@ private:
 
     // control interfaces
     Processor m_ITemcaCamera = NULL;
+    Processor m_ITemcaFocus = NULL;
 
     // callback to python
     StatusCallbackInfo m_PythonInfo = { 0 };
@@ -321,14 +360,24 @@ private:
 
     void FindTemcaInterfaces()
     {
-        for (auto processor : m_gmCapture->GetFilters()) {
-            // the next line took me 2 hours to figure out!!!
-            if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
-            {
-                m_ITemcaCamera = processor;
+        for (auto step : m_Steps) {
+            for (auto graph : step->m_Graphs) {
+                for (auto processor : graph->GetFilters()) {
+                    // the next line took me 2 hours to figure out!!!
+                    if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
+                    {
+                        m_ITemcaCamera = processor;
+                        continue;
+                    }
+                    if (dynamic_cast<ITemcaFocus *> (processor.get()) != nullptr)
+                    {
+                        m_ITemcaFocus = processor;
+                        continue;
+                    }
+
+                }
             }
         }
-
     }
 
     bool PythonCallback(int status, int error, const char * errorString) {
@@ -398,6 +447,9 @@ private:
                                     m_Aborting = true;
                                     break;
                                 }
+                            }
+                            // and now wait for all the steps to complete
+                            for (auto step : m_StepsPostCapture) {
                                 if (fOK) {
                                     if (!(fOK &= step->WaitStepCompletion())) {
                                         s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
@@ -433,7 +485,10 @@ bool init(const char* graphType, StatusCallbackType callback)
 {
     string s = string(graphType);
 
-    if (s == "default" || s == "dummy") {
+    if (s == "temca" ||
+        s == "dummy" ||
+        s == "delay")
+    {
         pTemca = new Temca();
     }
     else {

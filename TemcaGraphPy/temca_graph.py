@@ -104,9 +104,9 @@ class TemcaGraph(object):
         self.eventProcessingCompleted = threading.Event()
         self.eventFiniCompleted = threading.Event()
 
-    def init(self,  graphType='default', callback=None):
+    def open(self,  graphType='temca', callback=None):
         ''' 
-        graphType: 'default', 'dummy'
+        graphType: 'temca', 'dummy', 'delay'
         '''
         if callback == None:
             callback = self.statusCallback
@@ -118,7 +118,7 @@ class TemcaGraph(object):
             raise EnvironmentError('Cannot create graphType: ' + graphType + '. Other possiblities: camera, is offline, not installed, or already in use')
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock() - t))
 
-    def fini(self):
+    def close(self):
         ''' 
         Close down all graphs.
         '''
@@ -203,9 +203,13 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+    # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph()
-    temcaGraph.init()
-    #temcaGraph.init('dummy')
+
+    # Create all graphs ('dummy' means use fake camera)
+    temcaGraph.open('temca')
+    #temcaGraph.open('dummy')
+    #temcaGraph.open('delay')
 
     # get info about frame dimensions
     fi = temcaGraph.get_camera_info()
@@ -223,8 +227,8 @@ if __name__ == '__main__':
 
     # set ROI grid size (for stitching only)
     roiInfo = ROIInfo()
-    roiInfo.gridX = 10
-    roiInfo.gridY = 10
+    roiInfo.gridX = 4
+    roiInfo.gridY = 4
     temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
@@ -245,7 +249,7 @@ if __name__ == '__main__':
 
             frameCounter += 1
 
-    temcaGraph.fini()
+    temcaGraph.close()
     temcaGraph.eventFiniCompleted.wait(waitTime)
 
  

@@ -41,6 +41,7 @@
 #include "GraphParallelStep.hpp"
 
 #include "Filters/Simple.hpp"
+#include "Filters/Delay.hpp"
 #include "ITemcaCamera.hpp"
 #include "ITemcaFocus.hpp"
 #include "Capture/CamDefault.hpp"

@@ -94,9 +94,9 @@ namespace openCVGraph
             return m_Name;
         }
 
+        list<GraphManager *> m_Graphs;
     private:
         string m_Name;
-        list<GraphManager *> m_Graphs;
         bool m_Initialized = false;
 
     };

@@ -281,6 +281,8 @@ namespace openCVGraph
 
         void GraphManager::saveConfig()
         {
+            std::stringstream strT;
+
             FileStorage fs(m_persistFile, FileStorage::WRITE);
             if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
 
@@ -293,7 +295,8 @@ namespace openCVGraph
             cvWriteComment((CvFileStorage *)*fs, "Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off", 0);
 
             fs << "LogLevel" << m_LogLevel;
-            fs << "FPS" << m_GraphData.m_FrameNumber / ((m_TimeEnd - m_TimeStart) / cv::getTickFrequency());
+            strT << fixed << setprecision(2) << m_GraphData.m_FrameNumber / ((m_TimeEnd - m_TimeStart) / cv::getTickFrequency());
+            fs << "FPS" << strT.str().c_str();
             fs << "CudaEnabledDeviceCount" << m_CudaEnabledDeviceCount;
             fs << "CudaDeviceIndex" << m_CudaDeviceIndex;
             fs << "UseCuda" << m_UseCuda;

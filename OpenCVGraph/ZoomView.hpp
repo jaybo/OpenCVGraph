@@ -215,8 +215,13 @@ namespace openCVGraph
             cv::resize(MatZoomed, MatZoomed, Size(m_winWidth, m_winHeight), 0, 0, INTER_NEAREST);
 
             int nChannels = MatZoomed.channels();
+            int nDepth = MatZoomed.depth();
+            // 1if 16bpp, convert to 8bpp
+            if (nDepth == 2 && nChannels == 1) {
+                MatZoomed.convertTo(MatZoomed, CV_8UC1, 1.0 / 256);
+            }
             if (nChannels != 3) {
-                cvtColor(MatZoomed, MatZoomed, CV_GRAY2RGB);
+                cv::cvtColor(MatZoomed, MatZoomed, CV_GRAY2RGB);
             }
 
             // merge in the (usually) text overlay

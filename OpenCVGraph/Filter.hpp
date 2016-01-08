@@ -60,7 +60,6 @@ namespace openCVGraph
                 break;
             case CV_16UC1: 
                 data.m_CommonData->m_NeedCV_16UC1 = true; 
-                data.m_CommonData->m_NeedCV_8UC1 = true;   // bugbug todo
                 break;
             default:
                 // arbitrary, assume RGB webcam if not specified

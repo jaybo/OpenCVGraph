@@ -3,24 +3,24 @@ GraphManager:
    Enabled: 1
    # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
    LogLevel: 2
-   FPS: 5.7624990441085666e+000
+   FPS: "1.56"
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 1
 CamXimea:
    IsEnabled: 1
-   ShowView: 0
+   ShowView: 1
    ShowViewControls: 0
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "135.6"
-   Duration_MS_Min: "130.3"
-   Duration_MS_Max: "564.0"
-   Duration_MS_Last: "130.7"
+   Duration_MS_Mean: "165.9"
+   Duration_MS_Min: "121.5"
+   Duration_MS_Max: "563.2"
+   Duration_MS_Last: "122.2"
    camera_index: 0
    minimum_buffers: 1
    aperture: 0
    minFocusMovementValue: 2
-   exposure: 10000
+   exposure: 873
    exposureSliderMax: 10000
    gain: 0
    gainSliderMax: 10000
@@ -51,14 +51,14 @@ BrightDark:
    dark_field_path: "config/DarkField.tif"
    show_slider: 1
 Stats:
-   IsEnabled: 0
-   ShowView: 0
+   IsEnabled: 1
+   ShowView: 1
    ShowViewControls: 0
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "0.0"
-   Duration_MS_Min: "0.0"
-   Duration_MS_Max: "0.0"
-   Duration_MS_Last: "0.0"
+   Duration_MS_Mean: "13.8"
+   Duration_MS_Min: "12.9"
+   Duration_MS_Max: "38.4"
+   Duration_MS_Last: "13.1"
    use_Cuda: 1
 FocusSobel:
    IsEnabled: 0
@@ -71,14 +71,14 @@ FocusSobel:
    Duration_MS_Last: "0.0"
    kernel_size: 7
 FocusFFT:
-   IsEnabled: 0
+   IsEnabled: 1
    ShowView: 1
    ShowViewControls: 1
    ZoomViewLockIndex: 8
-   Duration_MS_Mean: "0.0"
-   Duration_MS_Min: "0.0"
-   Duration_MS_Max: "0.0"
-   Duration_MS_Last: "0.0"
+   Duration_MS_Mean: "40.1"
+   Duration_MS_Min: "38.4"
+   Duration_MS_Max: "47.1"
+   Duration_MS_Last: "39.0"
    # Power of 2 (256, 512, 1024, 2048)
    dft_size: 512
    omega: 102
@@ -108,10 +108,10 @@ FileWriter:
    ShowView: 0
    ShowViewControls: 0
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "37.9"
-   Duration_MS_Min: "35.0"
-   Duration_MS_Max: "104.7"
-   Duration_MS_Last: "36.1"
+   Duration_MS_Mean: "34.9"
+   Duration_MS_Min: "33.5"
+   Duration_MS_Max: "55.5"
+   Duration_MS_Last: "35.7"
    directory: "J:/junk"
    baseFileName: test
    ext: ".tif"

@@ -162,6 +162,7 @@
     <ClInclude Include="Capture\CamDefault.hpp" />
     <ClInclude Include="Capture\CamXimea.hpp" />
     <ClInclude Include="Capture\CamXimeaOpenCV.hpp" />
+    <ClInclude Include="Filters\Delay.hpp" />
     <ClInclude Include="Filters\ImageQC.hpp" />
     <ClInclude Include="ITemcaCamera.hpp" />
     <ClInclude Include="Filters\Cartoon.hpp" />
