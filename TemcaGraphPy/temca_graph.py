@@ -207,8 +207,8 @@ if __name__ == '__main__':
     temcaGraph = TemcaGraph()
 
     # Create all graphs ('dummy' means use fake camera)
-    temcaGraph.open('temca')
-    #temcaGraph.open('dummy')
+    #temcaGraph.open('temca')
+    temcaGraph.open('dummy')
     #temcaGraph.open('delay')
 
     # get info about frame dimensions

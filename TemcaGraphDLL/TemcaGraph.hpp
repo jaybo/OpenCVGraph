@@ -59,7 +59,7 @@ GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
     GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamDefault("CamXimeaDummy", *gd, CV_16UC1, 3840, 3840));
+    CvFilter camera(new CamDefault("CamXimeaDummy", *gd, CV_16UC1, 512, 512));
     graph->AddFilter(camera);
 
 #ifdef WITH_CUDA

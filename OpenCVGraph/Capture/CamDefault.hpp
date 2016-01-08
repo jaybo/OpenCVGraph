@@ -199,12 +199,12 @@ namespace openCVGraph
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
-                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                    m_imView = graphData.m_CommonData->m_imCap8UC1;
-                }
-                else {
+                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                //    m_imView = graphData.m_CommonData->m_imCap8UC1;
+                //}
+                //else {
                     m_imView = graphData.m_CommonData->m_imCapture;
-                }
+                //}
                 Filter::processView(graphData);
             }
         }
