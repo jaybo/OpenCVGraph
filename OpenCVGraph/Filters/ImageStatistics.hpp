@@ -10,10 +10,12 @@ using namespace cv;
 
 namespace openCVGraph
 {
+
+    // -----------------------------------------------------------
+    // Keep running statistics on an image stream
+    // Mean, Min, Max and Standard Deviation of each 
     // http://www.johndcook.com/blog/standard_deviation/
-
-
-    // This currently only works on m_CommonData->m_imCapture.  It should be modified to use m_imOut...
+    // -----------------------------------------------------------
 
     class ImageStatistics : public Filter
     {
@@ -33,8 +35,7 @@ namespace openCVGraph
             Filter::init(graphData);
             if (m_Enabled) {
                 // Advertise the format(s) we need
-                graphData.m_NeedCV_32FC1 = true;
-
+                graphData.m_CommonData->m_NeedCV_32FC1 = true;
                 m_N = 0;
             }
             return true;
@@ -82,13 +83,15 @@ namespace openCVGraph
 #endif
 
         void ImageStatistics::Accumulate(GraphData& graphData) {
-            graphData.m_imOut8UC1.convertTo(m_capF, CV_32F);
+
+            // If output stream exists, us it.  Otherwise use capture stream.
+            Mat MatSrc = graphData.m_imOut32FC1.empty() ? graphData.m_CommonData->m_imCap32FC1 : graphData.m_imOut32FC1;
 
             // See Knuth TAOCP vol 2, 3rd edition, page 232
             if (m_N == 1)
             {
-                m_capF.copyTo(m_newM);
-                m_capF.copyTo(m_oldM);
+                MatSrc.copyTo(m_newM);
+                MatSrc.copyTo(m_oldM);
                 m_oldS = m_oldM.mul(Scalar(0.0));
             }
             else
@@ -106,16 +109,20 @@ namespace openCVGraph
 
 #ifdef WITH_CUDA
         void ImageStatistics::AccumulateGpu(GraphData& graphData) {
+
+            // If output stream exists, us it.  Otherwise use capture stream.
+            cuda::GpuMat MatSrc = graphData.m_imOutGpu32FC1.empty() ? graphData.m_CommonData->m_imCapGpu32FC1 : graphData.m_imOutGpu32FC1;
+
             if (m_N == 1)
             {
-                graphData.m_imOutGpu32FC1.copyTo(m_newMGpu);
-                graphData.m_imOutGpu32FC1.copyTo(m_oldMGpu);
+                MatSrc.copyTo(m_newMGpu);
+                MatSrc.copyTo(m_oldMGpu);
                 cuda::multiply(m_oldMGpu, Scalar(0.0), m_oldSGpu);  // m_oldSGpu = m_oldMGpu * 0.0;
             }
             else
             {
-                cuda::subtract(graphData.m_imOutGpu32FC1, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
-                cuda::subtract(graphData.m_imOutGpu32FC1, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
+                cuda::subtract(MatSrc, m_oldMGpu, m_dOldGpu); //cv::Mat dOld = m_capF - m_oldM;
+                cuda::subtract(MatSrc, m_newMGpu, m_dNewGpu); //cv::Mat dNew = m_capF - m_newM;
 
                 cuda::divide(m_dOldGpu, Scalar(m_N), m_TGpu);   // Need a temp here m_TGpu
                 cuda::add(m_oldMGpu, m_TGpu, m_newMGpu);
@@ -131,15 +138,21 @@ namespace openCVGraph
 
         void ImageStatistics::Calc(GraphData& graphData)
         {
+            // If output stream exists, us it.  Otherwise use capture stream.
+            Mat MatSrc = graphData.m_imOut32FC1.empty() ? graphData.m_CommonData->m_imCap32FC1 : graphData.m_imOut32FC1;
+
             cv::Point ptMin, ptMax;
-            if (graphData.m_CommonData->m_imCapture.channels() > 1) {
-                cv::Mat gray;
-                cv::cvtColor(graphData.m_CommonData->m_imCapture, gray, CV_BGR2GRAY);
-                cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            }
-            else {
-                cv::minMaxLoc(graphData.m_CommonData->m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            }
+
+            cv::minMaxLoc(MatSrc, &dCapMin, &dCapMax, &ptMin, &ptMax);
+
+            //if (graphData.m_CommonData->m_imCapture.channels() > 1) {
+            //    cv::Mat gray;
+            //    cv::cvtColor(graphData.m_CommonData->m_imCapture, gray, CV_BGR2GRAY);
+            //    cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
+            //}
+            //else {
+            //    cv::minMaxLoc(graphData.m_CommonData->m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
+            //}
 
             cv::Scalar sMean, sStdDev;
             cv::meanStdDev(m_newM, sMean, sStdDev);   // stdDev here is across the mean image
@@ -160,14 +173,15 @@ namespace openCVGraph
 #ifdef WITH_CUDA
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
+            // If output stream exists, us it.  Otherwise use capture stream.
+            cuda::GpuMat MatSrc = graphData.m_imOutGpu32FC1.empty() ? graphData.m_CommonData->m_imCapGpu32FC1 : graphData.m_imOutGpu32FC1;
+
             cv::Point ptMin, ptMax;
-            cv::cuda::minMaxLoc(graphData.m_imOutGpu32FC1, &dCapMin, &dCapMax, &ptMin, &ptMax);
+            cv::cuda::minMaxLoc(MatSrc, &dCapMin, &dCapMax, &ptMin, &ptMax);
 
             cv::Scalar sMean, sStdDev;
-            // argh, only works with 8pp!!!
-            // cv::cuda::meanStdDev(m_newMGpu, imMean, imStdDev);   // stdDev here is across the mean image
             sMean = cv::cuda::sum(m_newMGpu);
-            auto nPoints = graphData.m_imOutGpu32FC1.size().area();
+            auto nPoints = MatSrc.size().area();
             dMean = sMean[0] / nPoints;
 
             // Mean, and min and max of mean image
@@ -176,8 +190,6 @@ namespace openCVGraph
             // Variance
             cuda::divide(m_newSGpu, Scalar(m_N - 1), m_imVarianceGpu);  // imVariance = m_newS / (m_N - 1);
             cv::Scalar varMean, varStd;
-            // argh, only works with 8bpp!!!
-            //cv::cuda::meanStdDev(m_imVarianceGpu, varMean, varStd);
             sStdDev = cv::cuda::sum(m_imVarianceGpu);
             double meanVariance = sStdDev[0] / nPoints;
 
@@ -222,13 +234,13 @@ namespace openCVGraph
         void ImageStatistics::processView(GraphData& graphData)
         {
             if (m_showView) {
-                // Convert back to 8 bits for the view
-                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
-                }
-                else {
+                //// Convert back to 8 bits for the view
+                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                //}
+                //else {
                     m_imView = graphData.m_CommonData->m_imCapture;
-                }
+                //}
                 if (m_N >= 2) {
                     DrawOverlay(graphData);
                 }

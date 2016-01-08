@@ -29,8 +29,8 @@ namespace openCVGraph
             bool fOK = Filter::init(graphData);
             
             if (m_Enabled) {
-                graphData.m_NeedCV_8UC1 = true;
-                graphData.m_NeedCV_8UC3 = true;
+                graphData.m_CommonData->m_NeedCV_8UC1 = true;
+                graphData.m_CommonData->m_NeedCV_8UC3 = true;
 
                 if (m_showView) {
                     if (m_showViewControls) {

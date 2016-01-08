@@ -31,7 +31,7 @@ namespace openCVGraph
             m_showView = true;
             if (m_Enabled) {
                 // Define the image formats we use:
-                graphData.m_NeedCV_16UC1 = true;
+                graphData.m_CommonData->m_NeedCV_16UC1 = true;
             }
             return true;
         }
@@ -40,7 +40,7 @@ namespace openCVGraph
         ProcessResult Simple::process(GraphData& graphData) override
         {
             // shift 12 bit images up to full 16 bit resolution
-            graphData.m_imOut16UC1 = 4 * graphData.m_CommonData->m_imCap16UC1;
+            // graphData.m_imOut16UC1 = 4 * graphData.m_CommonData->m_imCap16UC1;
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }

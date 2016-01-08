@@ -138,10 +138,10 @@ namespace openCVGraph
             // Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
             if (!fOK) {
                 source = Noise;
-                if (graphData.m_NeedCV_16UC1) {
+                if (graphData.m_CommonData->m_NeedCV_16UC1) {
                     graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_16UC1);
                 }
-                else if (graphData.m_NeedCV_8UC3) {
+                else if (graphData.m_CommonData->m_NeedCV_8UC3) {
                     graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_8UC3);
                 }
                 fOK = true;
@@ -182,7 +182,7 @@ namespace openCVGraph
                 //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
                //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(255));
                //graphData.m_CommonData->m_imCapture = Mat::zeros(512, 512, CV_16U);
-                if (graphData.m_NeedCV_16UC1) {
+                if (graphData.m_CommonData->m_NeedCV_16UC1) {
                     cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
                 }
 

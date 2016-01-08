@@ -42,7 +42,7 @@ namespace openCVGraph
 
             if (m_Enabled) {
 
-                graphData.m_NeedCV_16UC1 = true;
+                graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
                 createDir(m_Directory);
 

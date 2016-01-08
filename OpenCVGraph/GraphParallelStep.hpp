@@ -94,18 +94,6 @@ namespace openCVGraph
             return m_Name;
         }
 
-        // The graph is being passed a new source image "m_CommonData->m_imCapture"
-        // pass it to all of the contained graphs
-
-        void NewCaptureImage(GraphData* graphData)
-        {
-            //for (GraphManager * gm : m_Graphs) {
-            //    GraphData* gd = gm->getGraphData();
-            //    gd->m_CommonData->m_imCapture = graphData->m_CommonData->m_imCapture;
-            //    gd->CopyCaptureToRequiredFormats();
-            //}
-        }
-
     private:
         string m_Name;
         list<GraphManager *> m_Graphs;

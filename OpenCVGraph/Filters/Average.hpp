@@ -29,10 +29,10 @@ namespace openCVGraph
 
             if (m_Enabled) {
                 // Tell the graph the format(s) we need
-                graphData.m_NeedCV_32FC1 = true;
+                graphData.m_CommonData->m_NeedCV_32FC1 = true;
 
                 if (m_showView) {
-                    graphData.m_NeedCV_8UC1 = true;
+                    graphData.m_CommonData->m_NeedCV_8UC1 = true;
                     if (m_showViewControls) {
                         createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
                     }
@@ -81,10 +81,10 @@ namespace openCVGraph
                         cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
                     }
                     m_imAverage32F.copyTo(graphData.m_imOut32FC1);
-                    if (graphData.m_NeedCV_16UC1) {
+                    if (graphData.m_CommonData->m_NeedCV_16UC1) {
                         m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
                     }
-                    if (graphData.m_NeedCV_8UC1) {
+                    if (graphData.m_CommonData->m_NeedCV_8UC1) {
                         m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
                     }
                     m_imAverage32F.setTo(Scalar(0));

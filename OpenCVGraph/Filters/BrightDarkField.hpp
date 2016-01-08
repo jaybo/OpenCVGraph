@@ -35,10 +35,10 @@ namespace openCVGraph
             Filter::init(graphData);
 
             if (m_Enabled) {
-                graphData.m_NeedCV_16UC1 = true;
+                graphData.m_CommonData->m_NeedCV_16UC1 = true;
                 // Need 8 bit if we're viewing it
                 if (m_showView) {
-                    graphData.m_NeedCV_8UC1 = true;
+                    graphData.m_CommonData->m_NeedCV_8UC1 = true;
                 }
 
                 // get the Bright Dark images from file
@@ -90,7 +90,7 @@ namespace openCVGraph
 
                 m_imTemp16UGpu.convertTo(graphData.m_imOutGpu16UC1, CV_16U, 65536);
 
-                if (graphData.m_NeedCV_8UC1) {
+                if (graphData.m_CommonData->m_NeedCV_8UC1) {
                     graphData.m_imOutGpu16UC1.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
                 }
             }

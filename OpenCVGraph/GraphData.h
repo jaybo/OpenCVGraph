@@ -14,6 +14,11 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
+        // Filters the capture drivers what format they need
+        bool m_NeedCV_8UC1 = false;
+        bool m_NeedCV_8UC3 = false;
+        bool m_NeedCV_16UC1 = false;
+        bool m_NeedCV_32FC1 = false;
 
         cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
 
@@ -55,11 +60,7 @@ namespace openCVGraph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
         bool m_Aborting = false;
 
-        // Filters tell everybody what formats they need
-        bool m_NeedCV_8UC1 = false;
-        bool m_NeedCV_8UC3 = false;
-        bool m_NeedCV_16UC1 = false;
-        bool m_NeedCV_32FC1 = false;
+
 
         // Output Mats
         cv::Mat m_imOut8UC3;              
@@ -98,47 +99,47 @@ namespace openCVGraph
 
                 switch (nType) {
                 case CV_8UC1:
-                    if (m_NeedCV_8UC1) {
+                    if (m_CommonData->m_NeedCV_8UC1) {
                         m_CommonData->m_imCapGpu8UC1 = m_CommonData->m_imCaptureGpu;
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
                     }
-                    if (m_NeedCV_8UC3) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC3, CV_8UC3);
                     }
                     break;
                 case CV_16UC1:
-                    if (m_NeedCV_8UC1) {
+                    if (m_CommonData->m_NeedCV_8UC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCapGpu16UC1 = m_CommonData->m_imCaptureGpu;
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1);
                     }
-                    if (m_NeedCV_8UC3) {
-                        if (!m_NeedCV_8UC1) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
+                        if (!m_CommonData->m_NeedCV_8UC1) {
                             m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
                         }
                         cuda::cvtColor(m_CommonData->m_imCapGpu8UC1, m_CommonData->m_imCapGpu8UC3, COLOR_GRAY2RGB);
                     }
                     break;
                 case CV_8UC3:
-                    if (m_NeedCV_8UC1 || m_NeedCV_16UC1 || m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_8UC1 || m_CommonData->m_NeedCV_16UC1 || m_CommonData->m_NeedCV_32FC1) {
                         cuda::cvtColor(m_CommonData->m_imCaptureGpu, m_CommonData->m_imCapGpu8UC1, COLOR_RGB2GRAY);
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1); // Hmm scale up here?
                     }
-                    if (m_NeedCV_8UC3) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
                         m_CommonData->m_imCapGpu8UC3 = m_CommonData->m_imCaptureGpu;
                     }
                     break;
@@ -148,16 +149,16 @@ namespace openCVGraph
 
                 // And copy to Out Mats
 
-                if (m_NeedCV_8UC1) {
+                if (m_CommonData->m_NeedCV_8UC1) {
                     m_imOutGpu8UC1 = m_CommonData->m_imCapGpu8UC1;
                 }
-                if (m_NeedCV_16UC1) {
+                if (m_CommonData->m_NeedCV_16UC1) {
                     m_imOutGpu16UC1 = m_CommonData->m_imCapGpu16UC1;
                 }
-                if (m_NeedCV_32FC1) {
+                if (m_CommonData->m_NeedCV_32FC1) {
                     m_imOutGpu32FC1 = m_CommonData->m_imCapGpu32FC1;
                 }
-                if (m_NeedCV_8UC3) {
+                if (m_CommonData->m_NeedCV_8UC3) {
                     m_imOutGpu8UC3 = m_CommonData->m_imCapGpu8UC3;
                 }
 #endif
@@ -165,44 +166,44 @@ namespace openCVGraph
             else {
                 switch (nType) {
                 case CV_8UC1:
-                    if (m_NeedCV_8UC1) {
+                    if (m_CommonData->m_NeedCV_8UC1) {
                         m_CommonData->m_imCap8UC1 = m_CommonData->m_imCapture;
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap16UC1, CV_16UC1, 256.0);
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
                     }
-                    if (m_NeedCV_8UC3) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC3, CV_8UC3);
                     }
                     break;
                 case CV_16UC1:
-                    if (m_NeedCV_8UC1) {
+                    if (m_CommonData->m_NeedCV_8UC1) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC1, CV_8UC1, 1.0 / 256);
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCap16UC1 = m_CommonData->m_imCapture;
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1);  
                     }
-                    if (m_NeedCV_8UC3) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
                         m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC3, CV_8UC3, 1.0/256);
                     }
                     break;
                 case CV_8UC3:
-                    if (m_NeedCV_8UC1 || m_NeedCV_16UC1 || m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_8UC1 || m_CommonData->m_NeedCV_16UC1 || m_CommonData->m_NeedCV_32FC1) {
                         cv::cvtColor(m_CommonData->m_imCapture, m_CommonData->m_imCap8UC1, COLOR_RGB2GRAY);
                     }
-                    if (m_NeedCV_16UC1) {
+                    if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap16UC1, CV_16UC1, 256.0);
                     }
-                    if (m_NeedCV_32FC1) {
+                    if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1); // Hmm scale up here?
                     }
-                    if (m_NeedCV_8UC3) {
+                    if (m_CommonData->m_NeedCV_8UC3) {
                         m_CommonData->m_imCap8UC3 = m_CommonData->m_imCapture;
                     }
                     break;
@@ -213,16 +214,16 @@ namespace openCVGraph
 
                 // And copy to Out Mats
 
-                if (m_NeedCV_8UC1) {
+                if (m_CommonData->m_NeedCV_8UC1) {
                     m_imOut8UC1 = m_CommonData->m_imCap8UC1;
                 }
-                if (m_NeedCV_16UC1) {
+                if (m_CommonData->m_NeedCV_16UC1) {
                     m_imOut16UC1 = m_CommonData->m_imCap16UC1;
                 }
-                if (m_NeedCV_32FC1) {
+                if (m_CommonData->m_NeedCV_32FC1) {
                     m_imOut32FC1 = m_CommonData->m_imCap32FC1;
                 }
-                if (m_NeedCV_8UC3) {
+                if (m_CommonData->m_NeedCV_8UC3) {
                     m_imOut8UC3 = m_CommonData->m_imCap8UC3;
                 }
             }

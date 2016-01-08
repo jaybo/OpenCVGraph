@@ -46,20 +46,16 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
-            graphData.m_NeedCV_16UC1 = true;
+            graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
             // need 8 bit for our own view
             if (m_showView) {
-                graphData.m_NeedCV_8UC1 = true;
+                graphData.m_CommonData->m_NeedCV_8UC1 = true;
             }
 
             XI_RETURN stat;
             stat = xiOpenDevice(camera_index, &m_xiH);
             if (stat == XI_OK) {
-
-
-
-
 
                 // 3840x3840
                 stat = xiSetParamInt(m_xiH, XI_PRM_WIDTH, 3840);
@@ -88,7 +84,8 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_EXPOSURE, m_exposure);
                 LogErrors(stat, "XI_PRM_EXPOSURE");
                 stat = xiSetParamFloat(m_xiH, XI_PRM_GAIN, (float) (m_gain / 1000.0));
-                LogErrors(stat, "XI_PRM_GAIN");
+                // for some reason, this sometimes errors so ignore it during init.  
+                // LogErrors(stat, "XI_PRM_GAIN");
 
                 if (m_minimumBuffers) {
                     // Limit size of buffer pool 
@@ -225,12 +222,12 @@ namespace openCVGraph
         {
             if (m_showView) {
                 // Convert back to 8 bits for the view
-                if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
-                }
-                else {
+                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
+                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
+                //}
+                //else {
                     m_imView = graphData.m_CommonData->m_imCapture;
-                }
+                //}
                 Filter::processView(graphData);
             }
         }
@@ -363,7 +360,7 @@ namespace openCVGraph
         bool m_isAutoGain = false;
         bool m_minimumBuffers = true;
         int m_gain = 1000;                  // * 1000
-        int m_gainSliderMax = 10000;        // * 1000
+        int m_gainSliderMax = 7500;         // * 1000
         int m_aperture = 1200;              // * 1000
         int m_focusMovementSliderPos = MAX_MIMEA_FOCUS_STEPS;
         int m_focusMovementStepSize = 0;

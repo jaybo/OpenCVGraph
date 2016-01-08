@@ -33,7 +33,7 @@ namespace openCVGraph
             Filter::init(graphData);
             if (m_Enabled) {
                 // Advertise the format(s) we need
-                graphData.m_NeedCV_32FC1 = true;
+                graphData.m_CommonData->m_NeedCV_32FC1 = true;
             }
             return true;
         }

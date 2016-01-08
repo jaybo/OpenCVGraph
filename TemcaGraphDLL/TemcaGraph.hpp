@@ -389,12 +389,6 @@ private:
                             m_Aborting = true;
                         }
                         else {
-                            // copy capture image reference to all graphs
-                            GraphData * gd = m_gmCapture->getGraphData();
-                            for (auto step : m_StepsPostCapture) {
-                                step->NewCaptureImage(gd);
-                            }
-
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
                                 if (!(fOK &= step->Step())) {

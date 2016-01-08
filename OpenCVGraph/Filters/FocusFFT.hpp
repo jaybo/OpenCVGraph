@@ -30,8 +30,8 @@ namespace openCVGraph
         bool FocusFFT::init(GraphData& graphData) override
         {
             Filter::init(graphData);
-            graphData.m_NeedCV_8UC1 = true;
-            graphData.m_NeedCV_16UC1 = true;
+            graphData.m_CommonData->m_NeedCV_8UC1 = true;
+            graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
             if (m_Enabled) {
                 if (m_showView) {

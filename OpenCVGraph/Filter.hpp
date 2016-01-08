@@ -53,18 +53,18 @@ namespace openCVGraph
         {
             switch (m_SourceFormat) {
             case CV_8UC1: 
-                data.m_NeedCV_8UC1 = true; 
+                data.m_CommonData->m_NeedCV_8UC1 = true; 
                 break;
             case CV_8UC3: 
-                data.m_NeedCV_8UC3 = true; 
+                data.m_CommonData->m_NeedCV_8UC3 = true; 
                 break;
             case CV_16UC1: 
-                data.m_NeedCV_16UC1 = true; 
-                data.m_NeedCV_8UC1 = true;   // bugbug todo
+                data.m_CommonData->m_NeedCV_16UC1 = true; 
+                data.m_CommonData->m_NeedCV_8UC1 = true;   // bugbug todo
                 break;
             default:
                 // arbitrary, assume RGB webcam if not specified
-                data.m_NeedCV_8UC3 = true; 
+                data.m_CommonData->m_NeedCV_8UC3 = true; 
                 break;
             }
 

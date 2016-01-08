@@ -35,11 +35,11 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
-            graphData.m_NeedCV_16UC1 = true;
+            graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
             // need 8 bit for our own view
             if (m_showView) {
-                graphData.m_NeedCV_8UC1 = true;
+                graphData.m_CommonData->m_NeedCV_8UC1 = true;
             }
 
             bool fOK = false;
