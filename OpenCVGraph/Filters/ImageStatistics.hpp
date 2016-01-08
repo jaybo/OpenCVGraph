@@ -77,7 +77,7 @@ namespace openCVGraph
         bool m_UseCuda = true;
         double dCapMax, dCapMin;
         double dMean, dMeanMin, dMeanMax, dStdDevMean, dStdDevMin, dStdDevMax, dVarMin, dVarMax;
-        cv::Mat m_oldM, m_newM, m_oldS, m_newS, m_capF, m_imVariance, m_dOld, m_dNew;
+        cv::Mat m_oldM, m_newM, m_oldS, m_newS, m_imVariance, m_dOld, m_dNew;
 #ifdef WITH_CUDA
         cv::cuda::GpuMat m_oldMGpu, m_newMGpu, m_oldSGpu, m_imVarianceGpu, m_newSGpu, m_dOldGpu, m_dNewGpu, m_TGpu;
 #endif
@@ -96,8 +96,8 @@ namespace openCVGraph
             }
             else
             {
-                m_dOld = m_capF - m_oldM;
-                m_dNew = m_capF - m_newM;
+                m_dOld = MatSrc - m_oldM;
+                m_dNew = MatSrc - m_newM;
                 m_newM = m_oldM + m_dOld / m_N;
                 m_newS = m_oldS + m_dOld.mul(m_dNew);
 
