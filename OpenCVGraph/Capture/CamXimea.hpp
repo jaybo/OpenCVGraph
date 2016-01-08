@@ -16,7 +16,7 @@ namespace openCVGraph
 
 #define MAX_MIMEA_FOCUS_STEPS 4     // Defines size of slider and size of steps, plus or minus
 #define SOFTWARE_TRIGGER 1          // else free run
-#define PINNED_MEMORY 0             // page lock the main capture buffer
+#define PAGE_LOCKED_MEMORY 0             // page lock the main capture buffer
 #define XI_TIMEOUT 5000             // No operation should take longer than 5 seconds
 #define LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 1
 
@@ -126,7 +126,7 @@ namespace openCVGraph
                 LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
 #endif
 
-#if PINNED_MEMORY
+#if PAGE_LOCKED_MEMORY
                 // Create page locked memory to speed CUDA Xfers by 2X
                 // DANGER DANGER DANGER DANGER DANGER DANGER DANGER DANGER 
 
@@ -134,13 +134,13 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_SAFE);
                 LogErrors(stat, "XI_PRM_BUFFER_POLICY");
 
-                HostMem page_locked(Size(3840, 3840), CV_16UC1);
-                graphData.m_CommonData->m_imCapture = page_locked.createMatHeader();
+                m_PageLockedHostMem = HostMem(Size(3840, 3840), CV_16UC1);
+                graphData.m_CommonData->m_imCapture = m_PageLockedHostMem.createMatHeader();
 
-                m_image.bp = page_locked.data;
-                m_image.padding_x = page_locked.step - (page_locked.cols * page_locked.elemSize());
+                prepareXimeaBuffer();
+
                 stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
-
+                LogErrors(stat, "xiGetImage");
 #else
                 // We're doing software triggering, so buffers won't get overwritten in UNSAFE mode
                 stat = xiSetParamInt(m_xiH, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
@@ -150,8 +150,6 @@ namespace openCVGraph
                 LogErrors(stat, "xiGetImage"); 
                 copyCaptureImage(graphData);
 #endif
-
-
 
             }
             else {
@@ -176,6 +174,16 @@ namespace openCVGraph
             return m_InitOK;
         }
 
+        void prepareXimeaBuffer()
+        {
+            m_image = { 0 };
+            m_image.size = sizeof(XI_IMG);
+
+            m_image.bp = m_PageLockedHostMem.data;
+            m_image.bp_size = DWORD(m_PageLockedHostMem.step * m_PageLockedHostMem.rows);
+            m_image.padding_x = DWORD(m_PageLockedHostMem.step - (m_PageLockedHostMem.cols * m_PageLockedHostMem.elemSize()));
+        }
+
         // bugbug, todo. Capture directly to CUDA contiguous buffer...
         void copyCaptureImage(GraphData& graphData) {
             graphData.m_CommonData->m_imCapture = Mat(m_image.width, m_image.height, CV_16UC1, m_image.bp);
@@ -191,11 +199,16 @@ namespace openCVGraph
             stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
             LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
 #endif
+
+#if PAGE_LOCKED_MEMORY
+            prepareXimeaBuffer();
+#endif
             stat = xiGetImage(m_xiH, XI_TIMEOUT, &m_image);
             LogErrors(stat, "xiGetImage");
-            
-            copyCaptureImage(graphData);
 
+#if !PAGE_LOCKED_MEMORY
+            copyCaptureImage(graphData);
+#endif
             // always bump up to full 16 bit range
             graphData.m_CommonData->m_imCapture *= 16;
 
@@ -345,6 +358,7 @@ namespace openCVGraph
         bool m_InitOK = true;
         XI_IMG m_image = { 0 };
         HANDLE m_xiH = NULL;
+        HostMem m_PageLockedHostMem;
 
         bool m_isAutoGain = false;
         bool m_minimumBuffers = true;

@@ -56,7 +56,7 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult FileWriter::process(GraphData& graphData) override
         {
-            if (m_WriteNextImage && !(m_WriteCaptureStream ? graphData.m_CommonData->m_imCap16UC1 : graphData.m_imOut16UC1).empty()) {
+            if (m_WriteNextImage && !(m_WriteCaptureStream ? graphData.m_CommonData->m_imCapture : graphData.m_imOut16UC1).empty()) {
                 string fullName;
                 if (m_UseSourceFileName && !graphData.m_CommonData->m_SourceFileName.empty()) {
                     auto s = graphData.m_CommonData->m_SourceFileName;
@@ -75,7 +75,7 @@ namespace openCVGraph
                     259,1,      // No compression, turn off LZW
                     279, 64     // Rows per strip (doesn't seem to affect perf - why not?)
                 };
-                imwrite(fullName, m_WriteCaptureStream ? graphData.m_CommonData->m_imCap16UC1 : graphData.m_imOut16UC1, params);
+                imwrite(fullName, m_WriteCaptureStream ? graphData.m_CommonData->m_imCapture : graphData.m_imOut16UC1, params);
 
                 if (m_WriteOnKeyHit != "") {
                     m_WriteNextImage = false;

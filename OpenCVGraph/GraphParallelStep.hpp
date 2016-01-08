@@ -99,11 +99,11 @@ namespace openCVGraph
 
         void NewCaptureImage(GraphData* graphData)
         {
-            for (GraphManager * gm : m_Graphs) {
-                GraphData* gd = gm->getGraphData();
-                gd->m_CommonData->m_imCapture = graphData->m_CommonData->m_imCapture;
-                gd->CopyCaptureToRequiredFormats();
-            }
+            //for (GraphManager * gm : m_Graphs) {
+            //    GraphData* gd = gm->getGraphData();
+            //    gd->m_CommonData->m_imCapture = graphData->m_CommonData->m_imCapture;
+            //    gd->CopyCaptureToRequiredFormats();
+            //}
         }
 
     private:
