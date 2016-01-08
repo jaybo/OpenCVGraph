@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_CANNY
-#define INCLUDE_OCVG_CANNY
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -97,4 +94,3 @@ namespace openCVGraph
         int m_Threshold2 = 200;
     };
 }
-#endif

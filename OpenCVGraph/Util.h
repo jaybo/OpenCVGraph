@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_UTIL_HPP
-#define INCLUDE_OCVG_UTIL_HPP
-
 #include "stdafx.h"
 #include "opencv2/highgui.hpp"
 
@@ -23,4 +20,3 @@ using namespace cv;
 
     Mat createGrayHistogram(Mat& img, int bins, int width = 256, int height = 400);
 //}
-#endif

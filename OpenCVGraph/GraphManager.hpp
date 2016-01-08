@@ -1,3 +1,4 @@
+#pragma once
 
 #include "stdafx.h"
 
@@ -8,7 +9,6 @@ namespace openCVGraph
     class GraphManager;
     typedef bool(*GraphCallback)(GraphManager* graphManager);
     typedef std::shared_ptr < openCVGraph::Filter> Processor;
-
 
     // GraphManager
     // Keeps a vector of Filters and call each in turn to process images

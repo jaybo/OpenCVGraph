@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_CARTOON_HPP
-#define INCLUDE_CARTOON_HPP
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -166,4 +163,3 @@ namespace openCVGraph
 
     };
 }
-#endif

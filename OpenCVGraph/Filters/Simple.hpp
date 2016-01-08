@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_SIMPLE
-#define INCLUDE_OCVG_SIMPLE
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -57,4 +54,3 @@ namespace openCVGraph
         }
     };
 }
-#endif

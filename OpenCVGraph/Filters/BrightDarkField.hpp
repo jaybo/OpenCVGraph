@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_DARKLIGHT
-#define INCLUDE_OCVG_DARKLIGHT
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -163,4 +160,3 @@ namespace openCVGraph
 
     };
 }
-#endif

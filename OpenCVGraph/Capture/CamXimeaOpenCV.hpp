@@ -1,8 +1,4 @@
-
 #pragma once
-
-#ifndef INCLUDE_OCVG_CAMXIMEAOPENCV
-#define INCLUDE_OCVG_CAMXIMEAOPENCV
 
 #include "..\stdafx.h"
 
@@ -347,4 +343,3 @@ namespace openCVGraph
     };
 }
 
-#endif

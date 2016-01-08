@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_FOCUSSOBEL_HPP
-#define INCLUDE_FOCUSSOBEL_HPP
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -137,4 +134,3 @@ namespace openCVGraph
         }
     };
 }
-#endif

@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_FOCUS_FFT_HPP
-#define INCLUDE_OCVG_FOCUS_FFT_HPP
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -211,4 +208,3 @@ namespace openCVGraph
         Mat m_roiPowerSpectrum;
     };
 }
-#endif

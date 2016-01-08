@@ -1,8 +1,4 @@
-
 #pragma once
-
-#ifndef INCLUDE_OCVG_FILTER_HPP
-#define INCLUDE_OCVG_FILTER_HPP
 
 #include "stdafx.h"
 
@@ -249,4 +245,3 @@ namespace openCVGraph
     typedef std::shared_ptr<Filter> CvFilter;
 
 }
-#endif

@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_ITEMCA_CAMERA_HPP
-#define INCLUDE_OCVG_ITEMCA_CAMERA_HPP
-
 typedef struct tCameraInfo {
     int width;
     int height;
@@ -39,4 +36,3 @@ public:
 
 };
 
-#endif

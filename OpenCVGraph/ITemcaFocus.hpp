@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_ITEMCA_FOCUS_HPP
-#define INCLUDE_OCVG_ITEMCA_FOCUS_HPP
-
 typedef struct tFocusInfo {
     float score;
     float astigmatism;
@@ -19,4 +16,3 @@ public:
     virtual FocusInfo getFocusInfo() { return FocusInfo(); }
 };
 
-#endif

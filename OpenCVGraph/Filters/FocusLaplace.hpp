@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_FOCUS_LAPLACE_HPP
-#define INCLUDE_OCVG_FOCUS_LAPLACE_HPP
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -133,4 +130,3 @@ namespace openCVGraph
         }
     };
 }
-#endif

@@ -1,8 +1,4 @@
-
 #pragma once
-
-#ifndef INCLUDE_OCVG_IMAGESTATISTICS_HPP
-#define INCLUDE_OCVG_IMAGESTATISTICS_HPP
 
 #include "..\stdafx.h"
 
@@ -287,4 +283,3 @@ namespace openCVGraph
     };
 }
 
-#endif

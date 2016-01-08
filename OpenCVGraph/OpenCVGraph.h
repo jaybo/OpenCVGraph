@@ -40,10 +40,13 @@
 #include "GraphManager.hpp"
 #include "GraphParallelStep.hpp"
 
-#include "Filters/Simple.hpp"
-#include "Filters/Delay.hpp"
+// Interfaces
 #include "ITemcaCamera.hpp"
 #include "ITemcaFocus.hpp"
+
+// Filters
+#include "Filters/Simple.hpp"
+#include "Filters/Delay.hpp"
 #include "Capture/CamDefault.hpp"
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"

@@ -1,8 +1,4 @@
-
 #pragma once
-
-#ifndef INCLUDE_OCVG_CAMDEFAULT
-#define INCLUDE_OCVG_CAMDEFAULT
 
 #include "../stdafx.h"
 
@@ -14,7 +10,7 @@ namespace openCVGraph
     class CamDefault : public Filter, public ITemcaCamera {
     public:
         // General image source:
-        //   if   "camera_index" is set, use that camera
+        //   if   "camera_index" is >= 0, use that OpenCV camera index
         //   elif "image_name" is set, use just that image
         //   elif "movie_name" is set, use that movie
         //   elif "image_dir" is set and contains images, use all images in dir
@@ -28,16 +24,6 @@ namespace openCVGraph
             source = Noise;
         }
 
-        //// keyWait required to make the UI activate
-        //bool processKeyboard(GraphData& data, int key) override
-        //{
-        //    bool fOK = true;
-        //    if (m_showView) {
-        //        return m_ZoomView.KeyboardProcessor(key);  // Hmm,  what to do here?
-        //    }
-        //    return fOK;
-        //}
-
         //Allocate resources if needed
         bool init(GraphData& graphData) override
         {
@@ -45,8 +31,6 @@ namespace openCVGraph
             Filter::init(graphData);
 
             bool fOK = false;
-
-
 
             // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
             if ((m_SourceFormat != CV_16UC1) && (camera_index >= 0)) {
@@ -195,16 +179,10 @@ namespace openCVGraph
             return ProcessResult::OK;
         }
 
-
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
-                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                //    m_imView = graphData.m_CommonData->m_imCap8UC1;
-                //}
-                //else {
-                    m_imView = graphData.m_CommonData->m_imCapture;
-                //}
+                m_imView = graphData.m_CommonData->m_imCapture;
                 Filter::processView(graphData);
             }
         }
@@ -262,5 +240,3 @@ namespace openCVGraph
         int imageIndex = 0;
     };
 }
-
-#endif

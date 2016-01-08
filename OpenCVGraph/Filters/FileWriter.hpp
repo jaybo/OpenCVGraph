@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_FILEWRITER
-#define INCLUDE_OCVG_FILEWRITER
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -10,7 +7,10 @@ using namespace std;
 
 namespace openCVGraph
 {
-    // Simplest possible filter
+    // ------------------------------------------------
+    // Write TIFF, PNG, or JPG depending on extension
+    // ------------------------------------------------
+
     class FileWriter : public Filter
     {
     public:
@@ -119,4 +119,3 @@ namespace openCVGraph
         bool m_WriteCaptureStream = true;  // else write m_imOut
     };
 }
-#endif

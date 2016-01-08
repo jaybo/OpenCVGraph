@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_AVERAGE
-#define INCLUDE_OCVG_AVERAGE
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -149,4 +146,3 @@ namespace openCVGraph
         }
     };
 }
-#endif

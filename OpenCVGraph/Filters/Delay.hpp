@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OCVG_DELAY
-#define INCLUDE_OCVG_DELAY
-
 #include "..\stdafx.h"
 
 using namespace cv;
@@ -64,4 +61,3 @@ namespace openCVGraph
 
     };
 }
-#endif

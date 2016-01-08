@@ -208,7 +208,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Filters\Simple.hpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
