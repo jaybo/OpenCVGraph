@@ -258,6 +258,7 @@ public:
             }
         }
 
+        // ITemcaCamera, ITemcaFocus, etc..
         FindTemcaInterfaces();
 
         return fOK;
@@ -286,6 +287,10 @@ public:
         m_Logger->info("Temca fini ------------------------------------------------");
     }
 
+    // -----------------------------------------------------------------
+    // Python control interfaces
+    // -----------------------------------------------------------------
+
     void GrabFrame(const char * filename, int roiX, int roiY)
     {
         std::unique_lock<std::mutex> lk(m_mtx);
@@ -308,16 +313,57 @@ public:
         memcpy(image, gd->m_CommonData->m_imCapture.data, size_t(gd->m_CommonData->m_imCapture.size().area() * sizeof(UINT16)));
     }
 
-
+    // ------------------------------------------------
+    // ITemcaCamera 
+    // ------------------------------------------------
     CameraInfo getCameraInfo() {
-        CameraInfo fi;
+        CameraInfo info = { 0 };
         if (m_ITemcaCamera) {
-            ITemcaCamera* pCam = dynamic_cast<ITemcaCamera *> (m_ITemcaCamera.get());
-            fi = pCam->getCameraInfo();
+            info = m_ITemcaCamera->getCameraInfo();
         }
-        return fi;
+        return info;
     }
 
+    // milliseond units
+    int getExposure() {
+        int value = -1;
+        if (m_ITemcaCamera) {
+            value = m_ITemcaCamera->getExposure();
+        }
+        return value;
+    }
+
+    void setExposure(int value) {
+        if (m_ITemcaCamera) {
+            m_ITemcaCamera->setExposure(value);
+        }
+    }
+
+    // milliseond units
+    int getGain() {
+        int value = -1;
+        if (m_ITemcaCamera) {
+            value = m_ITemcaCamera->getGain();
+        }
+        return value;
+    }
+
+    void setGain(int value) {
+        if (m_ITemcaCamera) {
+            m_ITemcaCamera->setGain(value);
+        }
+    }
+
+    // ------------------------------------------------
+    // ITemcaFocus 
+    // ------------------------------------------------
+    FocusInfo getFocusInfo() {
+        FocusInfo info;
+        if (m_ITemcaFocus) {
+            info = m_ITemcaFocus->getFocusInfo();
+        }
+        return info;
+    }
 
 private:
     // The graphs which  can run simultaneous on separate threads, 
@@ -353,8 +399,8 @@ private:
     string m_CaptureFileName;
 
     // control interfaces
-    Processor m_ITemcaCamera = NULL;
-    Processor m_ITemcaFocus = NULL;
+    ITemcaCamera* m_ITemcaCamera = NULL;
+    ITemcaFocus* m_ITemcaFocus = NULL;
 
     // callback to python
     StatusCallbackInfo m_PythonInfo = { 0 };
@@ -368,12 +414,12 @@ private:
                     // the next line took me 2 hours to figure out!!!
                     if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
                     {
-                        m_ITemcaCamera = processor;
+                        m_ITemcaCamera = dynamic_cast<ITemcaCamera *> (processor.get());
                         continue;
                     }
                     if (dynamic_cast<ITemcaFocus *> (processor.get()) != nullptr)
                     {
-                        m_ITemcaFocus = processor;
+                        m_ITemcaFocus = dynamic_cast<ITemcaFocus *> (processor.get());
                         continue;
                     }
 
@@ -481,26 +527,22 @@ private:
 
 };
 
+// ---------------------------------------------------------------------------------
+// ctypes doesn't interface to C++, so duplicate the above in straight C.  DOH!
+// ---------------------------------------------------------------------------------
+
 Temca * pTemca = NULL;
 
 bool init(const char* graphType, StatusCallbackType callback)
 {
     string s = string(graphType);
 
-    if (s == "temca" ||
-        s == "dummy" ||
-        s == "delay")
-    {
-        pTemca = new Temca();
-    }
-    else {
-        // unknown graph type
-        return false;
-    }
+    pTemca = new Temca();
 
-    bool fOK = true;
-    fOK = pTemca->init(graphType, callback);
-    pTemca->StartThread();
+    bool fOK = pTemca->init(graphType, callback);
+    if (fOK) {
+        pTemca->StartThread();
+    }
     return fOK;
 }
 
@@ -509,8 +551,15 @@ bool fini()
     if (pTemca) {
         pTemca->JoinThread();
     }
+    delete pTemca;
+    pTemca = NULL;
     return true;
 }
+
+// ------------------------------------------------------
+// ITemcaCamera
+// ------------------------------------------------------
+
 
 
 void grabFrame(const char * filename, UINT32 roiX, UINT32 roiY)
@@ -536,8 +585,10 @@ StatusCallbackInfo getStatus() {
 }
 
 FocusInfo getFocus() {
+    if (pTemca) {
+        return pTemca->getFocusInfo();
+    }
     FocusInfo fi = { 0 };
-    fi.score = 42;
     return fi;
 }
 

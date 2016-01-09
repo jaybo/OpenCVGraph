@@ -13,7 +13,7 @@ namespace openCVGraph
     // See: http://www.csl.cornell.edu/~cbatten/pdfs/batten-image-processing-sem-ucthesis2000.pdf 
 
 
-    class FocusFFT : public Filter
+    class FocusFFT : public Filter , public ITemcaFocus
     {
     public:
 
@@ -186,6 +186,14 @@ namespace openCVGraph
 
         void FocusFFT::DFTSize(int dftSize) {
             m_DFTSize = dftSize;
+        }
+
+        FocusInfo getFocusInfo() { 
+            FocusInfo fi; 
+            fi.score = (float) m_FocusScore;
+            fi.astigmatism = (float)m_AstigmatismAngle;
+            fi.angle = (float) m_AstigmatismAngle;
+            return fi;
         }
 
     private:
