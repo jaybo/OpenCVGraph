@@ -66,7 +66,7 @@ namespace openCVGraph
                 // zoom faster on big images
                 int zoomInc = (view->MatView.size().width >= 1024) ? 2 : 1;
                 d = getMouseWheelDelta(flags);
-                cout << d << endl;
+                //cout << d << endl;
                 if (d > 0)
                 {
                     view->m_ZoomFactor += zoomInc;
@@ -103,7 +103,11 @@ namespace openCVGraph
                         view->m_dy = (y - view->m_sy);
                     }
                 }
-                // cout << view->m_dx << " " << view->m_cx << endl;
+                else {
+                    view->m_dx = 0;
+                    view->m_dy = 0;
+                }
+                //cout << view->m_cx <<  " : " << view->m_cy  << "    " << view->m_dx << " : " << view->m_dy << endl;
                 view->m_wx = x;
                 view->m_wy = y;
                 break;
@@ -111,6 +115,17 @@ namespace openCVGraph
                 view->m_MouseLButtonDown = false;
                 view->m_cx -= view->m_dx;
                 view->m_cy -= view->m_dy;
+
+                view->m_cx = max (view->m_cx, 0);
+                view->m_cy = max (view->m_cy, 0);
+                view->m_cx = min(view->m_cx, view->m_imWidth);
+                view->m_cy = min(view->m_cy, view->m_imHeight);
+
+                //view->m_cx = max(view->m_cx, view->m_winWidth/2);
+                //view->m_cy = max(view->m_cy, view->m_winHeight/2);
+                //view->m_cx = min(view->m_cx, view->m_imWidth - (view->m_winWidth / 2));
+                //view->m_cy = min(view->m_cy, view->m_imHeight - view->m_winHeight / 2);
+
                 view->m_dx = 0;
                 view->m_dy = 0;
 
@@ -161,7 +176,7 @@ namespace openCVGraph
                     ZoomWindowPositions[zoomWindowLockIndex].dy = m_dy;
                     ZoomWindowPositions[zoomWindowLockIndex].zoomFactor = m_ZoomFactor;
                 }
-                else {
+                else if (g_LastActiveZoomView != NULL) {
                     // We aren't the active view, so sync to somebody else
                     m_cx = ZoomWindowPositions[zoomWindowLockIndex].x;
                     m_cy = ZoomWindowPositions[zoomWindowLockIndex].y;
@@ -174,6 +189,8 @@ namespace openCVGraph
             MatView = mat;
             if (firstTime) {
                 firstTime = false;
+                m_imWidth = MatView.cols;
+                m_imHeight = MatView.rows;
                 m_cx = MatView.cols / 2;
                 m_cy = MatView.rows / 2;
                 m_dx = 0;
@@ -236,13 +253,14 @@ namespace openCVGraph
     private:
         std::string m_ZoomViewName;
         int m_cx = 0, m_cy = 0;     // center of view (in view image coords) (0,0 is center of view)
-        int m_dx = 0, m_dy = 0;     // drag delta (window coords)
+        int m_dx = 0, m_dy = 0;     // drag delta (zoomed window coords)
         int m_wx = 0, m_wy = 0;     // window coords
         int m_sx, m_sy;             // mouse pos at start of drag (window coords)
         int m_mx, m_my;             // current mouse position
         bool firstTime = true;
 
         int m_winWidth, m_winHeight;
+        int m_imWidth, m_imHeight;
         int m_ZoomFactor = 0;     // 0 is 1:1 pixelwise
         bool m_MouseLButtonDown = false;
         int m_SampledPixelU16;
