@@ -42,6 +42,7 @@
 
 // Interfaces
 #include "ITemcaCamera.hpp"
+#include "ITemcaQC.hpp"
 #include "ITemcaFocus.hpp"
 
 // Filters
@@ -51,6 +52,7 @@
 #include "Filters/Canny.hpp"
 #include "Filters/Average.hpp"
 #include "Filters/Cartoon.hpp"
+#include "Filters/ImageQC.hpp"
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/FileWriter.hpp"
 

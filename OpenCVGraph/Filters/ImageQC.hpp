@@ -6,12 +6,10 @@ using namespace cv;
 
 namespace openCVGraph
 {
-    // http://www.johndcook.com/blog/standard_deviation/
+    // Collects basic statistics about the image
+    // Min, Max, Mean, and 256 element histogram
 
-
-    // This currently only works on m_CommonData->m_imCapture.  It should be modified to use m_imOut...
-
-    class ImageQC : public Filter
+    class ImageQC : public Filter, public ITemcaQC
     {
     public:
         ImageQC(std::string name, GraphData& graphData, 
@@ -29,7 +27,7 @@ namespace openCVGraph
             Filter::init(graphData);
             if (m_Enabled) {
                 // Advertise the format(s) we need
-                graphData.m_CommonData->m_NeedCV_32FC1 = true;
+                graphData.m_CommonData->m_NeedCV_8UC1 = true;
             }
             return true;
         }
@@ -40,11 +38,25 @@ namespace openCVGraph
             return true;
         }
 
-        bool ImageQC::processKeyboard(GraphData& data, int key) override
+        ProcessResult ImageQC::process(GraphData& graphData) override
         {
-            bool fOK = true;
-            return fOK;
+            if (m_UseCuda) {
+                cv::cuda::minMax(graphData.m_CommonData->m_imCapGpu16UC1, &m_dCapMin, &m_dCapMax);
+                cv::cuda::calcHist(graphData.m_CommonData->m_imCapGpu8UC1, m_histogram);
+                
+                // This version fails!!!
+                // cv::cuda::histEven(graphData.m_CommonData->m_imCapGpu16UC1, m_histogram, 256, 0, UINT16_MAX);
+
+                auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
+                m_Mean = (int) (cv::cuda::sum(graphData.m_CommonData->m_imCapGpu16UC1)[0] / nPoints);
+            }
+            else {
+                abort();
+            }
+            return ProcessResult::OK;
         }
+
+
 
         void  ImageQC::saveConfig(FileStorage& fs, GraphData& data)
         {
@@ -58,88 +70,38 @@ namespace openCVGraph
             fs["use_Cuda"] >> m_UseCuda;
         }
 
+        // ITemcaQC
+        QCInfo ImageQC::getQCInfo() {
+            QCInfo info;
+
+            Mat hist(m_histogram); // copies from gpu
+
+            const int32_t * p = hist.ptr<int32_t>(0);
+
+            for (int i = 0; i < hist.cols; i++) {
+                info.histogram[i] = p[i];
+            }
+            info.max_value = (int) m_dCapMax;
+            info.min_value = (int) m_dCapMin;
+            info.mean_value = m_Mean;
+            return info;
+        }
 
     private:
+        int m_Mean;
+        cv::cuda::GpuMat m_histogram;
+        double m_dCapMax, m_dCapMin;
         bool m_UseCuda = true;
-        double dCapMax, dCapMin;
-        double dMean, dMeanMin, dMeanMax, dStdDevMean, dStdDevMin, dStdDevMax, dVarMin, dVarMax;
-        cv::Mat m_oldM, m_newM, m_oldS, m_newS, m_capF, m_imVariance, m_dOld, m_dNew;
 
-        cv::cuda::GpuMat m_oldMGpu, m_newMGpu, m_oldSGpu, m_imVarianceGpu, m_newSGpu, m_dOldGpu, m_dNewGpu, m_TGpu;
-
-
-
-        void ImageQC::Calc(GraphData& graphData)
-        {
-            cv::Point ptMin, ptMax;
-            if (graphData.m_CommonData->m_imCapture.channels() > 1) {
-                cv::Mat gray;
-                cv::cvtColor(graphData.m_CommonData->m_imCapture, gray, CV_BGR2GRAY);
-                cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            }
-            else {
-                cv::minMaxLoc(graphData.m_CommonData->m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            }
-
-            cv::Scalar sMean, sStdDev;
-            cv::meanStdDev(m_newM, sMean, sStdDev);   // stdDev here is across the mean image
-            dMean = sMean[0];
-            // Mean, and min and max of mean image
-            cv::minMaxLoc(m_newM, &dMeanMin, &dMeanMax);
-
-            // Variance
-            m_imVariance = m_newS / (m_N - 1);
-            cv::Scalar varMean, varStd;
-            cv::meanStdDev(m_imVariance, varMean, varStd);
-            cv::minMaxLoc(m_imVariance, &dVarMin, &dVarMax);
-            dStdDevMean = sqrt(varMean[0]);
-            dStdDevMin = sqrt(dVarMin);
-            dStdDevMax = sqrt(dVarMax);
-
-        }
-
-        void ImageQC::CalcGpu(GraphData& graphData)
-        {
-            cv::Point ptMin, ptMax;
-            cv::cuda::minMaxLoc(graphData.m_imOutGpu32FC1, &dCapMin, &dCapMax, &ptMin, &ptMax);
-
-            cv::Scalar sMean, sStdDev;
-            // argh, only works with 8pp!!!
-            // cv::cuda::meanStdDev(m_newMGpu, imMean, imStdDev);   // stdDev here is across the mean image
-            sMean = cv::cuda::sum(m_newMGpu);
-            auto nPoints = graphData.m_imOutGpu32FC1.size().area();
-            dMean = sMean[0] / nPoints;
-
-            // Mean, and min and max of mean image
-            cv::cuda::minMaxLoc(m_newMGpu, &dMeanMin, &dMeanMax, &ptMin, &ptMax);
-
-            // Variance
-            cuda::divide(m_newSGpu, Scalar(m_N - 1), m_imVarianceGpu);  // imVariance = m_newS / (m_N - 1);
-            cv::Scalar varMean, varStd;
-            // argh, only works with 8bpp!!!
-            //cv::cuda::meanStdDev(m_imVarianceGpu, varMean, varStd);
-            sStdDev = cv::cuda::sum(m_imVarianceGpu);
-            double meanVariance = sStdDev[0] / nPoints;
-
-            cv::cuda::minMaxLoc(m_imVarianceGpu, &dVarMin, &dVarMax, &ptMin, &ptMax);
-            dStdDevMean = sqrt(meanVariance);
-            dStdDevMin = sqrt(dVarMin);
-            dStdDevMax = sqrt(dVarMax);
-        }
 
         void ImageQC::processView(GraphData& graphData)
         {
+            // bugbug test
+            // getQCInfo();
+
             if (m_showView) {
-                // Convert back to 8 bits for the view
-                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
-                //}
-                //else {
-                //    m_imView = graphData.m_CommonData->m_imCapture;
-                //}
-                //if (m_N >= 2) {
-                //    DrawOverlay(graphData);
-                //}
+                m_imView = graphData.m_CommonData->m_imCapture;
+                DrawOverlay(graphData);
                 Filter::processView(graphData);
             }
         }
@@ -157,23 +119,17 @@ namespace openCVGraph
             DrawOverlayText(str.str(), Point(posLeft, 30), scale);
 
             str.str("");
-            str << "Cap:" << std::setfill(' ') << setw(7) << (int)dCapMin << setw(7) << (int)dMean << setw(7) << (int)dCapMax;
+            str << "Cap:" << std::setfill(' ') << setw(7) << (int)m_dCapMin << setw(7) << (int)m_Mean << setw(7) << (int)m_dCapMax;
             DrawOverlayText(str.str(), Point(posLeft, 70), scale);
 
             str.str("");
-            str << "SD: " << std::setfill(' ') << setw(7) << (int)dStdDevMin << setw(7) << (int)dStdDevMean << setw(7) << (int)dStdDevMax;
-            DrawOverlayText(str.str(), Point(posLeft, 120), scale);
-
-            str.str("");
-            str << "SPACE to reset";
-            DrawOverlayText(str.str(), Point(posLeft, 460), scale);
-
-            str.str("");
-            str << m_N << "/" << graphData.m_FrameNumber;
+            str << graphData.m_FrameNumber;
             DrawOverlayText(str.str(), Point(posLeft, 500), scale);
 
             auto histSize = Size(512, 200);
+            // bugbug todo, the following unnecessarily recalcs the histogram
             Mat histo = createGrayHistogram(graphData.m_CommonData->m_imCapture, 256, histSize.width, histSize.height);
+            cv::cvtColor(histo, histo, CV_GRAY2RGB);
 
             Mat t = Mat(m_imViewTextOverlay, Rect(Point(0, 180), histSize));
             cv::bitwise_or(t, histo, t);

@@ -135,14 +135,15 @@ GraphManager* GraphQC(GraphCommonData * commonData)
     GraphData* gd = graph->getGraphData();
 
 #ifdef WITH_CUDA
+    CvFilter filter(new openCVGraph::ImageQC("ImageQC", *gd, CV_16UC1));
+    graph->AddFilter(filter);
+
     CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
     graph->AddFilter(fFocusSobel);
 
     CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
     graph->AddFilter(fFocusFFT);
 
-    CvFilter filter(new openCVGraph::ImageStatistics("ImageStatistics", *gd, CV_16UC1));
-    graph->AddFilter(filter);
 #endif
 
     return graph;
@@ -388,6 +389,17 @@ public:
         return info;
     }
 
+    // ------------------------------------------------
+    // ITemcaQC
+    // ------------------------------------------------
+    QCInfo getQCInfo() {
+        QCInfo info;
+        if (m_ITemcaQC) {
+            info = m_ITemcaQC->getQCInfo();
+        }
+        return info;
+    }
+
 private:
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
@@ -424,6 +436,7 @@ private:
     // control interfaces
     ITemcaCamera* m_ITemcaCamera = NULL;
     ITemcaFocus* m_ITemcaFocus = NULL;
+    ITemcaQC* m_ITemcaQC = NULL;
 
     // callback to python
     StatusCallbackInfo m_PythonInfo = { 0 };
@@ -445,7 +458,11 @@ private:
                         m_ITemcaFocus = dynamic_cast<ITemcaFocus *> (processor.get());
                         continue;
                     }
-
+                    if (dynamic_cast<ITemcaQC *> (processor.get()) != nullptr)
+                    {
+                        m_ITemcaQC = dynamic_cast<ITemcaQC *> (processor.get());
+                        continue;
+                    }
                 }
             }
         }

@@ -143,6 +143,9 @@ void GraphXimea()
     CvFilter brightDark(new CapturePostProcessing("CapturePostProcessing", *gd));
     graph1.AddFilter(brightDark);
 
+    CvFilter fpQC(new ImageQC("QC", *gd));
+    graph1.AddFilter(fpQC);
+
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
     graph1.AddFilter(fpRunningStats);
 
