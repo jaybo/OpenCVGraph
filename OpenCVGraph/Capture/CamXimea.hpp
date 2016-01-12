@@ -10,10 +10,10 @@ using namespace cuda;
 namespace openCVGraph
 {
 
-#define MAX_MIMEA_FOCUS_STEPS 4     // Defines size of slider and size of steps, plus or minus
-#define SOFTWARE_TRIGGER 1          // else free run
-#define PAGE_LOCKED_MEMORY 0             // page lock the main capture buffer
-#define XI_TIMEOUT 5000             // No operation should take longer than 5 seconds
+#define MAX_MIMEA_FOCUS_STEPS 4         // Defines size of slider and size of steps, plus or minus
+#define SOFTWARE_TRIGGER 1              // else free run
+#define PAGE_LOCKED_MEMORY 0            // page lock the main capture buffer
+#define XI_TIMEOUT 5000                 // No operation should take longer than 5 seconds
 #define LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 1
 
     // Filter which hosts the Ximea 20MPix camera without using OpenCV capture
@@ -98,8 +98,6 @@ namespace openCVGraph
                     LogErrors(stat, "XI_PRM_RECENT_FRAME");
                 }
 
-
-
 #if SOFTWARE_TRIGGER
                 // software trigger mode
                 stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
@@ -144,6 +142,14 @@ namespace openCVGraph
                 copyCaptureImage(graphData);
 #endif
 
+                // CUDA takes a long time initializing during the first data transfer, so do one here
+#if !PAGE_LOCKED_MEMORY
+                copyCaptureImage(graphData);
+#endif
+                // always bump up to full 16 bit range
+                //graphData.m_CommonData->m_imCapture *= 16;
+
+                graphData.CopyCaptureToRequiredFormats();
             }
             else {
                 LogErrors(stat, "xiOpenDevice" + camera_index);
@@ -203,7 +209,7 @@ namespace openCVGraph
             copyCaptureImage(graphData);
 #endif
             // always bump up to full 16 bit range
-            graphData.m_CommonData->m_imCapture *= 16;
+            //graphData.m_CommonData->m_imCapture *= 16;
 
             graphData.CopyCaptureToRequiredFormats();
 
@@ -222,7 +228,7 @@ namespace openCVGraph
                 //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
                 //}
                 //else {
-                    m_imView = graphData.m_CommonData->m_imCapture;
+                    m_imView = graphData.m_CommonData->m_imCapture * 16;
                 //}
                 Filter::processView(graphData);
             }
