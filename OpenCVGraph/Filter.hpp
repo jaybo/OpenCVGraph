@@ -33,7 +33,7 @@ namespace openCVGraph
             m_CombinedName = data.m_GraphName + "-" + name;
             m_Logger->info("Filter() " + m_CombinedName);
             m_TickFrequency = cv::getTickFrequency();
-            m_imView = Mat::eye(10, 10, CV_16U);
+            m_imView = Mat::eye(4, 4, CV_16U);
         }
 
         virtual Filter::~Filter()
