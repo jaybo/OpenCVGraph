@@ -198,7 +198,8 @@ if __name__ == '__main__':
      
     import cv2
     import numpy as np
-
+    #import matplotlib.pyplot as plt
+    have_pyplot = 'plt' in vars() or 'plt' in globals()
 
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -208,8 +209,9 @@ if __name__ == '__main__':
 
     # Create all graphs ('dummy' means use fake camera)
     #temcaGraph.open('temca')
-    temcaGraph.open('dummy')
-    #temcaGraph.open('delay')
+    #temcaGraph.open('dummy')
+    temcaGraph.open('delay')
+    #temcaGraph.open('camera_only')
 
     # get info about frame dimensions
     fi = temcaGraph.get_camera_info()
@@ -244,12 +246,16 @@ if __name__ == '__main__':
             # move stage here
             temcaGraph.eventProcessingCompleted.wait(waitTime)
 
-            # get a copy of the frame?
-            # temcaGraph.get_last_frame(img)
+            # get a copy of the frame and display it?
+            if have_pyplot:
+                temcaGraph.get_last_frame(img)
+                plt.imshow(img)
+                plt.show()
 
             frameCounter += 1
 
-    temcaGraph.close()
     temcaGraph.eventFiniCompleted.wait(waitTime)
+    temcaGraph.close()
+
 
  
