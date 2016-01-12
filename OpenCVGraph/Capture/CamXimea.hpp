@@ -11,7 +11,6 @@ namespace openCVGraph
 {
 
 #define MAX_MIMEA_FOCUS_STEPS 4         // Defines size of slider and size of steps, plus or minus
-#define SOFTWARE_TRIGGER 1              // else free run
 #define PAGE_LOCKED_MEMORY 0            // page lock the main capture buffer
 #define XI_TIMEOUT 5000                 // No operation should take longer than 5 seconds
 #define LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 1
@@ -98,11 +97,12 @@ namespace openCVGraph
                     LogErrors(stat, "XI_PRM_RECENT_FRAME");
                 }
 
-#if SOFTWARE_TRIGGER
-                // software trigger mode
-                stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
-                LogErrors(stat, "XI_PRM_TRG_SOURCE");
-#endif
+                if (m_SoftwareTrigger) {
+                    // software trigger mode
+                    stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);
+                    LogErrors(stat, "XI_PRM_TRG_SOURCE");
+                }
+
                 // flash LED during acquisition?
                 stat = xiSetParamInt(m_xiH, XI_PRM_LED_MODE, m_LEDMode);
                 LogErrors(stat, "XI_PRM_LED_MODE");
@@ -111,11 +111,11 @@ namespace openCVGraph
                 stat = xiStartAcquisition(m_xiH);
                 LogErrors(stat, "xiStartAcquisition");
 
-#if SOFTWARE_TRIGGER
-                // trigger
-                stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
-                LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
-#endif
+                if (m_SoftwareTrigger) {
+                    // trigger
+                    stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
+                    LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
+                }
 
 #if PAGE_LOCKED_MEMORY
                 // Create page locked memory to speed CUDA Xfers by 2X
@@ -194,10 +194,10 @@ namespace openCVGraph
             bool fOK = true;
             XI_RETURN stat;
 
-#if SOFTWARE_TRIGGER
-            stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
-            LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
-#endif
+            if (m_SoftwareTrigger) {
+                stat = xiSetParamInt(m_xiH, XI_PRM_TRG_SOFTWARE, 1);
+                LogErrors(stat, "XI_PRM_TRG_SOFTWARE");
+            }
 
 #if PAGE_LOCKED_MEMORY
             prepareXimeaBuffer();
@@ -223,13 +223,7 @@ namespace openCVGraph
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
-                // Convert back to 8 bits for the view
-                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
-                //}
-                //else {
-                    m_imView = graphData.m_CommonData->m_imCapture * 16;
-                //}
+                m_imView = graphData.m_CommonData->m_imCapture * 16;
                 Filter::processView(graphData);
             }
         }
@@ -248,6 +242,7 @@ namespace openCVGraph
         {
             Filter::saveConfig(fs, data);
             fs << "camera_index" << camera_index;
+            fs << "trigger_software" << m_SoftwareTrigger;
             fs << "minimum_buffers" << m_minimumBuffers;
             fs << "aperture" << m_aperture;
             fs << "minFocusMovementValue" << m_minFocusMovementValue;
@@ -265,6 +260,7 @@ namespace openCVGraph
         {
             Filter::loadConfig(fs, data);
             fs["camera_index"] >> camera_index;
+            fs["trigger_software"] >> m_SoftwareTrigger;
             fs["minimum_buffers"] >> m_minimumBuffers;
             fs["aperture"] >> m_aperture;
             fs["minFocusMovementValue"] >> m_minFocusMovementValue;
@@ -358,6 +354,7 @@ namespace openCVGraph
         XI_IMG m_image = { 0 };
         HANDLE m_xiH = NULL;
         HostMem m_PageLockedHostMem;
+        bool m_SoftwareTrigger = true;
 
         bool m_isAutoGain = false;
         bool m_minimumBuffers = true;
