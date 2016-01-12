@@ -197,9 +197,6 @@ class TemcaGraph(object):
 if __name__ == '__main__':
      
     import cv2
-    import numpy as np
-    #import matplotlib.pyplot as plt
-    have_pyplot = 'plt' in vars() or 'plt' in globals()
 
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -220,7 +217,12 @@ if __name__ == '__main__':
     pixel_depth = fi.pixel_depth
     camera_id = fi.camera_id
 
-    img = np.zeros(shape=(w,h), dtype= np.uint16)
+    showImages = False
+    
+    if showImages:
+        import numpy as np
+        import matplotlib.pyplot as plt
+        img = np.zeros(shape=(w,h), dtype= np.uint16)
 
     waitTime = 3.0
 
@@ -229,8 +231,8 @@ if __name__ == '__main__':
 
     # set ROI grid size (for stitching only)
     roiInfo = ROIInfo()
-    roiInfo.gridX = 4
-    roiInfo.gridY = 4
+    roiInfo.gridX = 10
+    roiInfo.gridY = 10
     temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
@@ -247,7 +249,7 @@ if __name__ == '__main__':
             temcaGraph.eventProcessingCompleted.wait(waitTime)
 
             # get a copy of the frame and display it?
-            if have_pyplot:
+            if showImages:
                 temcaGraph.get_last_frame(img)
                 plt.imshow(img)
                 plt.show()

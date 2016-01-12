@@ -254,16 +254,15 @@ public:
         }
         else if (sGraphType == "delay") {
             // Experiment with adding delays at various points in the graph
-            m_gmCapture = GraphCamXimea(m_graphCommonData);
-            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
+            auto g1 = GraphDelay(m_graphCommonData, "DelayCap");
             // fake out QC and Stitching
-            m_gmQC = GraphDelay(m_graphCommonData, "Delay1");
-            m_gmStitchingCheck = GraphDelay(m_graphCommonData, "Delay2");
+            auto g2 = GraphDelay(m_graphCommonData, "Delay1");
+            auto g3 = GraphDelay(m_graphCommonData, "Delay2");
 
             // Each step runs to completion.  
             // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { g1 });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { g2, g3 });
         }
 
         // Create a list of all steps
@@ -501,8 +500,6 @@ private:
                         m_Aborting = true;
                     }
                     else {
-                        fOK &= PythonCallback(CaptureFinished, 0, "");
-
                         if (!(fOK &= m_StepCapture->WaitStepCompletion())) {
                             s = m_StepCapture->GetName() + " Capture WaitStepCompletion.";
                             m_Logger->error(s);
@@ -510,6 +507,9 @@ private:
                             m_Aborting = true;
                         }
                         else {
+                            // fire finished capture event
+                            fOK &= PythonCallback(CaptureFinished, 0, "");
+
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
                                 if (!(fOK &= step->Step())) {
