@@ -39,7 +39,7 @@ bool graphCallback(GraphManager* graphManager)
 // Capture graphs
 // -----------------------------------------------------------------------------------
 
-GraphManager* GraphCamXimea(GraphCommonData * commonData)
+GraphManager* GraphCamXimea(GraphCommonData * commonData, bool withBrightDark = true)
 {
     // Create a graph
     GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, commonData);
@@ -49,8 +49,10 @@ GraphManager* GraphCamXimea(GraphCommonData * commonData)
     graph->AddFilter(camera);
 
 #ifdef WITH_CUDA
-    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", *gd, CV_16UC1));
-    graph->AddFilter(fbrightDark);
+    if (withBrightDark) {
+        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
+        graph->AddFilter(fbrightDark);
+    }
 #endif
     return graph;
 }
@@ -65,7 +67,7 @@ GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
     graph->AddFilter(camera);
 
 #ifdef WITH_CUDA
-    CvFilter fbrightDark(new BrightDarkFieldCorrection("BrightDark", *gd, CV_16UC1));
+    CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
     graph->AddFilter(fbrightDark);
 #endif
     return graph;
@@ -99,6 +101,20 @@ GraphManager* GraphImageDir(GraphCommonData * commonData)
 // -----------------------------------------------------------------------------------
 // Post capture graphs
 // -----------------------------------------------------------------------------------
+
+
+GraphManager* GraphCapturePostprocessing(GraphCommonData * commonData)
+{
+    // Create a graph
+    GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, commonData);
+    GraphData* gd = graph->getGraphData();
+
+#ifdef WITH_CUDA
+    CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
+    graph->AddFilter(fbrightDark);
+#endif
+    return graph;
+}
 
 GraphManager* GraphFileWriter(GraphCommonData * commonData)
 {
@@ -227,6 +243,14 @@ public:
             m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
             m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
             // ... could have more steps here
+        }
+        else if (sGraphType == "camera_only") {
+            m_gmCapture = GraphCamXimea(m_graphCommonData, false);  // no CapturePostProcessing
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> {});
         }
         else if (sGraphType == "delay") {
             // Experiment with adding delays at various points in the graph

@@ -58,7 +58,7 @@
 #include "Filters/FocusSobel.hpp"
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
-#include "Filters/BrightDarkField.hpp"
+#include "Filters/CapturePostProcessing.hpp"
 #endif
 
 // Camera specific includes

@@ -133,7 +133,7 @@ void GraphXimea()
     CvFilter faverage(new Average("Average", *gd));
     graph1.AddFilter(faverage);
 
-    CvFilter brightDark(new BrightDarkFieldCorrection("BrightDark", *gd));
+    CvFilter brightDark(new CapturePostProcessing("CapturePostProcessing", *gd));
     graph1.AddFilter(brightDark);
 
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
