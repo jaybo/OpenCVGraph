@@ -52,6 +52,14 @@ class FocusInfo(Structure):
         ("angle", c_float),
         ]
 
+class QCInfo(Structure):
+    _fields_ = [
+        ("min_value", c_int),
+        ("max_value", c_int),
+        ("mean_value", c_int),
+        ("histogram", c_int * 256),
+        ]
+
 class ROIInfo(Structure):
     _fields_ = [
         ("gridX", c_int),
@@ -71,8 +79,14 @@ class TemcaGraphDLL(object):
 
     fini = _TemcaGraphDLL.fini
 
-    camera_info = _TemcaGraphDLL.getCameraInfo
-    camera_info.restype = CameraInfo
+    get_camera_info = _TemcaGraphDLL.getCameraInfo
+    get_camera_info.restype = CameraInfo
+
+    get_focus_info = _TemcaGraphDLL.getFocusInfo
+    get_focus_info.restype = FocusInfo
+
+    get_qc_info = _TemcaGraphDLL.getQCInfo
+    get_qc_info.restype = QCInfo
 
     grab_frame = _TemcaGraphDLL.grabFrame
     grab_frame.argtypes = [c_char_p, c_int, c_int]
@@ -128,10 +142,16 @@ class TemcaGraph(object):
         ''' 
         Fills CameraInfo structure with details of the capture format including width, height, and bytes per pixel.
         '''
-        ci = TemcaGraphDLL.camera_info()
+        ci = TemcaGraphDLL.get_camera_info()
         #self.frame_width = ci.width
         #self.frame_height = ci.height
         return ci
+    
+    def get_focus_info(self):
+        return TemcaGraphDLL.get_focus_info()
+    
+    def get_qc_info(self):
+        return TemcaGraphDLL.get_qc_info()
 
     def get_status(self):
         return TemcaGraphDLL.get_status()
@@ -205,9 +225,9 @@ if __name__ == '__main__':
     temcaGraph = TemcaGraph()
 
     # Create all graphs ('dummy' means use fake camera)
-    #temcaGraph.open('temca')
+    temcaGraph.open('temca')
     #temcaGraph.open('dummy')
-    temcaGraph.open('delay')
+    #temcaGraph.open('delay')
     #temcaGraph.open('camera_only')
 
     # get info about frame dimensions
@@ -231,8 +251,8 @@ if __name__ == '__main__':
 
     # set ROI grid size (for stitching only)
     roiInfo = ROIInfo()
-    roiInfo.gridX = 10
-    roiInfo.gridY = 10
+    roiInfo.gridX = 4
+    roiInfo.gridY = 4
     temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
@@ -247,6 +267,9 @@ if __name__ == '__main__':
 
             # move stage here
             temcaGraph.eventProcessingCompleted.wait(waitTime)
+
+            qcInfo = temcaGraph.get_qc_info()
+            focusInfo = temcaGraph.get_focus_info()
 
             # get a copy of the frame and display it?
             if showImages:

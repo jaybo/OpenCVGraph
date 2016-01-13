@@ -8,9 +8,6 @@ typedef struct tStatusCallbackInfo {
 
 typedef int (*StatusCallbackType)(StatusCallbackInfo* callbackinfo);
 
-
-
-
 typedef struct tROIInfo {
     int gridX;
     int gridY;
@@ -20,14 +17,17 @@ extern "C" {
     __declspec(dllexport) bool init(const char* graphType, StatusCallbackType callback);
     __declspec(dllexport) bool fini();
 
-    __declspec(dllexport) void setROI(const ROIInfo * roiInfo);
+    __declspec(dllexport) tCameraInfo getCameraInfo();
+    __declspec(dllexport) tFocusInfo getFocusInfo();
+    __declspec(dllexport) tQCInfo getQCInfo();
 
     __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
     __declspec(dllexport) void getLastFrame(UINT16 * image);
 
-    __declspec(dllexport) tCameraInfo getCameraInfo();
     __declspec(dllexport) tStatusCallbackInfo getStatus();
-    __declspec(dllexport) tFocusInfo getFocus();
+
+    __declspec(dllexport) void setROI(const ROIInfo * roiInfo);
+
 
 
 }

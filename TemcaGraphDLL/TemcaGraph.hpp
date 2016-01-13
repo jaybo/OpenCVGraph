@@ -610,12 +610,27 @@ void grabFrame(const char * filename, UINT32 roiX, UINT32 roiY)
     }
 }
 
-
 CameraInfo getCameraInfo() {
     if (pTemca) {
         return pTemca->getCameraInfo();
     }
     return CameraInfo();
+}
+
+FocusInfo getFocusInfo() {
+    if (pTemca) {
+        return pTemca->getFocusInfo();
+    }
+    FocusInfo info = { 0 };
+    return info;
+}
+
+QCInfo getQCInfo() {
+    if (pTemca) {
+        return pTemca->getQCInfo();
+    }
+    QCInfo info = { 0 };
+    return info;
 }
 
 StatusCallbackInfo getStatus() {
@@ -625,13 +640,6 @@ StatusCallbackInfo getStatus() {
     return ci;
 }
 
-FocusInfo getFocus() {
-    if (pTemca) {
-        return pTemca->getFocusInfo();
-    }
-    FocusInfo fi = { 0 };
-    return fi;
-}
 
 void setROI(const ROIInfo *  roiInfo) {
     if (pTemca) {

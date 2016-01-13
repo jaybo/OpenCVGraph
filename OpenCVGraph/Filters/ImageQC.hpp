@@ -73,13 +73,19 @@ namespace openCVGraph
         // ITemcaQC
         QCInfo ImageQC::getQCInfo() {
             QCInfo info;
+            if (!m_histogram.empty()) {
+                Mat hist(m_histogram); // copies from gpu
 
-            Mat hist(m_histogram); // copies from gpu
+                const int32_t * p = hist.ptr<int32_t>(0);
 
-            const int32_t * p = hist.ptr<int32_t>(0);
-
-            for (int i = 0; i < hist.cols; i++) {
-                info.histogram[i] = p[i];
+                for (int i = 0; i < hist.cols; i++) {
+                    info.histogram[i] = p[i];
+                }
+            }
+            else {
+                for (int i = 0; i < 256; i++) {
+                    info.histogram[i] = 0;
+                }
             }
             info.max_value = (int) m_dCapMax;
             info.min_value = (int) m_dCapMin;
