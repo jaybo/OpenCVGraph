@@ -13,28 +13,33 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
-        // Filters the capture drivers what format they need
+        // Downstream filters indicate to the capture filter which formats they need
+        // so the conversion only happens once.
+
         bool m_NeedCV_8UC1 = false;
         bool m_NeedCV_8UC3 = false;
         bool m_NeedCV_16UC1 = false;
         bool m_NeedCV_32FC1 = false;
 
         cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
+        cv::Mat m_imCaptureCorrected;       // Capture after Bright/Dark, Spatial, upshift
 
         cv::Mat m_imCap8UC3;                // 
         cv::Mat m_imCap8UC1;
         cv::Mat m_imCap16UC1;
         cv::Mat m_imCap32FC1;
 
-#ifdef WITH_CUDA
-        cv::cuda::GpuMat m_imCaptureGpu;    // Raw Capture image.  Always keep this unmodified
+        cv::Mat m_imPreview;                // downsampled and 8bpp
+        int m_PreviewDownsampleFactor = 0;  // 0 disables filling m_imPreview;
 
-        // Cuda input Mats
+#ifdef WITH_CUDA
+        cv::cuda::GpuMat m_imCaptureGpu;            // Raw Capture image.  Always keep this unmodified
+        cv::cuda::GpuMat m_imCaptureCorrectedGpu;   // Capture after Bright/Dark, Spatial, upshift
+
         cv::cuda::GpuMat m_imCapGpu8UC3;
         cv::cuda::GpuMat m_imCapGpu8UC1;
         cv::cuda::GpuMat m_imCapGpu16UC1;
         cv::cuda::GpuMat m_imCapGpu32FC1;
-
 #endif
 
         int m_ROISizeX = 0;                     // Overall dimensions of ROI grid
@@ -99,7 +104,7 @@ namespace openCVGraph
                 switch (nType) {
                 case CV_8UC1:
                     if (m_CommonData->m_NeedCV_8UC1) {
-                        m_CommonData->m_imCapGpu8UC1 = m_CommonData->m_imCaptureGpu;
+                        m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu8UC1);
                     }
                     if (m_CommonData->m_NeedCV_16UC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
@@ -116,7 +121,7 @@ namespace openCVGraph
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
                     }
                     if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCapGpu16UC1 = m_CommonData->m_imCaptureGpu;
+                         m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu16UC1);
                     }
                     if (m_CommonData->m_NeedCV_32FC1) {
                         m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1);
@@ -139,7 +144,7 @@ namespace openCVGraph
                         m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1); // Hmm scale up here?
                     }
                     if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCapGpu8UC3 = m_CommonData->m_imCaptureGpu;
+                        m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu8UC3);
                     }
                     break;
                 default:

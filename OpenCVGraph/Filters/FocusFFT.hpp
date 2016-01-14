@@ -3,6 +3,7 @@
 #include "..\stdafx.h"
 
 using namespace cv;
+using namespace cuda;
 using namespace std;
 
 namespace openCVGraph
@@ -43,25 +44,72 @@ namespace openCVGraph
 
         ProcessResult FocusFFT::process(GraphData& graphData) override
         {
-            //if (graphData.m_UseCuda) {
+            int w = graphData.m_CommonData->m_imCapture.size().width;
+            int h = graphData.m_CommonData->m_imCapture.size().height;
+            Rect rCropped = Rect(Point(w/2 - m_DFTSize/2, h/2 - m_DFTSize/2), Size(m_DFTSize, m_DFTSize));
+
+            // if (graphData.m_UseCuda) {
             if (false) {
-                //Scalar s;
-                //graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;
-                //auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
+                cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCapGpu16UC1, rCropped);
 
-                //// X
-                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 1, 0, m_kSize);
-                //m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
-                //s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
-                //meanX = s[0] / nPoints;
+                /*Mat I = Mat_<float>(IC);*/
+                cuda::GpuMat I;
+                IC.convertTo(I, CV_32FC1, 1 / 65536.f);
+                GpuMat C = GpuMat(I.size(), CV_32F);
+                C.setTo(0);
+                GpuMat planes[] = { I, C };
+                GpuMat complexI;
+                cuda::merge(planes, 2, complexI);                               // Add to the expanded another plane with zeros
+                cuda::dft(complexI, complexI, Size(m_DFTSize, m_DFTSize));      // this way the result may fit in the source matrix
 
-                //// Y
-                //m_cudaFilter = cv::cuda::createSobelFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 0, 1, m_kSize);
-                //m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, graphData.m_imOutGpu16UC1);
-                //s = cv::cuda::sum(graphData.m_imOutGpu16UC1);
-                //meanY = s[0] / nPoints;
 
-                //meanXY = (meanX + meanY) / 2;
+
+                                                                                // compute the magnitude and switch to logarithmic scale
+                                                                                // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+                cuda::split(complexI, planes);
+                // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+                cuda::magnitude(planes[0], planes[1], planes[0]);
+                // planes[0] = magnitude
+                GpuMat magI = planes[0];
+                cuda::add (magI, Scalar(1), magI);
+                // switch to logarithmic scale
+                cuda::log(magI, magI);
+
+                // crop the spectrum, if it has an odd number of rows or columns
+                magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+
+                // rearrange the quadrants of Fourier image  so that the origin is at the image center
+                int cx = magI.cols / 2;
+                int cy = magI.rows / 2;
+                GpuMat q0(magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+                GpuMat q1(magI, Rect(cx, 0, cx, cy));  // Top-Right
+                GpuMat q2(magI, Rect(0, cy, cx, cy));  // Bottom-Left
+                GpuMat q3(magI, Rect(cx, cy, cx, cy)); // Bottom-Right
+                GpuMat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
+                q0.copyTo(tmp);
+                q3.copyTo(q0);
+                tmp.copyTo(q3);
+                q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
+                q2.copyTo(q1);
+                tmp.copyTo(q2);
+
+                cuda::normalize(magI, magI, 0, 1, NORM_MINMAX, -1); // Transform the matrix with float values into a
+                m_PowerSpectrumGpu = magI;
+
+                // adaptive_filter in python
+                cuda::bilateralFilter(magI, tmp, 5, 50, 50);
+#if 0
+                // polar transform
+                GpuMat polar;
+                cuda::cartToPolar(tmp, polar)
+                cuda::linearPolar(tmp, polar, Point(rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
+
+                m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
+                auto s = cv::mean(m_RoiPowerSpectrum);
+                m_FocusScore = s[0];
+
+#endif
+
             }
             else {
                 
@@ -71,9 +119,7 @@ namespace openCVGraph
                 {
                     graphData.m_CommonData->m_imCap16UC1 = graphData.m_CommonData->m_imCapture;
                 }
-                int w = graphData.m_CommonData->m_imCap16UC1.size().width;
-                int h = graphData.m_CommonData->m_imCap16UC1.size().height;
-                Rect rCropped = Rect(Point(w - m_DFTSize, h - m_DFTSize), Size(m_DFTSize, m_DFTSize));
+
                 Mat IC = Mat(graphData.m_CommonData->m_imCap16UC1, rCropped);
                 
                 /*Mat I = Mat_<float>(IC);*/
@@ -98,6 +144,7 @@ namespace openCVGraph
                 
                 // crop the spectrum, if it has an odd number of rows or columns
                 magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+
                 // rearrange the quadrants of Fourier image  so that the origin is at the image center
                 int cx = magI.cols/2;
                 int cy = magI.rows/2;
@@ -112,25 +159,20 @@ namespace openCVGraph
                 q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
                 q2.copyTo(q1);
                 tmp.copyTo(q2);
-                normalize(magI, magI, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
-                // viewable image form (float between values 0 and 1).
-                // imshow("Input Image"       , I   );
-                // Show the result
-                //imshow("spectrum magnitude", magI);
 
+                normalize(magI, magI, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
                 m_PowerSpectrum = magI;
 
                 // adaptive_filter in python
                 cv::bilateralFilter(magI, tmp, 5, 50, 50);
 
-                Mat polar;
                 // polar transform
+                Mat polar;
                 cv::linearPolar(tmp, polar, Point (rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
-                m_roiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
-                auto s = cv::mean(m_roiPowerSpectrum);
+                m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
+                auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
-                 
 
             }
 
@@ -146,7 +188,7 @@ namespace openCVGraph
                 m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             case ImageToView::PowerSpectrumROI:
-                m_roiPowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
+                m_RoiPowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             }
 
@@ -213,6 +255,7 @@ namespace openCVGraph
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
 
         Mat m_PowerSpectrum;
-        Mat m_roiPowerSpectrum;
-    };
+        Mat m_RoiPowerSpectrum;
+        cuda::GpuMat m_PowerSpectrumGpu;
+        cuda::GpuMat m_RoiPowerSpectrumGpu;    };
 }

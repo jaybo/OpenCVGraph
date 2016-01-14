@@ -20,7 +20,6 @@ namespace openCVGraph
     class CapturePostProcessing : public Filter
     {
     public:
-
         CapturePostProcessing::CapturePostProcessing(std::string name, GraphData& graphData,
             int sourceFormat = CV_16UC1,
             int width = 512, int height = 512)
@@ -33,29 +32,34 @@ namespace openCVGraph
             Filter::init(graphData);
 
             if (m_Enabled) {
-                // get the Bright Dark images from file
+                // Init both CUDA and non-CUDA paths
 
-                Mat img = imread(m_BrightFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
-                if (!img.empty()) {
-                    m_imBrightFieldGpu16U.upload(img);
-                }
-                else {
+                // get the Bright Dark images from file
+                m_imBrightField16U = imread(m_BrightFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
+                if (m_imBrightField16U.empty()) {
                     graphData.m_Logger->error("Unable to load BrightField: " + m_BrightFieldPath);
                     return false;
                 }
 
-                img = imread(m_DarkFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
-                if (!img.empty()) {
-                    m_imDarkFieldGpu16U.upload(img);
-                }
-                else {
+                m_imDarkField16U = imread(m_DarkFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);
+                if (m_imDarkField16U.empty()) {
                     graphData.m_Logger->error("Unable to load DarkField: " + m_DarkFieldPath);
                     return false;
                 }
+                if (graphData.m_UseCuda) {
+#ifdef WITH_CUDA
+                    m_imBrightFieldGpu16U.upload(m_imBrightField16U);
+                    m_imDarkFieldGpu16U.upload(m_imDarkField16U);
 
-                // Bright - Dark as 32F
-                cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imTemp16UGpu);
-                m_imTemp16UGpu.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
+                    cuda::subtract(m_imBrightFieldGpu16U, m_imDarkFieldGpu16U, m_imTempGpu);
+                    m_imTempGpu.convertTo(m_imBrightMinusDarkFieldGpu32F, CV_32F);
+#endif
+                }
+                else {
+                    // Bright - Dark as 32F
+                    m_imTemp = m_imBrightField16U - m_imDarkField16U;
+                    m_imTemp.convertTo(m_imBrightMinusDarkField32F, CV_32F);
+                }
 
                 if (m_showView) {
                     // To write on the overlay, you must allocate it.
@@ -73,7 +77,7 @@ namespace openCVGraph
         ProcessResult CapturePostProcessing::process(GraphData& graphData) override
         {
             if (graphData.m_UseCuda) {
-                
+#ifdef WITH_CUDA
                 // upshift
                 if (m_CorrectionUpshift4Bits) {
                     cv::cuda::lshift(graphData.m_CommonData->m_imCapGpu16UC1, Scalar(4), graphData.m_CommonData->m_imCapGpu16UC1);
@@ -81,22 +85,60 @@ namespace openCVGraph
 
                 if (m_CorrectionBrightDark) {
                     // sub darkfield
-                    cuda::subtract(graphData.m_CommonData->m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTemp16UGpu);
+                    cuda::subtract(graphData.m_CommonData->m_imCapGpu16UC1, m_imDarkFieldGpu16U, m_imTempGpu);
                     // make 32F
-                    m_imTemp16UGpu.convertTo(m_imTemp32FGpu, CV_32F);
+                    m_imTempGpu.convertTo(m_imTemp32FGpu, CV_32F);
                     // image - dark / bright - dark
-                    cuda::divide(m_imTemp32FGpu, m_imBrightMinusDarkFieldGpu32F, m_imTemp16UGpu);
+                    cuda::divide(m_imTemp32FGpu, m_imBrightMinusDarkFieldGpu32F, m_imTempGpu);
+                    // Create the corrected image
+                    m_imTempGpu.convertTo(graphData.m_CommonData->m_imCaptureCorrectedGpu, CV_16U, UINT16_MAX);
                 }
 
-                if (m_OverwriteCapture) {
-                    m_imTemp16UGpu.convertTo(graphData.m_imOutGpu16UC1, CV_16U, 65536.0);
-                    graphData.m_imOutGpu16UC1.download(graphData.m_CommonData->m_imCapture);
+                graphData.m_imOutGpu16UC1.download(graphData.m_CommonData->m_imCaptureCorrected);
+
+                // Create Preview Image
+                if (m_DownsampleForJpgFactor != 0) {
+                    if (m_DownsampleForJpgFactor == 1) {
+                        graphData.m_CommonData->m_imCapGpu8UC1.download(graphData.m_CommonData->m_imPreview);
+                    }
+                    else {
+                        cv::cuda::resize(graphData.m_CommonData->m_imCaptureCorrectedGpu, m_imTempGpu,
+                            graphData.m_CommonData->m_imCaptureCorrected.size() / m_DownsampleForJpgFactor, 0, 0, CV_INTER_NN);
+                        m_imTempGpu.download(graphData.m_CommonData->m_imPreview);
+                    }
                 }
+
+#endif
             }
             else {
-                //todo
-                assert(false);
+                // upshift
+                if (m_CorrectionUpshift4Bits) {
+                    graphData.m_CommonData->m_imCap16UC1 *= 16;
+                }
 
+                if (m_CorrectionBrightDark) {
+                    // sub darkfield
+                    m_imTemp =  graphData.m_CommonData->m_imCap16UC1 - m_imDarkField16U;
+                    // make 32F
+                    m_imTemp.convertTo(m_imTemp32F, CV_32F);
+                    // image - dark / bright - dark
+                    m_imTemp = m_imTemp32F / m_imBrightMinusDarkField32F;
+
+                    m_imTemp.convertTo(graphData.m_CommonData->m_imCaptureCorrected, CV_16U, UINT16_MAX);
+                }
+
+                // Create Preview Image
+                if (m_DownsampleForJpgFactor != 0) {
+                    if (m_DownsampleForJpgFactor == 1) {
+                        graphData.m_CommonData->m_imPreview = graphData.m_CommonData->m_imCap8UC1;
+                    }
+                    else {
+                        cv::resize(graphData.m_CommonData->m_imCaptureCorrected, graphData.m_CommonData->m_imPreview,
+                            graphData.m_CommonData->m_imCaptureCorrected.size() / m_DownsampleForJpgFactor, 0, 0, CV_INTER_NN);
+                    }
+                }
+
+                graphData.m_imOut16UC1.copyTo(graphData.m_CommonData->m_imCaptureCorrected);
             }
 
             return ProcessResult::OK;  // if you return false, the graph stops
@@ -111,19 +153,39 @@ namespace openCVGraph
 
                 switch (m_FieldToView) {
                 case 0:
-                    graphData.m_CommonData->m_imCapGpu16UC1.download(m_imView);
+                    if (graphData.m_UseCuda) {
+                        graphData.m_CommonData->m_imCapGpu16UC1.download(m_imView);
+                    }
+                    else {
+                        m_imView = graphData.m_CommonData->m_imCap16UC1;
+                    }
                     str << "capture";
                     break;
                 case 1:
-                    graphData.m_imOutGpu16UC1.download(m_imView);
+                    if (graphData.m_UseCuda) {
+                        graphData.m_CommonData->m_imCaptureCorrectedGpu.download(m_imView);
+                    }
+                    else {
+                        m_imView = graphData.m_CommonData->m_imCaptureCorrected;
+                    }
                     str << "corrected";
                     break;
                 case 2:
-                    m_imBrightFieldGpu16U.download(m_imView);
+                    if (graphData.m_UseCuda) {
+                        m_imBrightFieldGpu16U.download(m_imView);
+                    }
+                    else {
+                        m_imView = m_imBrightField16U;
+                    }
                     str << "bright";
                     break;
                 case 3:
-                    m_imDarkFieldGpu16U.download(m_imView);
+                    if (graphData.m_UseCuda) {
+                        m_imDarkFieldGpu16U.download(m_imView);
+                    }
+                    else {
+                        m_imView = m_imDarkField16U;
+                    }
                     str << "dark";
                     break;
 
@@ -144,7 +206,7 @@ namespace openCVGraph
             fs << "correction_upshift4bits" << m_CorrectionUpshift4Bits;
             fs << "bright_field_path" << m_BrightFieldPath.c_str();
             fs << "dark_field_path" << m_DarkFieldPath.c_str();
-            fs << "overwrite_capture" << m_OverwriteCapture;
+            fs << "downsample_preview_factor" << m_DownsampleForJpgFactor;
         }
 
         void  CapturePostProcessing::loadConfig(FileNode& fs, GraphData& data)
@@ -154,15 +216,24 @@ namespace openCVGraph
             fs["correction_upshift4bits"] >> m_CorrectionUpshift4Bits;
             fs["bright_field_path"] >> m_BrightFieldPath;
             fs["dark_field_path"] >> m_DarkFieldPath;
-            fs["overwrite_capture"] >> m_OverwriteCapture;
+            fs["downsample_preview_factor"] >> m_DownsampleForJpgFactor;
         }
 
     private:
-        cv::cuda::GpuMat m_imTemp16UGpu;                     // 32F
-        cv::cuda::GpuMat m_imTemp32FGpu;                     // 32F
+#ifdef WITH_CUDA
+        cv::cuda::GpuMat m_imTempGpu;                     // 32F
+        cv::cuda::GpuMat m_imTemp32FGpu;                  // 32F
         cv::cuda::GpuMat m_imBrightFieldGpu16U;           // 16U
         cv::cuda::GpuMat m_imDarkFieldGpu16U;             // 16U
         cv::cuda::GpuMat m_imBrightMinusDarkFieldGpu32F;  // 32F
+        cv::cuda::GpuMat m_DownsampleForJpgGpu8U;         // 8U
+#endif
+        Mat m_imTemp;                           // 32F
+        Mat m_imTemp32F;                        // 32F
+        Mat m_imBrightField16U;                 // 16U
+        Mat m_imDarkField16U;                   // 16U
+        Mat m_imBrightMinusDarkField32F;        // 32F
+        Mat m_DownsampleForJpg8U;               // 8U
 
         std::string m_BrightFieldPath = "config/BrightField.tif";
         std::string m_DarkFieldPath = "config/DarkField.tif";
@@ -170,6 +241,6 @@ namespace openCVGraph
         int m_FieldToView = 0;                      // 0 is processed, 1 is unprocessed, 2 is darkfield, 3 is brightfield
         bool m_CorrectionBrightDark = true;         // perform bright dark field correction
         bool m_CorrectionUpshift4Bits = true;       // multiply incoming 12 bit data by 16 to convert to full range 16bpp
-        bool m_OverwriteCapture = true;                // update original capture image
+        int m_DownsampleForJpgFactor = 4;
     };
 }

@@ -137,8 +137,8 @@ void GraphXimea()
     CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 512, 512));
     graph1.AddFilter(cam2);
 
-    CvFilter faverage(new Average("Average", *gd));
-    graph1.AddFilter(faverage);
+    //CvFilter faverage(new Average("Average", *gd));
+    //graph1.AddFilter(faverage);
 
     CvFilter brightDark(new CapturePostProcessing("CapturePostProcessing", *gd));
     graph1.AddFilter(brightDark);
@@ -149,14 +149,14 @@ void GraphXimea()
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
-    graph1.AddFilter(fFocusSobel);
-
     CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
-    CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, CV_16UC1, 512, 512));
-    graph1.AddFilter(fFocusLaplace);
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
+    //graph1.AddFilter(fFocusSobel);
+
+    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, CV_16UC1, 512, 512));
+    //graph1.AddFilter(fFocusLaplace);
 
     CvFilter canny(new openCVGraph::Canny("Canny", *gd));
     graph1.AddFilter(canny);

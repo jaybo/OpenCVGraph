@@ -25,6 +25,7 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             Filter::init(graphData);
+            m_UseCuda = graphData.m_UseCuda;            // Need this for a function which doesn't pass graphData!
             if (m_Enabled) {
                 // Advertise the format(s) we need
                 graphData.m_CommonData->m_NeedCV_8UC1 = true;
@@ -40,18 +41,29 @@ namespace openCVGraph
 
         ProcessResult ImageQC::process(GraphData& graphData) override
         {
-            if (m_UseCuda) {
+            if (graphData.m_UseCuda) {
+#ifdef WITH_CUDA
                 cv::cuda::minMax(graphData.m_CommonData->m_imCapGpu16UC1, &m_dCapMin, &m_dCapMax);
-                cv::cuda::calcHist(graphData.m_CommonData->m_imCapGpu8UC1, m_histogram);
+                cv::cuda::calcHist(graphData.m_CommonData->m_imCapGpu8UC1, m_histogramGpu);
                 
                 // This version fails!!!
-                // cv::cuda::histEven(graphData.m_CommonData->m_imCapGpu16UC1, m_histogram, 256, 0, UINT16_MAX);
+                // cv::cuda::histEven(graphData.m_CommonData->m_imCapGpu16UC1, m_histogramGpu, 256, 0, UINT16_MAX);
 
                 auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
                 m_Mean = (int) (cv::cuda::sum(graphData.m_CommonData->m_imCapGpu16UC1)[0] / nPoints);
+#endif
             }
             else {
-                abort();
+                cv::minMaxLoc(graphData.m_CommonData->m_imCap16UC1, &m_dCapMin, &m_dCapMax);
+                int channels[] = { 0 };
+                int histSize[] = { 256 };
+                float range[] = { 0, 256 };
+                const float* ranges[] = { range };
+
+                cv::calcHist(&graphData.m_CommonData->m_imCap8UC1, 1, channels, Mat(), m_histogram, 1, histSize, ranges, true, false);
+
+                auto nPoints = graphData.m_CommonData->m_imCap16UC1.size().area();
+                m_Mean = (int)(cv::sum(graphData.m_CommonData->m_imCap16UC1)[0] / nPoints);
             }
             return ProcessResult::OK;
         }
@@ -61,24 +73,27 @@ namespace openCVGraph
         void  ImageQC::saveConfig(FileStorage& fs, GraphData& data)
         {
             Filter::saveConfig(fs, data);
-            fs << "use_Cuda" << m_UseCuda;
         }
 
         void  ImageQC::loadConfig(FileNode& fs, GraphData& data)
         {
             Filter::loadConfig(fs, data);
-            fs["use_Cuda"] >> m_UseCuda;
         }
 
         // ITemcaQC
         QCInfo ImageQC::getQCInfo() {
             QCInfo info;
+            if (m_UseCuda) {
+#ifdef WITH_CUDA
+                if (!m_histogramGpu.empty()) {
+                    m_histogramGpu.download(m_histogram); 
+                }
+#endif
+            }
             if (!m_histogram.empty()) {
-                Mat hist(m_histogram); // copies from gpu
+                const int32_t * p = m_histogram.ptr<int32_t>(0);
 
-                const int32_t * p = hist.ptr<int32_t>(0);
-
-                for (int i = 0; i < hist.cols; i++) {
+                for (int i = 0; i < m_histogram.cols; i++) {
                     info.histogram[i] = p[i];
                 }
             }
@@ -95,10 +110,10 @@ namespace openCVGraph
 
     private:
         int m_Mean;
-        cv::cuda::GpuMat m_histogram;
+        cv::cuda::GpuMat m_histogramGpu;
+        Mat m_histogram;
         double m_dCapMax, m_dCapMin;
-        bool m_UseCuda = true;
-
+        bool m_UseCuda;
 
         void ImageQC::processView(GraphData& graphData)
         {
