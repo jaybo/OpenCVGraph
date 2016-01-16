@@ -16,7 +16,7 @@ using namespace openCVGraph;
 bool graphCallback(GraphManager* graphManager)
 {
     // waitKey is required in OpenCV to make graphs display, 
-    // so this funtion call is required.
+    // so this funtion call is required only when "ShowView" is true for at least one graph.
 
     int key = cv::waitKey(1);
     if (graphManager->AbortOnEscape())
@@ -35,145 +35,10 @@ bool graphCallback(GraphManager* graphManager)
 // The graphs.  Graphs are run in parallel, each with own thread.
 // -----------------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------------
-// Capture graphs
-// -----------------------------------------------------------------------------------
-
-GraphManager* GraphCamXimea(GraphCommonData * commonData, bool withBrightDark = true)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
-    graph->AddFilter(camera);
-
-#ifdef WITH_CUDA
-    if (withBrightDark) {
-        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
-        graph->AddFilter(fbrightDark);
-    }
-#endif
-    return graph;
-}
-
-GraphManager* GraphCamXimeaDummy(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter camera(new CamDefault("CamXimeaDummy", *gd, CV_16UC1, 512, 512));
-    graph->AddFilter(camera);
-
-#ifdef WITH_CUDA
-    CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
-    graph->AddFilter(fbrightDark);
-#endif
-    return graph;
-}
-
-GraphManager* GraphWebCam(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter camera(new CamDefault("WebCam", *gd, CV_16UC1));
-    graph->AddFilter(camera);
-
-    return graph;
-}
-
-GraphManager* GraphImageDir(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager* graph = new GraphManager("GraphImageDir", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap(new CamDefault("CamDefault", *gd));
-    graph->AddFilter(cap);
-
-    return graph;
-}
-
-// -----------------------------------------------------------------------------------
-// Post capture graphs
-// -----------------------------------------------------------------------------------
 
 
-GraphManager* GraphCapturePostprocessing(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-#ifdef WITH_CUDA
-    CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *gd, CV_16UC1));
-    graph->AddFilter(fbrightDark);
-#endif
-    return graph;
-}
-
-GraphManager* GraphFileWriter(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, commonData, false);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
-    graph->AddFilter(fileWriter);
-
-    return graph;
-}
-
-GraphManager* GraphQC(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, commonData, true);
-    GraphData* gd = graph->getGraphData();
-
-#ifdef WITH_CUDA
-    CvFilter filter(new openCVGraph::ImageQC("ImageQC", *gd, CV_16UC1));
-    graph->AddFilter(filter);
-
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
-    graph->AddFilter(fFocusSobel);
-
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
-    graph->AddFilter(fFocusFFT);
-
-#endif
-
-    return graph;
-}
-
-GraphManager* GraphStitchingCheck(GraphCommonData * commonData)
-{
-    // Create a graph
-    GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, commonData, true);
-    GraphData* gd = graph->getGraphData();
-
-    // todo, bugbug fix
-    CvFilter filter(new Delay("Delay", *gd));
-    graph->AddFilter(filter);
-
-    return graph;
-}
 
 
-GraphManager* GraphDelay(GraphCommonData * commonData, string graphName)
-{
-    // Create a graph
-    GraphManager* graph = new GraphManager(graphName, true, graphCallback, commonData);
-    GraphData* gd = graph->getGraphData();
-
-    CvFilter filter(new Delay("Delay", *gd));
-    graph->AddFilter(filter);
-
-    return graph;
-}
 
 // -----------------------------------------------------------------------------------
 // The Temca Class used by Python
@@ -181,11 +46,114 @@ GraphManager* GraphDelay(GraphCommonData * commonData, string graphName)
 
 class Temca
 {
+private:
+
+    // -----------------------------------------------------------------------------------
+    // Capture graphs
+    // -----------------------------------------------------------------------------------
+
+    GraphManager* CreateGraphCamXimea()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, m_graphCommonData);
+
+        CvFilter camera(new CamXimea("CamXimea", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(camera);
+
+#ifdef WITH_CUDA
+        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(fbrightDark);
+#endif
+        return graph;
+    }
+
+    GraphManager* CreateGraphCamXimeaDummy()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, m_graphCommonData);
+
+        CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), CV_16UC1, 512, 512));
+        graph->AddFilter(camera);
+
+#ifdef WITH_CUDA
+        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(fbrightDark);
+#endif
+        return graph;
+    }
+
+    // -----------------------------------------------------------------------------------
+    // Post capture graphs
+    // -----------------------------------------------------------------------------------
+
+
+    GraphManager* CreateGraphCapturePostprocessing()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, m_graphCommonData);
+
+#ifdef WITH_CUDA
+        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(fCapPost);
+#endif
+        return graph;
+    }
+
+    GraphManager* CreateGraphFileWriter()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, m_graphCommonData, false);
+
+        CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(fileWriter);
+
+        return graph;
+    }
+
+    GraphManager* CreateGraphQC()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, m_graphCommonData, true);
+
+#ifdef WITH_CUDA
+        CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), CV_16UC1));
+        graph->AddFilter(filter);
+
+        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), CV_16UC1, 512, 512));
+        graph->AddFilter(fFocusFFT);
+
+#endif
+        return graph;
+    }
+
+
+    GraphManager* CreateGraphStitchingCheck()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, m_graphCommonData, true);
+
+        // todo, bugbug fix
+        CvFilter filter(new Delay("Delay", *graph->getGraphData()));
+        graph->AddFilter(filter);
+
+        return graph;
+    }
+
+    GraphManager* CreateGraphDelay (string graphName, int delay=10)
+    {
+        GraphManager* graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData);
+
+        CvFilter filter(new Delay("Delay", *graph->getGraphData(), -1, 0, 0, delay));
+        graph->AddFilter(filter);
+
+        return graph;
+    }
+
 public:
     Temca() {
-        // Set up logging
         try
         {
+            // Set up logging
             const char * loggerName = "TemcaLog";
             // Use existing logger if already created
             if (auto logger = spd::get(loggerName)) {
@@ -205,66 +173,24 @@ public:
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            std::cout << "Log failed: " << ex.what() << std::endl;
+            std::cout << "Log creation failed: " << ex.what() << std::endl;
         }
     }
 
-    // Create all graphs 
-    // allowed graphTypes:
-    //  "temca" - standard TEMCA graph
-    //  "dummy" - fake camera
-    //  "delay" - test with delay filters
-
-    bool init(const char * graphType, StatusCallbackType callback)
+    bool init(bool fDummyCamera, StatusCallbackType callback)
     {
+        m_fDummyCamera = fDummyCamera;
+
         bool fOK = true;
-        string sGraphType(graphType);
         m_PythonCallback = callback;
 
-        // Create the graphs
-        if (sGraphType == "temca") {
-            m_gmCapture = GraphCamXimea(m_graphCommonData);
-            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
-            m_gmQC = GraphQC(m_graphCommonData);
-            m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
+        m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
+        m_gmFileWriter = CreateGraphFileWriter();
+        m_gmQC = CreateGraphQC();
+        m_gmStitchingCheck = CreateGraphStitchingCheck();
 
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
-        }
-        else if (sGraphType == "dummy") {
-            m_gmCapture = GraphCamXimeaDummy(m_graphCommonData);
-            m_gmFileWriter = GraphFileWriter(m_graphCommonData);
-            m_gmQC = GraphQC(m_graphCommonData);
-            m_gmStitchingCheck = GraphStitchingCheck(m_graphCommonData);
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
-            // ... could have more steps here
-        }
-        else if (sGraphType == "camera_only") {
-            m_gmCapture = GraphCamXimea(m_graphCommonData, false);  // no CapturePostProcessing
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> {});
-        }
-        else if (sGraphType == "delay") {
-            // Experiment with adding delays at various points in the graph
-            auto g1 = GraphDelay(m_graphCommonData, "DelayCap");
-            // fake out QC and Stitching
-            auto g2 = GraphDelay(m_graphCommonData, "Delay1");
-            auto g3 = GraphDelay(m_graphCommonData, "Delay2");
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { g1 });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { g2, g3 });
-        }
+        m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
 
         // Create a list of all steps
         m_Steps.push_back(m_StepCapture);
@@ -284,6 +210,70 @@ public:
 
         // ITemcaCamera, ITemcaFocus, etc..
         FindTemcaInterfaces();
+
+        return fOK;
+    }
+
+    // Sets the overall mode of operation for the Temca graph.
+    //    Each mode reconfigures or deactivates parts of the overall temca graph.
+
+    //    temca :         ximea, lshift4, postCap, QC
+    //                                             Focus
+    //                                             FW
+    //                                             Stitch
+    //    
+    //    capture_raw :   ximea, lshift4,          FW
+    //    preview :       ximea, lshift4,
+    //    auto_exposure : ximea, lshift4,          QC
+
+    bool setMode(const char * graphType)
+    {
+        bool fOK = true;
+        string sGraphType(graphType);
+
+        // Create the graphs
+        if (sGraphType == "temca") {
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+        }
+        else if (sGraphType == "dummy") {
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+            // ... could have more steps here
+        }
+        else if (sGraphType == "camera_only") {
+            //m_gmCapture = GraphCamXimea(m_graphCommonData, false);  // no CapturePostProcessing
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> {});
+        }
+        else if (sGraphType == "delay") {
+            // Experiment with adding delays at various points in the graph
+            auto g1 = CreateGraphDelay("DelayCap", 2000);
+            // fake out QC and Stitching
+            auto g2 = CreateGraphDelay("Delay1", 2000);
+            auto g3 = CreateGraphDelay("Delay2", 2000);
+
+            // Each step runs to completion.  
+            // Each graph in a step runs in parallel with other graphs in the step.
+            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { g1 });
+            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { g2, g3 });
+        }
+
+        // Create a list of all steps
+        m_Steps.push_back(m_StepCapture);
+        m_Steps.push_back(m_StepPostCapture);
+
+        // and just those steps following capture
+        m_StepsPostCapture.push_back(m_StepPostCapture);
 
         return fOK;
     }
@@ -401,6 +391,8 @@ public:
     }
 
 private:
+    bool m_fDummyCamera;
+
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
     GraphManager* m_gmCapture = NULL;
@@ -423,7 +415,7 @@ private:
     std::thread m_thread;
     std::atomic_bool m_Stepping = false;
 
-    std::mutex m_mtx;
+    std::mutex m_mtx;                                   
     std::condition_variable m_cv;                       // 
     std::atomic_bool m_CompletedStep = false;           // Has the step finished?
     //std::atomic_bool m_CompletedRun = false;            // Has the run finished?
@@ -574,20 +566,18 @@ private:
 
 Temca * pTemca = NULL;
 
-bool init(const char* graphType, StatusCallbackType callback)
+bool open(bool fDummyCamera, StatusCallbackType callback)
 {
-    string s = string(graphType);
-
     pTemca = new Temca();
 
-    bool fOK = pTemca->init(graphType, callback);
+    bool fOK = pTemca->init(fDummyCamera, callback);
     if (fOK) {
         pTemca->StartThread();
     }
     return fOK;
 }
 
-bool fini()
+bool close()
 {
     if (pTemca) {
         pTemca->JoinThread();
@@ -595,6 +585,15 @@ bool fini()
     delete pTemca;
     pTemca = NULL;
     return true;
+}
+
+
+bool setMode(const char* graphType)
+{
+    if (pTemca) {
+        return pTemca->setMode(graphType);
+    }
+    return false;
 }
 
 // ------------------------------------------------------

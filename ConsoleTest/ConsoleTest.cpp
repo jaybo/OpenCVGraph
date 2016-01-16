@@ -176,6 +176,7 @@ void GraphXimea()
 
 #endif
 
+int xiSample();
 
 int main()
 {
@@ -185,8 +186,9 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
+    xiSample();
     // GraphWebCam();
-    GraphXimea();
+    //GraphXimea();
 #else
     GraphWebCam();
 #endif

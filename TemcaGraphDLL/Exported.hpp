@@ -14,8 +14,10 @@ typedef struct tROIInfo {
 } ROIInfo;
 
 extern "C" {
-    __declspec(dllexport) bool init(const char* graphType, StatusCallbackType callback);
-    __declspec(dllexport) bool fini();
+    __declspec(dllexport) bool open(bool fDummyCamera, StatusCallbackType callback);
+    __declspec(dllexport) bool close();
+
+    __declspec(dllexport) bool setMode(const char* graphType);
 
     __declspec(dllexport) tCameraInfo getCameraInfo();
     __declspec(dllexport) tFocusInfo getFocusInfo();

@@ -15,9 +15,11 @@ namespace openCVGraph
     class  GraphParallelStep {
     public:
 
-        GraphParallelStep(string name, list<GraphManager *> graphs) {
+        GraphParallelStep(string name, list<GraphManager *> graphs, int completionEventId = -1, bool waitForCompletion = true) {
             m_Name = name;
             m_Graphs = graphs;
+            m_CompletionEventId = completionEventId;
+            m_WaitForCompletion = waitForCompletion;
         }
 
         // Start the thread for each graph and then go to the "Pause" state
@@ -73,30 +75,33 @@ namespace openCVGraph
         bool WaitStepCompletion()
         {
             bool fOK = true;
+            if (m_WaitForCompletion) {
+                // Wait for them all to complete
+                for (auto& graph : m_Graphs)
+                {
+                    if (graph->IsEnabled()) {
 
-            // Wait for them all to complete
-            for (auto& graph : m_Graphs)
-            {
-                if (graph->IsEnabled()) {
-
-                    std::unique_lock<std::mutex> lk(graph->getWaitMutex());
-                    while (!graph->CompletedStep() && !graph->IsAborted())
-                        graph->getConditionalVariable().wait(lk);
-                    fOK &= !graph->IsAborted();
+                        std::unique_lock<std::mutex> lk(graph->getWaitMutex());
+                        while (!graph->CompletedStep() && !graph->IsAborted())
+                            graph->getConditionalVariable().wait(lk);
+                        fOK &= !graph->IsAborted();
+                    }
                 }
             }
 
             return fOK;
         }
 
-        string & GetName() {
-            return m_Name;
-        }
+        string & GetName() { return m_Name; }
+
+        int GetCompletionEventId() { return m_CompletionEventId; }
 
         list<GraphManager *> m_Graphs;
+
     private:
         string m_Name;
         bool m_Initialized = false;
-
+        bool m_WaitForCompletion;       // if True, wait for completion of graph
+        int m_CompletionEventId;        // Id of Event fired when graph step completes
     };
 }

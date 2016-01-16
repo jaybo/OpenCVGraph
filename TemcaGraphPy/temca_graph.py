@@ -73,11 +73,15 @@ class TemcaGraphDLL(object):
     """
     _TemcaGraphDLL = WinDLL(dll_path)
 
-    init = _TemcaGraphDLL.init
-    init.argtypes = [c_char_p, STATUSCALLBACKFUNC]
-    init.restype = c_uint32
+    open = _TemcaGraphDLL.open
+    open.argtypes = [c_int, STATUSCALLBACKFUNC]
+    open.restype = c_uint32
 
-    fini = _TemcaGraphDLL.fini
+    close = _TemcaGraphDLL.close
+
+    set_mode = _TemcaGraphDLL.setMode
+    set_mode.argtypes = [c_char_p]
+    set_mode.restype = c_uint32
 
     get_camera_info = _TemcaGraphDLL.getCameraInfo
     get_camera_info.restype = CameraInfo
@@ -118,9 +122,9 @@ class TemcaGraph(object):
         self.eventProcessingCompleted = threading.Event()
         self.eventFiniCompleted = threading.Event()
 
-    def open(self,  graphType='temca', callback=None):
+    def open(self, dummyCamera = False, callback=None):
         ''' 
-        graphType: 'temca', 'dummy', 'delay'
+        Open up the Temca C++ DLL.
         '''
         if callback == None:
             callback = self.statusCallback
@@ -128,15 +132,30 @@ class TemcaGraph(object):
         self.callback = STATUSCALLBACKFUNC(callback)
 
         t = time.clock()
-        if not TemcaGraphDLL.init(graphType, self.callback):
-            raise EnvironmentError('Cannot create graphType: ' + graphType + '. Other possiblities: camera, is offline, not installed, or already in use')
+        if not TemcaGraphDLL.open(dummyCamera, self.callback):
+            raise EnvironmentError('Cannot open TemcaGraphDLL. Possiblities: camera, is offline, not installed, or already in use')
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock() - t))
 
     def close(self):
         ''' 
         Close down all graphs.
         '''
-        TemcaGraphDLL.fini()
+        TemcaGraphDLL.close()
+
+    def set_mode(self, graphType):
+        '''
+        Sets the overall mode of operation for the Temca graph.  
+        Each mode activates a subset of the overall graph.
+
+        temca           : ximea, lshift4, postCap, QC
+                                                   Focus
+                                                   FW
+                                                   Stitch
+        capture_raw     : ximea, lshift4,          FW
+        preview         : ximea, lshift4,
+        auto_exposure   : ximea, lshift4,          QC         
+        '''
+        return TemcaGraphDLL.set_mode(graphType)
 
     def get_camera_info(self):
         ''' 
@@ -214,6 +233,8 @@ class TemcaGraph(object):
         return True
     
 
+
+
 if __name__ == '__main__':
      
     import cv2
@@ -224,11 +245,7 @@ if __name__ == '__main__':
     # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph()
 
-    # Create all graphs ('dummy' means use fake camera)
-    temcaGraph.open('temca')
-    #temcaGraph.open('dummy')
-    #temcaGraph.open('delay')
-    #temcaGraph.open('camera_only')
+    temcaGraph.open(dummyCamera = False) 
 
     # get info about frame dimensions
     fi = temcaGraph.get_camera_info()

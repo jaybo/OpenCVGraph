@@ -17,9 +17,12 @@ namespace openCVGraph
 
         Delay::Delay(std::string name, GraphData& graphData,
             int sourceFormat = -1,
-            int width = 512, int height = 512)
+            int width = 512, int height = 512, int delayMS = -1)
             : Filter(name, graphData, sourceFormat, width, height)
         {
+            if (delayMS != -1) {
+                m_delayMS = delayMS;
+            }
         }
 
         //Allocate resources if needed, and specify the image formats required
@@ -59,6 +62,5 @@ namespace openCVGraph
 
     private:
         int m_delayMS = 10;
-
     };
 }

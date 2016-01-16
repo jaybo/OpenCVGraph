@@ -3,7 +3,7 @@ GraphManager:
    Enabled: 1
    # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
    LogLevel: 2
-   FPS: "1.12"
+   FPS: "2.32"
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 1
@@ -12,10 +12,11 @@ CamXimea:
    ShowView: 0
    ShowViewControls: 1
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "60.4"
-   Duration_MS_Min: "58.8"
-   Duration_MS_Max: "68.1"
-   Duration_MS_Last: "61.7"
+   UseCaptureCorrectedStream: 0
+   Duration_MS_Mean: "60.1"
+   Duration_MS_Min: "59.7"
+   Duration_MS_Max: "61.9"
+   Duration_MS_Last: "60.1"
    camera_index: 0
    trigger_software: 0
    minimum_buffers: 1
@@ -34,12 +35,13 @@ CapturePostProcessing:
    ShowView: 0
    ShowViewControls: 0
    ZoomViewLockIndex: 0
-   Duration_MS_Mean: "119.1"
-   Duration_MS_Min: "33.3"
-   Duration_MS_Max: "8558.0"
-   Duration_MS_Last: "33.8"
+   UseCaptureCorrectedStream: 0
+   Duration_MS_Mean: "55.6"
+   Duration_MS_Min: "33.4"
+   Duration_MS_Max: "380.8"
+   Duration_MS_Last: "33.7"
    correction_bright_dark: 1
    correction_upshift4bits: 1
    bright_field_path: "config/BrightField.tif"
    dark_field_path: "config/DarkField.tif"
-   overwrite_capture: 1
+   downsample_preview_factor: 0
