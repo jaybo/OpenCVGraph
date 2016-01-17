@@ -14,9 +14,9 @@ namespace openCVGraph
     public:
 
         FocusLaplace::FocusLaplace(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 

@@ -13,9 +13,9 @@ namespace openCVGraph
     {
     public:
         Canny::Canny(std::string name, GraphData& graphData,
-            int sourceFormat = CV_8UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -23,14 +23,10 @@ namespace openCVGraph
         {
             bool fOK = Filter::init(graphData);
 
-            if (m_Enabled) {
-                graphData.m_CommonData->m_NeedCV_8UC1 = true;
-
-                if (m_showView) {
-                    if (m_showViewControls) {
-                        createTrackbar("Th 1", m_CombinedName, &m_Threshold1, 255, Slider1Callback, this);
-                        createTrackbar("Th 2", m_CombinedName, &m_Threshold2, 255, Slider2Callback, this);
-                    }
+            if (m_showView) {
+                if (m_showViewControls) {
+                    createTrackbar("Th 1", m_CombinedName, &m_Threshold1, 255, Slider1Callback, this);
+                    createTrackbar("Th 2", m_CombinedName, &m_Threshold2, 255, Slider2Callback, this);
                 }
             }
             return fOK;
@@ -38,6 +34,7 @@ namespace openCVGraph
 
         ProcessResult Canny::process(GraphData& graphData) override
         {
+            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_8UC1);
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 auto canny = cuda::createCannyEdgeDetector(m_Threshold1, m_Threshold2);

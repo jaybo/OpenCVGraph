@@ -57,11 +57,11 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, m_graphCommonData);
 
-        CvFilter camera(new CamXimea("CamXimea", *graph->getGraphData(), CV_16UC1));
+        CvFilter camera(new CamXimea("CamXimea", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(camera);
 
 #ifdef WITH_CUDA
-        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(fbrightDark);
 #endif
         return graph;
@@ -72,11 +72,11 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, m_graphCommonData);
 
-        CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), CV_16UC1, 512, 512));
+        CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512));
         graph->AddFilter(camera);
 
 #ifdef WITH_CUDA
-        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(fbrightDark);
 #endif
         return graph;
@@ -93,7 +93,7 @@ private:
         GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, m_graphCommonData);
 
 #ifdef WITH_CUDA
-        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), CV_16UC1));
+        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(fCapPost);
 #endif
         return graph;
@@ -104,7 +104,7 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, m_graphCommonData, false);
 
-        CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), CV_16UC1));
+        CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), StreamIn::CaptureProcessed));
         graph->AddFilter(fileWriter);
 
         return graph;
@@ -116,10 +116,10 @@ private:
         GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, m_graphCommonData, true);
 
 #ifdef WITH_CUDA
-        CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), CV_16UC1));
+        CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(filter);
 
-        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), CV_16UC1, 512, 512));
+        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::CaptureProcessed, 512, 512));
         graph->AddFilter(fFocusFFT);
 
 #endif
@@ -143,7 +143,7 @@ private:
     {
         GraphManager* graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData);
 
-        CvFilter filter(new Delay("Delay", *graph->getGraphData(), -1, 0, 0, delay));
+        CvFilter filter(new Delay("Delay", *graph->getGraphData(), StreamIn::CaptureRaw, 0, 0, delay));
         graph->AddFilter(filter);
 
         return graph;

@@ -43,11 +43,11 @@ void GraphWebCam()
     CvFilter cap1(new CamDefault("CamDefault", *gd));
     graph1.AddFilter(cap1);
 
-    //CvFilter faverage(new Average("Average", gd));
+    //CvFilter faverage(new Average("Average", *gd));
     //graph1.AddFilter(faverage);
 
-    //CvFilter fpSimple(new Simple("Simple", gd, CV_16UC1));
-    //graph1.AddFilter(fpSimple);
+    CvFilter fpSimple(new Simple("Simple", *gd));
+    graph1.AddFilter(fpSimple);
 
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
     graph1.AddFilter(fpRunningStats);
@@ -58,11 +58,11 @@ void GraphWebCam()
     CvFilter canny2(new openCVGraph::Canny("Canny2", *gd));
     graph1.AddFilter(canny2);
 
-    //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
-    //graph1.AddFilter(cartoon);
+    CvFilter cartoon1(new openCVGraph::Cartoon("Cartoon1", *gd));
+    graph1.AddFilter(cartoon1);
 
-    //CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", gd));
-    //graph1.AddFilter(cartoon);
+    CvFilter cartoon2(new openCVGraph::Cartoon("Cartoon2", *gd));
+    graph1.AddFilter(cartoon2);
 
     // Start the thread for that graph running
     graph1.StartThread();
@@ -84,13 +84,13 @@ void GraphImageDir()
     graph1.UseCuda(false);
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap1(new CamDefault("CamDefault", *gd, CV_16UC1));
+    CvFilter cap1(new CamDefault("CamDefault", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(cap1);
 
-    CvFilter fpSimple(new Simple("Simple", *gd, CV_16UC1));
+    CvFilter fpSimple(new Simple("Simple", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(fpSimple);
 
-    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
+    CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(fileWriter);
 
     //CvFilter canny(new openCVGraph::Canny("Canny", *gd));
@@ -113,10 +113,10 @@ void GraphCopyOldTEMCAUpshifted()
     GraphData* gd = graph1.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
-    CvFilter cap1(new CamDefault("CamDefault", *gd, CV_16UC1));
+    CvFilter cap1(new CamDefault("CamDefault", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(cap1);
 
-    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
+    CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(fileWriter);
 
     // Start the thread for that graph running
@@ -134,7 +134,7 @@ void GraphXimea()
     GraphManager graph1("GraphXimea", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 512, 512));
+    CvFilter cam2(new CamXimea("CamXimea", *gd, StreamIn::CaptureRaw, 512, 512));
     graph1.AddFilter(cam2);
 
     //CvFilter faverage(new Average("Average", *gd));
@@ -149,13 +149,13 @@ void GraphXimea()
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
-    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
     //graph1.AddFilter(fFocusSobel);
 
-    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, CV_16UC1, 512, 512));
+    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
     //graph1.AddFilter(fFocusLaplace);
 
     CvFilter canny(new openCVGraph::Canny("Canny", *gd));
@@ -164,7 +164,7 @@ void GraphXimea()
     //CvFilter fpSimple(new Simple("Simple", *gd));
     //graph1.AddFilter(fpSimple);
 
-    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
+    CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
     graph1.AddFilter(fileWriter);
 
     // Start the thread for that graph running
@@ -186,8 +186,8 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
-    xiSample();
-    // GraphWebCam();
+    //xiSample();
+    GraphWebCam();
     //GraphXimea();
 #else
     GraphWebCam();

@@ -17,9 +17,9 @@ namespace openCVGraph
     {
     public:
         ImageStatistics(std::string name, GraphData& graphData, 
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -31,7 +31,7 @@ namespace openCVGraph
             Filter::init(graphData);
             if (m_Enabled) {
                 // Advertise the format(s) we need
-                graphData.m_CommonData->m_NeedCV_32FC1 = true;
+                // graphData.m_CommonData->m_NeedCV_32FC1 = true;
                 m_N = 0;
             }
             return true;
@@ -199,6 +199,8 @@ namespace openCVGraph
         ProcessResult ImageStatistics::process(GraphData& graphData)
         {
             m_firstTime = false;
+
+            graphData.CopyCaptureToFormat(m_UseCuda, CV_32FC1);
 
             // let the camera stabilize
             // if (graphData.m_FrameNumber < 2) return true;

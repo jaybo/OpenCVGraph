@@ -20,9 +20,9 @@ namespace openCVGraph
     class CamXimea : public CamDefault {
     public:
         CamXimea(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : CamDefault(name, graphData, sourceFormat, width, height)
+            : CamDefault(name, graphData, streamIn, width, height)
         {
             m_Logger = graphData.m_Logger;
             m_image.size = sizeof(XI_IMG);
@@ -41,12 +41,12 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
-            graphData.m_CommonData->m_NeedCV_16UC1 = true;
+            //graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
-            // need 8 bit for our own view
-            if (m_showView) {
-                graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            }
+            //// need 8 bit for our own view
+            //if (m_showView) {
+            //    graphData.m_CommonData->m_NeedCV_8UC1 = true;
+            //}
 
             XI_RETURN stat;
             stat = xiOpenDevice(camera_index, &m_xiH);

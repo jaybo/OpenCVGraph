@@ -14,9 +14,9 @@ namespace openCVGraph
     public:
 
         Simple::Simple(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -24,18 +24,20 @@ namespace openCVGraph
         bool Simple::init(GraphData& graphData) override
         {
             // call the base to read/write configs
-            Filter::init(graphData);
-            m_showView = true;
+            bool fOK = Filter::init(graphData);
             if (m_Enabled) {
                 // Define the image formats we use:
                 graphData.m_CommonData->m_NeedCV_16UC1 = true;
             }
-            return true;
+            return fOK;
         }
 
         // Do all of the work here.
         ProcessResult Simple::process(GraphData& graphData) override
         {
+            graphData.CopyCaptureToFormat(false, CV_16UC1);
+            graphData.m_CommonData->m_imCap16UC1.copyTo(graphData.m_imOut16UC1);
+
             // shift 12 bit images up to full 16 bit resolution
             // graphData.m_imOut16UC1 = 4 * graphData.m_CommonData->m_imCap16UC1;
 
@@ -47,8 +49,7 @@ namespace openCVGraph
         void Simple::processView(GraphData& graphData) override
         {
             if (m_showView) {
-                graphData.m_imOut16UC1.convertTo(graphData.m_imOut8UC1, CV_8UC1, 1 / 256.0f);
-                graphData.m_imOut8UC1.copyTo(m_imView);
+                m_imView = graphData.m_imOut16UC1;
                 Filter::processView(graphData);
             }
         }

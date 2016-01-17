@@ -17,9 +17,9 @@ namespace openCVGraph
         //   else create a noise image
 
         CamDefault(std::string name, GraphData& graphData,
-            int sourceFormat = -1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
             source = Noise;
         }
@@ -33,7 +33,7 @@ namespace openCVGraph
             bool fOK = false;
 
             // CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA CAMERA 
-            if ((m_SourceFormat != CV_16UC1) && (camera_index >= 0)) {
+            if (camera_index >= 0) {
 
                 fOK = cap.open(camera_index);
                 if (fOK) {

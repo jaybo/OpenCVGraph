@@ -32,7 +32,7 @@ GraphManager* GraphWebCam()
     GraphManager *graph = new GraphManager("GraphWebCam", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamDefault("WebCam", *gd, CV_8UC3));
+    CvFilter camera(new CamDefault("WebCam", *gd, StreamIn::CaptureRaw));
     graph->AddFilter(camera);
 
     return graph;
@@ -46,7 +46,7 @@ GraphManager* GraphCamXimea()
     GraphManager *graph = new GraphManager("GraphCamXimea2", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter camera(new CamXimea("CamXimea", *gd, CV_16UC1));
+    CvFilter camera(new CamXimea("CamXimea", *gd, StreamIn::CaptureRaw));
     graph->AddFilter(camera);
 
     return graph;
@@ -59,7 +59,7 @@ GraphManager* GraphFileWriter()
     GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter fileWriter(new FileWriter("FileWriter", *gd, CV_16UC1));
+    CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
     graph->AddFilter(fileWriter);
 
     return graph;
@@ -72,7 +72,7 @@ GraphManager* GraphCanny()
     GraphManager *graph = new GraphManager("GraphCanny", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter canny(new openCVGraph::Canny("Canny", *gd, CV_8UC3));
+    CvFilter canny(new openCVGraph::Canny("Canny", *gd, StreamIn::CaptureRaw));
     graph->AddFilter(canny);
     //graph->UseCuda(false);
 
@@ -86,7 +86,7 @@ GraphManager* GraphCartoon()
     GraphManager *graph = new GraphManager("GraphCartoon", true, graphCallback, commonData);
     GraphData* gd = graph->getGraphData();
 
-    CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", *gd, CV_8UC3));
+    CvFilter cartoon(new openCVGraph::Cartoon("Cartoon", *gd, StreamIn::CaptureRaw));
     graph->AddFilter(cartoon);
     //graph->UseCuda(false);
 
@@ -127,7 +127,7 @@ void GraphXimea()
     GraphManager graph1("GraphXimea", true, graphCallback, commonData);
     GraphData* gd = graph1.getGraphData();
 
-    CvFilter cam2(new CamXimea("CamXimea", *gd, CV_16UC1, 1024, 1024));
+    CvFilter cam2(new CamXimea("CamXimea", *gd, StreamIn::CaptureRaw, 1024, 1024));
     graph1.AddFilter(cam2);
 
     CvFilter faverage(new Average("Average", *gd));
@@ -139,10 +139,10 @@ void GraphXimea()
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
     graph1.AddFilter(fpRunningStats);
 
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, CV_16UC1, 512, 150));
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
     graph1.AddFilter(fFocusSobel);
 
-    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, CV_16UC1, 512, 512));
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
     graph1.AddFilter(fFocusFFT);
 
     //CvFilter canny(new openCVGraph::Canny("Canny", *gd));

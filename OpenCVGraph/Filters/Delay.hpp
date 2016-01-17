@@ -16,9 +16,9 @@ namespace openCVGraph
     public:
 
         Delay::Delay(std::string name, GraphData& graphData,
-            int sourceFormat = -1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512, int delayMS = -1)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
             if (delayMS != -1) {
                 m_delayMS = delayMS;

@@ -16,9 +16,9 @@ namespace openCVGraph
     public:
 
         FileWriter::FileWriter(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -38,25 +38,23 @@ namespace openCVGraph
         bool FileWriter::init(GraphData& graphData) override
         {
             // call the base to read/write configs
-            Filter::init(graphData);
+            bool fOK = Filter::init(graphData);
 
-            if (m_Enabled) {
+            createDir(m_Directory);
 
-                graphData.m_CommonData->m_NeedCV_16UC1 = true;
-
-                createDir(m_Directory);
-
-                if (m_WriteOnKeyHit != "") {
-                    m_WriteNextImage = false;
-                }
+            if (m_WriteOnKeyHit != "") {
+                m_WriteNextImage = false;
             }
-            return true;
+            return fOK;
         }
 
         // Do all of the work here.
         ProcessResult FileWriter::process(GraphData& graphData) override
         {
-            if (m_WriteNextImage && !(m_UseCaptureCorrected ? graphData.m_CommonData->m_imCaptureCorrected : graphData.m_CommonData->m_imCapture).empty()) {
+            Mat src;
+
+            if (m_WriteNextImage && !(m_UseCaptureCorrected ? graphData.m_CommonData->m_imCaptureCorrected : 
+                graphData.m_CommonData->m_imCapture).empty()) {
                 string fullName;
                 if (m_UseSourceFileName && !graphData.m_CommonData->m_SourceFileName.empty()) {
                     auto s = graphData.m_CommonData->m_SourceFileName;

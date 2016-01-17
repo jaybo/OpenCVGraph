@@ -15,9 +15,9 @@ namespace openCVGraph
     {
     public:
         Cartoon::Cartoon(std::string name, GraphData& graphData,
-            int sourceFormat = CV_8UC3,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -25,16 +25,11 @@ namespace openCVGraph
         {
             bool fOK = Filter::init(graphData);
             
-            if (m_Enabled) {
-                graphData.m_CommonData->m_NeedCV_8UC1 = true;
-                graphData.m_CommonData->m_NeedCV_8UC3 = true;
-
-                if (m_showView) {
-                    if (m_showViewControls) {
-                        createTrackbar("Algo", m_CombinedName, &m_Algorithm, 4, NULL, this);
-                        createTrackbar("r", m_CombinedName, &m_r, 1000, NULL, this);
-                        createTrackbar("s", m_CombinedName, &m_s, 1000, NULL, this);
-                    }
+            if (m_showView) {
+                if (m_showViewControls) {
+                    createTrackbar("Algo", m_CombinedName, &m_Algorithm, 3, NULL, this);
+                    createTrackbar("r", m_CombinedName, &m_r, 1000, NULL, this);
+                    createTrackbar("s", m_CombinedName, &m_s, 1000, NULL, this);
                 }
             }
             return fOK;
@@ -42,10 +37,26 @@ namespace openCVGraph
 
         ProcessResult Cartoon::process(GraphData& graphData) override
         {
+            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_8UC1);
+            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_8UC3);
+
+
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
+                cuda::GpuMat src;
+
+                switch (m_StreamIn) {
+                case StreamIn::CaptureProcessed:
+                case StreamIn::CaptureRaw:
+                    src = graphData.m_CommonData->m_imCapGpu8UC3;
+                    break;
+                case StreamIn::Out:
+                    src = graphData.m_imOutGpu8UC3;
+                    break;
+                }
+
                 GpuMat gray;
-                cuda::cvtColor(graphData.m_imOutGpu8UC3, gray, CV_BGR2GRAY);
+                cuda::cvtColor(src, gray, CV_BGR2GRAY);
 
                 GpuMat tmp;
                 GpuMat cannyOut8U;
@@ -54,44 +65,56 @@ namespace openCVGraph
                 canny->detect(gray, cannyOut8U);
                 cuda::bitwise_not(cannyOut8U, cannyOut8U);
                 
-                graphData.m_imOutGpu8UC3.copyTo(tmp);
+                src.copyTo(tmp);
                 int repetitions = 13;  // Repetitions for strong cartoon effect. 
                 for (int i = 0; i < repetitions; i++) {
                     int ksize = 9;     // Filter size. Has a large effect on speed.  
                     float sigmaColor = 11;    // Filter color strength.  
                     float sigmaSpace = 9;    // Spatial strength. Affects speed.  
-                    cuda::bilateralFilter(graphData.m_imOutGpu8UC3, tmp, ksize, sigmaColor, sigmaSpace);
-                    cuda::bilateralFilter(tmp, graphData.m_imOutGpu8UC3, ksize, sigmaColor, sigmaSpace);
+                    cuda::bilateralFilter(tmp, tmp, ksize, sigmaColor, sigmaSpace);
+                    cuda::bilateralFilter(tmp, tmp, ksize, sigmaColor, sigmaSpace);
                 }
                 cuda::cvtColor(cannyOut8U, tmp, CV_GRAY2RGB);
-                cuda::bitwise_and(graphData.m_imOutGpu8UC3, tmp, graphData.m_imOutGpu8UC3);
+                cuda::bitwise_and(src, tmp, graphData.m_imOutGpu8UC3);
                 graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
                 graphData.m_imOut8UC3.copyTo(m_imView);
 #endif
             }
             else {
+                Mat src, tmp;
+
+                switch (m_StreamIn) {
+                case StreamIn::CaptureProcessed:
+                case StreamIn::CaptureRaw:
+                    src = graphData.m_CommonData->m_imCap8UC3;
+                    break;
+                case StreamIn::Out:
+                    src = graphData.m_imOut8UC3;
+                    break;
+                }
+
                 switch (m_Algorithm)
                 {
                 case 0:
-                    cv::stylization(graphData.m_imOut8UC3,
+                    cv::stylization(src,
                         graphData.m_imOut8UC3,
                         (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
                     break;
                 case 1:
-                    cv::edgePreservingFilter(graphData.m_imOut8UC3,
+                    cv::edgePreservingFilter(src,
                         graphData.m_imOut8UC3,
                         1, 
                         (float) (m_r / 5.0f), (float) (m_s / 1000.0f));
                     break;
                 case 2:
-                    cv::pencilSketch(graphData.m_imOut8UC3,
+                    cv::pencilSketch(src,
                         graphData.m_imOut8UC1,
                         graphData.m_imOut8UC3,
                         (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
                     break;
                 case 3:
                     Mat gray;
-                    cv::cvtColor(graphData.m_imOut8UC3, gray, CV_BGR2GRAY);
+                    cv::cvtColor(src, gray, CV_BGR2GRAY);
                     const int MEDIAN_BLUR_FILTER_SIZE = 7;
                     medianBlur(gray, gray, MEDIAN_BLUR_FILTER_SIZE);
                     Mat edges;
@@ -102,16 +125,17 @@ namespace openCVGraph
                     const int EDGES_THRESHOLD = 80;
                     cv::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
 
-                    Mat tmp;
-                    graphData.m_imOut8UC3.copyTo(tmp);
+                    Mat tmp, tmp1;
+                   src.copyTo(tmp);
                     int repetitions = 1;  // Repetitions for strong cartoon effect. 
                     for (int i = 0; i < repetitions; i++) {
                         int ksize = 9;     // Filter size. Has a large effect on speed.  
                         double sigmaColor = 5;    // Filter color strength.  
                         double sigmaSpace = 3;    // Spatial strength. Affects speed.  
-                        cv::bilateralFilter(graphData.m_imOut8UC3, tmp, ksize, sigmaColor, sigmaSpace);
-                        cv::bilateralFilter(tmp, graphData.m_imOut8UC3, ksize, sigmaColor, sigmaSpace);
+                        cv::bilateralFilter(tmp, tmp1, ksize, sigmaColor, sigmaSpace);
+                        cv::bilateralFilter(tmp1, tmp, ksize, sigmaColor, sigmaSpace);
                     }
+                    tmp.copyTo(graphData.m_imOut8UC3);
                     tmp.setTo(0);
                     cv::bitwise_and(graphData.m_imOut8UC3, graphData.m_imOut8UC3, tmp, mask);
                     tmp.copyTo(graphData.m_imOut8UC3);

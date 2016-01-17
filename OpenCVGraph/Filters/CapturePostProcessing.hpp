@@ -21,9 +21,9 @@ namespace openCVGraph
     {
     public:
         CapturePostProcessing::CapturePostProcessing(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -62,10 +62,6 @@ namespace openCVGraph
                 }
 
                 if (m_showView) {
-                    // To write on the overlay, you must allocate it.
-                    // This indicates to the renderer the need to merge it with the final output image.
-                    // m_imViewTextOverlay = Mat(m_ViewWidth, m_ViewHeight, CV_8U);
-
                     if (m_showViewControls) {
                         createTrackbar("Image: ", m_CombinedName, &m_FieldToView, 3);
                     }

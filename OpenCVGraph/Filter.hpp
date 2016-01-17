@@ -25,8 +25,8 @@ namespace openCVGraph
     {
     public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, int sourceFormat = -1, int viewWidth = 512, int viewHeight = 512)
-            : m_FilterName(name), m_SourceFormat(sourceFormat), m_ViewWidth(viewWidth), m_ViewHeight(viewHeight)
+        Filter::Filter(std::string name, GraphData& data, StreamIn streamIn = StreamIn::CaptureRaw, int viewWidth = 512, int viewHeight = 512)
+            : m_FilterName(name), m_StreamIn(streamIn), m_ViewWidth(viewWidth), m_ViewHeight(viewHeight)
         {
             m_Logger = data.m_Logger;
 
@@ -47,21 +47,21 @@ namespace openCVGraph
         // Register mouse callback
         virtual bool Filter::init(GraphData& data)
         {
-            switch (m_SourceFormat) {
-            case CV_8UC1: 
-                data.m_CommonData->m_NeedCV_8UC1 = true; 
-                break;
-            case CV_8UC3: 
-                data.m_CommonData->m_NeedCV_8UC3 = true; 
-                break;
-            case CV_16UC1: 
-                data.m_CommonData->m_NeedCV_16UC1 = true; 
-                break;
-            default:
-                // arbitrary, assume RGB webcam if not specified
-                data.m_CommonData->m_NeedCV_8UC3 = true; 
-                break;
-            }
+            //switch (m_StreamIn) {
+            //case CV_8UC1: 
+            //    data.m_CommonData->m_NeedCV_8UC1 = true; 
+            //    break;
+            //case CV_8UC3: 
+            //    data.m_CommonData->m_NeedCV_8UC3 = true; 
+            //    break;
+            //case CV_16UC1: 
+            //    data.m_CommonData->m_NeedCV_16UC1 = true; 
+            //    break;
+            //default:
+            //    // arbitrary, assume RGB webcam if not specified
+            //    data.m_CommonData->m_NeedCV_8UC3 = true; 
+            //    break;
+            //}
 
             if (m_Enabled) {
                 if (m_showView) {
@@ -224,7 +224,7 @@ namespace openCVGraph
         int m_ZoomViewLockIndex = 0;
 
 	protected:
-        int m_SourceFormat;                       // source format (CV_8UC1, CV8UC3, ...)
+        StreamIn m_StreamIn;                       // source format (CV_8UC1, CV8UC3, ...)
 		bool m_firstTime = true;
 		bool m_showView = false;
         bool m_showViewControls = false;    // view sliders

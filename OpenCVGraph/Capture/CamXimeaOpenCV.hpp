@@ -18,9 +18,9 @@ namespace openCVGraph
     class CamXimeaOpenCV : public CamDefault {
     public:
         CamXimeaOpenCV(std::string name, GraphData& graphData,
-            int sourceFormat = CV_16UC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : CamDefault(name, graphData, sourceFormat, width, height)
+            : CamDefault(name, graphData, streamIn, width, height)
         {
             m_Logger = graphData.m_Logger;
         }
@@ -28,15 +28,15 @@ namespace openCVGraph
         //Allocate resources if needed
         bool init(GraphData& graphData) override
         {
-            // call the base to read/write configs
-            Filter::init(graphData);
+            //// call the base to read/write configs
+            //Filter::init(graphData);
 
-            graphData.m_CommonData->m_NeedCV_16UC1 = true;
+            //graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
-            // need 8 bit for our own view
-            if (m_showView) {
-                graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            }
+            //// need 8 bit for our own view
+            //if (m_showView) {
+            //    graphData.m_CommonData->m_NeedCV_8UC1 = true;
+            //}
 
             bool fOK = false;
 

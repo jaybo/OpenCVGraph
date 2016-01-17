@@ -14,9 +14,9 @@ namespace openCVGraph
     {
     public:
         Average::Average(std::string name, GraphData& graphData,
-            int sourceFormat = CV_32FC1,
+            StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : Filter(name, graphData, sourceFormat, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
         }
 
@@ -24,15 +24,9 @@ namespace openCVGraph
         {
             Filter::init(graphData);
 
-            if (m_Enabled) {
-                // Tell the graph the format(s) we need
-                graphData.m_CommonData->m_NeedCV_32FC1 = true;
-
-                if (m_showView) {
-                    graphData.m_CommonData->m_NeedCV_8UC1 = true;
-                    if (m_showViewControls) {
-                        createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
-                    }
+            if (m_showView) {
+                if (m_showViewControls) {
+                    createTrackbar("Average", m_CombinedName, &m_FramesToAverage, 16, SliderCallback, this);
                 }
             }
             return true;
@@ -40,15 +34,33 @@ namespace openCVGraph
 
         ProcessResult Average::process(GraphData& graphData) override
         {
+            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32FC1);
+
             ProcessResult result = ProcessResult::Continue;  // Averaging filters return this to skip the rest of the loop
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
+                cuda::GpuMat src;
+                    
+                switch (m_StreamIn) {
+                case StreamIn::CaptureProcessed:
+                    // bugbug todo, this ain't right!
+                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    src = graphData.m_CommonData->m_imCapGpu32FC1;
+                    break;
+                case StreamIn::CaptureRaw:
+                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    src = graphData.m_CommonData->m_imCapGpu32FC1;
+                    break;
+                case StreamIn::Out:
+                    src = graphData.m_imOutGpu32FC1;
+                    break;
+                }
                 if (m_imGpuAverage32F.empty()) {
-                    m_imGpuAverage32F = cv::cuda::GpuMat(graphData.m_imOutGpu32FC1.size(), CV_32F);
+                    m_imGpuAverage32F = cv::cuda::GpuMat(src.size(), CV_32F);
                     m_imGpuAverage32F.setTo(Scalar(0));
                 }
 
-                cuda::add(m_imGpuAverage32F, graphData.m_imOutGpu32FC1, m_imGpuAverage32F);
+                cuda::add(m_imGpuAverage32F, src, m_imGpuAverage32F);
 
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
                     cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
@@ -65,13 +77,30 @@ namespace openCVGraph
 #endif
             }
             else {
+                Mat src;
+
+                switch (m_StreamIn) {
+                case StreamIn::CaptureProcessed:
+                    // bugbug todo, this ain't right!
+                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    src = graphData.m_CommonData->m_imCap32FC1;
+                    break;
+                case StreamIn::CaptureRaw:
+                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    src = graphData.m_CommonData->m_imCap32FC1;
+                    break;
+                case StreamIn::Out:
+                    src = graphData.m_imOut32FC1;
+                    break;
+                }
+
                 //todo
                 if (m_imAverage32F.empty()) {
-                    m_imAverage32F = cv::Mat(graphData.m_imOut32FC1.size(), CV_32F);
+                    m_imAverage32F = cv::Mat(src.size(), CV_32F);
                     m_imAverage32F.setTo(Scalar(0));
                 }
 
-                cv::add(m_imAverage32F, graphData.m_imOut32FC1, m_imAverage32F);
+                cv::add(m_imAverage32F, src, m_imAverage32F);
 
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
                     if (m_FramesToAverage > 1) {
