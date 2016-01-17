@@ -25,17 +25,15 @@ namespace openCVGraph
         {
             // call the base to read/write configs
             bool fOK = Filter::init(graphData);
-            if (m_Enabled) {
-                // Define the image formats we use:
-                graphData.m_CommonData->m_NeedCV_16UC1 = true;
-            }
+
+            // do setup or allocations here
             return fOK;
         }
 
         // Do all of the work here.
         ProcessResult Simple::process(GraphData& graphData) override
         {
-            graphData.CopyCaptureToFormat(false, CV_16UC1);
+            graphData.EnsureFormatIsAvailable(false, CV_16UC1);
             graphData.m_CommonData->m_imCap16UC1.copyTo(graphData.m_imOut16UC1);
 
             // shift 12 bit images up to full 16 bit resolution

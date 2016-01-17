@@ -32,12 +32,6 @@ namespace openCVGraph
             Filter::init(graphData);
 
             if (m_Enabled) {
-                graphData.m_CommonData->m_NeedCV_16UC1 = true;
-                // Need 8 bit if we're viewing it
-                if (m_showView) {
-                    graphData.m_CommonData->m_NeedCV_8UC1 = true;
-                }
-
                 // get the Bright Dark images from file
 
                 Mat img = imread(m_BrightFieldPath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE);

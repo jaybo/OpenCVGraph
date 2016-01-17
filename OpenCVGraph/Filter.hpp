@@ -47,22 +47,6 @@ namespace openCVGraph
         // Register mouse callback
         virtual bool Filter::init(GraphData& data)
         {
-            //switch (m_StreamIn) {
-            //case CV_8UC1: 
-            //    data.m_CommonData->m_NeedCV_8UC1 = true; 
-            //    break;
-            //case CV_8UC3: 
-            //    data.m_CommonData->m_NeedCV_8UC3 = true; 
-            //    break;
-            //case CV_16UC1: 
-            //    data.m_CommonData->m_NeedCV_16UC1 = true; 
-            //    break;
-            //default:
-            //    // arbitrary, assume RGB webcam if not specified
-            //    data.m_CommonData->m_NeedCV_8UC3 = true; 
-            //    break;
-            //}
-
             if (m_Enabled) {
                 if (m_showView) {
                     m_ZoomView = ZoomView(m_CombinedName);

@@ -203,13 +203,13 @@ public:
             }
 
             gdCan->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
-            gdCan->CopyCaptureToRequiredFormats();
+            gdCan->UploadCaptureToCuda();
 
             gdFW->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
-            gdFW->CopyCaptureToRequiredFormats();
+            gdFW->UploadCaptureToCuda();
 
             gdCar->m_CommonData->m_imCapture = gdCap->m_CommonData->m_imCapture;
-            gdCar->CopyCaptureToRequiredFormats();
+            gdCar->UploadCaptureToCuda();
 
             fOK &= postCapStep1.Step();
             fOK &= postCapStep2.Step();

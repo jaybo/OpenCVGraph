@@ -18,9 +18,10 @@ namespace openCVGraph
 
         CamDefault(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
-            int width = 512, int height = 512)
+            int width = 512, int height = 512, int format = CV_16U)
             : Filter(name, graphData, streamIn, width, height)
         {
+            m_Format = format;
             source = Noise;
         }
 
@@ -122,12 +123,7 @@ namespace openCVGraph
             // Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
             if (!fOK) {
                 source = Noise;
-                if (graphData.m_CommonData->m_NeedCV_16UC1) {
-                    graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_16UC1);
-                }
-                else if (graphData.m_CommonData->m_NeedCV_8UC3) {
-                    graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, CV_8UC3);
-                }
+                graphData.m_CommonData->m_imCapture = Mat::zeros(m_ViewWidth, m_ViewHeight, m_Format);
                 fOK = true;
             }
 
@@ -163,17 +159,21 @@ namespace openCVGraph
                 }
                 break;
             case Noise:
-                //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
-               //cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(255));
-               //graphData.m_CommonData->m_imCapture = Mat::zeros(512, 512, CV_16U);
-                if (graphData.m_CommonData->m_NeedCV_16UC1) {
-                    cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65536));
+                switch (m_Format)
+                {
+                case CV_8UC3:
+                    break;
+                case CV_8UC1:
+                    cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(255));
+                    break;
+                case CV_16UC1:
+                    cv::randu(graphData.m_CommonData->m_imCapture, Scalar::all(0), Scalar::all(65535));
+                    break;
                 }
-
                 break;
             }
 
-            graphData.CopyCaptureToRequiredFormats();
+            graphData.UploadCaptureToCuda();
 
 
             return ProcessResult::OK;
@@ -228,6 +228,7 @@ namespace openCVGraph
         };
 
         ImageSource source;
+        int m_Format;           // CV_8UC1, etc when synthesizing images.
 
         // following are processed in order, looking for valid input
         int camera_index = 0;

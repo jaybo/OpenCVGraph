@@ -29,14 +29,7 @@ namespace openCVGraph
         bool init(GraphData& graphData) override
         {
             //// call the base to read/write configs
-            //Filter::init(graphData);
-
-            //graphData.m_CommonData->m_NeedCV_16UC1 = true;
-
-            //// need 8 bit for our own view
-            //if (m_showView) {
-            //    graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            //}
+            Filter::init(graphData);
 
             bool fOK = false;
 
@@ -127,7 +120,7 @@ namespace openCVGraph
                 graphData.m_CommonData->m_imCapture *= 16;
             }
 
-            graphData.CopyCaptureToRequiredFormats();
+            graphData.UploadCaptureToCuda();
 
             if (m_focusMovementStepSize != 0) {
                 FocusStep();

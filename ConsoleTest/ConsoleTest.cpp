@@ -36,39 +36,48 @@ void GraphWebCam()
 {
     // Create a graph
     GraphCommonData * commonData = new GraphCommonData();
-    GraphManager graph1("GraphWebCam", true, graphCallback, commonData);
-    GraphData* gd = graph1.getGraphData();
+    GraphManager graph("GraphWebCam", true, graphCallback, commonData);
+    GraphData* gd = graph.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
     CvFilter cap1(new CamDefault("CamDefault", *gd));
-    graph1.AddFilter(cap1);
+    graph.AddFilter(cap1);
 
     //CvFilter faverage(new Average("Average", *gd));
-    //graph1.AddFilter(faverage);
+    //graph.AddFilter(faverage);
 
     CvFilter fpSimple(new Simple("Simple", *gd));
-    graph1.AddFilter(fpSimple);
+    graph.AddFilter(fpSimple);
 
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
-    graph1.AddFilter(fpRunningStats);
+    graph.AddFilter(fpRunningStats);
+
+    CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
+    graph.AddFilter(fFocusFFT);
+
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
+    graph.AddFilter(fFocusSobel);
+
+    CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
+    graph.AddFilter(fFocusLaplace);
 
     CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
-    graph1.AddFilter(canny1);
+    graph.AddFilter(canny1);
 
     CvFilter canny2(new openCVGraph::Canny("Canny2", *gd));
-    graph1.AddFilter(canny2);
+    graph.AddFilter(canny2);
 
     CvFilter cartoon1(new openCVGraph::Cartoon("Cartoon1", *gd));
-    graph1.AddFilter(cartoon1);
+    graph.AddFilter(cartoon1);
 
     CvFilter cartoon2(new openCVGraph::Cartoon("Cartoon2", *gd));
-    graph1.AddFilter(cartoon2);
+    graph.AddFilter(cartoon2);
 
     // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
+    graph.StartThread();
+    graph.GotoState(GraphManager::GraphState::Run);
 
-    graph1.JoinThread();
+    graph.JoinThread();
 
 }
 
@@ -78,29 +87,29 @@ void GraphImageDir()
 {
     // Create a graph
     GraphCommonData * commonData = new GraphCommonData();
-    GraphManager graph1("GraphImageDir", true, graphCallback, commonData);
-    GraphData* gd = graph1.getGraphData();
+    GraphManager graph("GraphImageDir", true, graphCallback, commonData);
+    GraphData* gd = graph.getGraphData();
 
-    graph1.UseCuda(false);
+    graph.UseCuda(false);
 
     // Add an image source (could be camera, single image, directory, noise, movie)
     CvFilter cap1(new CamDefault("CamDefault", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(cap1);
+    graph.AddFilter(cap1);
 
     CvFilter fpSimple(new Simple("Simple", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(fpSimple);
+    graph.AddFilter(fpSimple);
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(fileWriter);
+    graph.AddFilter(fileWriter);
 
     //CvFilter canny(new openCVGraph::Canny("Canny", *gd));
-    //graph1.AddFilter(canny);
+    //graph.AddFilter(canny);
 
     // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
+    graph.StartThread();
+    graph.GotoState(GraphManager::GraphState::Run);
 
-    graph1.JoinThread();
+    graph.JoinThread();
 
 }
 
@@ -109,21 +118,21 @@ void GraphCopyOldTEMCAUpshifted()
 {
     // Create a graph
     GraphCommonData * commonData = new GraphCommonData();
-    GraphManager graph1("GraphCopyOldTEMCAUpshifted", true, graphCallback, commonData);
-    GraphData* gd = graph1.getGraphData();
+    GraphManager graph("GraphCopyOldTEMCAUpshifted", true, graphCallback, commonData);
+    GraphData* gd = graph.getGraphData();
 
     // Add an image source (could be camera, single image, directory, noise, movie)
     CvFilter cap1(new CamDefault("CamDefault", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(cap1);
+    graph.AddFilter(cap1);
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(fileWriter);
+    graph.AddFilter(fileWriter);
 
     // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
+    graph.StartThread();
+    graph.GotoState(GraphManager::GraphState::Run);
 
-    graph1.JoinThread();
+    graph.JoinThread();
 }
 
 #ifdef WITH_CUDA
@@ -131,47 +140,47 @@ void GraphXimea()
 {
     // Create a graph
     GraphCommonData * commonData = new GraphCommonData();
-    GraphManager graph1("GraphXimea", true, graphCallback, commonData);
-    GraphData* gd = graph1.getGraphData();
+    GraphManager graph("GraphXimea", true, graphCallback, commonData);
+    GraphData* gd = graph.getGraphData();
 
     CvFilter cam2(new CamXimea("CamXimea", *gd, StreamIn::CaptureRaw, 512, 512));
-    graph1.AddFilter(cam2);
+    graph.AddFilter(cam2);
 
     //CvFilter faverage(new Average("Average", *gd));
-    //graph1.AddFilter(faverage);
+    //graph.AddFilter(faverage);
 
     CvFilter brightDark(new CapturePostProcessing("CapturePostProcessing", *gd));
-    graph1.AddFilter(brightDark);
+    graph.AddFilter(brightDark);
 
     CvFilter fpQC(new ImageQC("QC", *gd));
-    graph1.AddFilter(fpQC);
+    graph.AddFilter(fpQC);
 
     CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
-    graph1.AddFilter(fpRunningStats);
+    graph.AddFilter(fpRunningStats);
 
     CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
-    graph1.AddFilter(fFocusFFT);
+    graph.AddFilter(fFocusFFT);
 
-    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
-    //graph1.AddFilter(fFocusSobel);
+    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
+    graph.AddFilter(fFocusSobel);
 
-    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
-    //graph1.AddFilter(fFocusLaplace);
+    CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
+    graph.AddFilter(fFocusLaplace);
 
     CvFilter canny(new openCVGraph::Canny("Canny", *gd));
-    graph1.AddFilter(canny);
+    graph.AddFilter(canny);
 
     //CvFilter fpSimple(new Simple("Simple", *gd));
-    //graph1.AddFilter(fpSimple);
+    //graph.AddFilter(fpSimple);
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
-    graph1.AddFilter(fileWriter);
+    graph.AddFilter(fileWriter);
 
     // Start the thread for that graph running
-    graph1.StartThread();
-    graph1.GotoState(GraphManager::GraphState::Run);
+    graph.StartThread();
+    graph.GotoState(GraphManager::GraphState::Run);
 
-    graph1.JoinThread();
+    graph.JoinThread();
 }
 
 #endif

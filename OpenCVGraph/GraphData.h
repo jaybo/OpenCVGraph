@@ -24,13 +24,8 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
-        // Downstream filters indicate to the capture filter which formats they need
+        // Keep track of what formats are available, 
         // so the conversion only happens once.
-
-        bool m_NeedCV_8UC1 = false;
-        bool m_NeedCV_8UC3 = false;
-        bool m_NeedCV_16UC1 = false;
-        //bool m_NeedCV_32FC1 = false;
 
         bool m_Have_CV_8UC1 = false;
         bool m_Have_CV_8UC3 = false;
@@ -45,7 +40,7 @@ namespace openCVGraph
         cv::Mat m_imCapture;                // Raw Capture image.  Always keep this unmodified
         cv::Mat m_imCaptureCorrected;       // Capture after Bright/Dark, Spatial, upshift
 
-        cv::Mat m_imCap8UC3;                // 
+        cv::Mat m_imCap8UC3;                // Alternate formats of the Capture->CaptureCorrected image
         cv::Mat m_imCap8UC1;
         cv::Mat m_imCap16UC1;
         cv::Mat m_imCap32FC1;
@@ -57,7 +52,7 @@ namespace openCVGraph
         cv::cuda::GpuMat m_imCaptureGpu;            // Raw Capture image.  Always keep this unmodified
         cv::cuda::GpuMat m_imCaptureCorrectedGpu;   // Capture after Bright/Dark, Spatial, upshift
 
-        cv::cuda::GpuMat m_imCapGpu8UC3;
+        cv::cuda::GpuMat m_imCapGpu8UC3;            // Alternate formats of the Capture->CaptureCorrected image on Gpu
         cv::cuda::GpuMat m_imCapGpu8UC1;
         cv::cuda::GpuMat m_imCapGpu16UC1;
         cv::cuda::GpuMat m_imCapGpu32FC1;
@@ -112,158 +107,21 @@ namespace openCVGraph
         int m_FrameNumber = 0;                  // Current frame being processed.
 
         // A capture or source filter has already put an image into m_CommonData->m_imCapture.
-        // Now convert it into formats needed by the rest of the graph.
+        // Upload a copy to Cuda.
         // A basic rule is that m_CommonData->m_imCapture should never be modified by any filter downstream, so it's always available.
-
-        void CopyCaptureToRequiredFormats()
+        void UploadCaptureToCuda()
         {
-            // bugbug move this todo
-            ClearHaves();
-
-
-            int nChannels = m_CommonData->m_imCapture.channels();
-            int nDepth = m_CommonData->m_imCapture.depth();
-            int nType = m_CommonData->m_imCapture.type();
+            ResetImageCache();                  // New image, so clear the available flags
 
             if (m_UseCuda) {
 #ifdef WITH_CUDA
                 m_CommonData->m_imCaptureGpu.upload(m_CommonData->m_imCapture);
-
-                switch (nType) {
-                case CV_8UC1:
-                    if (m_CommonData->m_NeedCV_8UC1) {
-                        m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu8UC1);
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC3, CV_8UC3);
-                    }
-                    break;
-                case CV_16UC1:
-                    if (m_CommonData->m_NeedCV_8UC1) {
-                        m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                         m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu16UC1);
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1);
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        if (!m_CommonData->m_NeedCV_8UC1) {
-                            m_CommonData->m_imCaptureGpu.convertTo(m_CommonData->m_imCapGpu8UC1, CV_8UC1, 1.0 / 256);
-                        }
-                        cuda::cvtColor(m_CommonData->m_imCapGpu8UC1, m_CommonData->m_imCapGpu8UC3, COLOR_GRAY2RGB);
-                    }
-                    break;
-                case CV_8UC3:
-                    if (m_CommonData->m_NeedCV_8UC1 || m_CommonData->m_NeedCV_16UC1 ) {
-                        cuda::cvtColor(m_CommonData->m_imCaptureGpu, m_CommonData->m_imCapGpu8UC1, COLOR_RGB2GRAY);
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1); // Hmm scale up here?
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCaptureGpu.copyTo(m_CommonData->m_imCapGpu8UC3);
-                    }
-                    break;
-                default:
-                    m_Logger->error("Source format unsupported");
-                }
-
-                // And copy to Out Mats
-
-                if (m_CommonData->m_NeedCV_8UC1) {
-                    m_imOutGpu8UC1 = m_CommonData->m_imCapGpu8UC1;
-                }
-                if (m_CommonData->m_NeedCV_16UC1) {
-                    m_imOutGpu16UC1 = m_CommonData->m_imCapGpu16UC1;
-                }
-                //if (m_CommonData->m_NeedCV_32FC1) {
-                //    m_imOutGpu32FC1 = m_CommonData->m_imCapGpu32FC1;
-                //}
-                if (m_CommonData->m_NeedCV_8UC3) {
-                    m_imOutGpu8UC3 = m_CommonData->m_imCapGpu8UC3;
-                }
 #endif
-            }
-            else {
-                switch (nType) {
-                case CV_8UC1:
-                    if (m_CommonData->m_NeedCV_8UC1) {
-                        m_CommonData->m_imCap8UC1 = m_CommonData->m_imCapture;
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap16UC1, CV_16UC1, 256.0);
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC3, CV_8UC3);
-                    }
-                    break;
-                case CV_16UC1:
-                    if (m_CommonData->m_NeedCV_8UC1) {
-                        m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC1, CV_8UC1, 1.0 / 256);
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCap16UC1 = m_CommonData->m_imCapture;
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1);  
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCap8UC3, CV_8UC3, 1.0/256);
-                    }
-                    break;
-                case CV_8UC3:
-                    if (m_CommonData->m_NeedCV_8UC1 || m_CommonData->m_NeedCV_16UC1 ) {
-                        cv::cvtColor(m_CommonData->m_imCapture, m_CommonData->m_imCap8UC1, COLOR_RGB2GRAY);
-                    }
-                    if (m_CommonData->m_NeedCV_16UC1) {
-                        m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap16UC1, CV_16UC1, 256.0);
-                    }
-                    //if (m_CommonData->m_NeedCV_32FC1) {
-                    //    m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1); // Hmm scale up here?
-                    //}
-                    if (m_CommonData->m_NeedCV_8UC3) {
-                        m_CommonData->m_imCap8UC3 = m_CommonData->m_imCapture;
-                    }
-                    break;
-                default:
-                    m_Logger->error("Source format unsupported");
-                    break;
-                }
-
-                // And copy to Out Mats
-
-                if (m_CommonData->m_NeedCV_8UC1) {
-                    m_imOut8UC1 = m_CommonData->m_imCap8UC1;
-                }
-                if (m_CommonData->m_NeedCV_16UC1) {
-                    m_imOut16UC1 = m_CommonData->m_imCap16UC1;
-                }
-                //if (m_CommonData->m_NeedCV_32FC1) {
-                //    m_imOut32FC1 = m_CommonData->m_imCap32FC1;
-                //}
-                if (m_CommonData->m_NeedCV_8UC3) {
-                    m_imOut8UC3 = m_CommonData->m_imCap8UC3;
-                }
             }
         }
 
-
         // At the start of the loop, mark all buffers invalid
-        void ClearHaves()
+        void ResetImageCache()
         {
             m_CommonData->m_Have_CV_8UC1 = false;
             m_CommonData->m_Have_CV_8UC3 = false;
@@ -280,7 +138,7 @@ namespace openCVGraph
         // this routine copies the capture buffer to the requested format
         // and prevents duplicate copies from happening.
 
-        void CopyCaptureToFormat(bool cuda, int needFormat)
+        void EnsureFormatIsAvailable(bool cuda, int needFormat)
         {
             int nChannels = m_CommonData->m_imCapture.channels();
             int nDepth = m_CommonData->m_imCapture.depth();
@@ -345,7 +203,7 @@ namespace openCVGraph
                         break;
                     case CV_8UC3:
                         if (!m_CommonData->m_HaveGpu_CV_8UC3) {
-                            CopyCaptureToFormat(cuda, CV_8UC1);
+                            EnsureFormatIsAvailable(cuda, CV_8UC1);
                             cuda::cvtColor(m_CommonData->m_imCapGpu8UC1, m_CommonData->m_imCapGpu8UC3, COLOR_GRAY2RGB);
                             m_CommonData->m_HaveGpu_CV_8UC3 = true;
                         }
@@ -366,14 +224,14 @@ namespace openCVGraph
                         break;
                     case CV_16UC1:
                         if (!m_CommonData->m_HaveGpu_CV_16UC1) {
-                            CopyCaptureToFormat(cuda, CV_8UC1);
+                            EnsureFormatIsAvailable(cuda, CV_8UC1);
                             m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu16UC1, CV_16UC1, 256.0);
                             m_CommonData->m_HaveGpu_CV_16UC1 = true;
                         }                        
                         break;
                     case CV_32FC1:
                         if (!m_CommonData->m_HaveGpu_CV_32FC1) {
-                            CopyCaptureToFormat(cuda, CV_8UC1);
+                            EnsureFormatIsAvailable(cuda, CV_8UC1);
                             m_CommonData->m_imCapGpu8UC1.convertTo(m_CommonData->m_imCapGpu32FC1, CV_32FC1); // Hmm scale up here?
                             m_CommonData->m_HaveGpu_CV_32FC1 = true;
                         }
@@ -470,14 +328,14 @@ namespace openCVGraph
                         break;
                     case CV_16UC1:
                         if (!m_CommonData->m_Have_CV_16UC1) {
-                            CopyCaptureToFormat(cuda, CV_8UC1);
+                            EnsureFormatIsAvailable(cuda, CV_8UC1);
                             m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap16UC1, CV_16UC1, 256.0);
                             m_CommonData->m_Have_CV_16UC1 = true;
                         }
                         break;
                     case CV_32FC1:
                         if (!m_CommonData->m_Have_CV_32FC1) {
-                            CopyCaptureToFormat(cuda, CV_8UC1);
+                            EnsureFormatIsAvailable(cuda, CV_8UC1);
                             m_CommonData->m_imCap8UC1.convertTo(m_CommonData->m_imCap32FC1, CV_32FC1); // Hmm scale up here?
                             m_CommonData->m_Have_CV_32FC1 = true;
                         }

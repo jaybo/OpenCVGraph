@@ -26,10 +26,7 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
             m_UseCuda = graphData.m_UseCuda;            // Need this for a function which doesn't pass graphData!
-            if (m_Enabled) {
-                // Advertise the format(s) we need
-                graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            }
+
             return true;
         }
 
@@ -41,6 +38,7 @@ namespace openCVGraph
 
         ProcessResult ImageQC::process(GraphData& graphData) override
         {
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 cv::cuda::minMax(graphData.m_CommonData->m_imCapGpu16UC1, &m_dCapMin, &m_dCapMax);

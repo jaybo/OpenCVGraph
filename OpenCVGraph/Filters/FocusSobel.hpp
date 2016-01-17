@@ -23,7 +23,6 @@ namespace openCVGraph
         bool FocusSobel::init(GraphData& graphData) override
         {
             Filter::init(graphData);
-            graphData.m_CommonData->m_NeedCV_8UC1 = true;
 
             if (m_Enabled) {
                 if (m_showView) {
@@ -37,6 +36,8 @@ namespace openCVGraph
 
         ProcessResult FocusSobel::process(GraphData& graphData) override
         {
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
+
             if (graphData.m_UseCuda) {
                 Scalar s;
                 graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;

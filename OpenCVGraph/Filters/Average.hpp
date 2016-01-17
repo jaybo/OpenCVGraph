@@ -34,8 +34,6 @@ namespace openCVGraph
 
         ProcessResult Average::process(GraphData& graphData) override
         {
-            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32FC1);
-
             ProcessResult result = ProcessResult::Continue;  // Averaging filters return this to skip the rest of the loop
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
@@ -44,11 +42,11 @@ namespace openCVGraph
                 switch (m_StreamIn) {
                 case StreamIn::CaptureProcessed:
                     // bugbug todo, this ain't right!
-                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
                     src = graphData.m_CommonData->m_imCapGpu32FC1;
                     break;
                 case StreamIn::CaptureRaw:
-                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
                     src = graphData.m_CommonData->m_imCapGpu32FC1;
                     break;
                 case StreamIn::Out:
@@ -82,11 +80,11 @@ namespace openCVGraph
                 switch (m_StreamIn) {
                 case StreamIn::CaptureProcessed:
                     // bugbug todo, this ain't right!
-                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
                     src = graphData.m_CommonData->m_imCap32FC1;
                     break;
                 case StreamIn::CaptureRaw:
-                    graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
                     src = graphData.m_CommonData->m_imCap32FC1;
                     break;
                 case StreamIn::Out:
@@ -107,13 +105,10 @@ namespace openCVGraph
                         cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
                     }
                     m_imAverage32F.copyTo(graphData.m_imOut32FC1);
-                    if (graphData.m_CommonData->m_NeedCV_16UC1) {
-                        m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
-                    }
-                    if (graphData.m_CommonData->m_NeedCV_8UC1) {
-                        m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
-                    }
+                    m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
+                    m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
                     m_imAverage32F.setTo(Scalar(0));
+
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
 

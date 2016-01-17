@@ -41,13 +41,6 @@ namespace openCVGraph
             // call the base to read/write configs
             Filter::init(graphData);
 
-            //graphData.m_CommonData->m_NeedCV_16UC1 = true;
-
-            //// need 8 bit for our own view
-            //if (m_showView) {
-            //    graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            //}
-
             XI_RETURN stat;
             stat = xiOpenDevice(camera_index, &m_xiH);
             if (stat == XI_OK) {
@@ -149,7 +142,7 @@ namespace openCVGraph
                 // always bump up to full 16 bit range
                 //graphData.m_CommonData->m_imCapture *= 16;
 
-                graphData.CopyCaptureToRequiredFormats();
+                graphData.UploadCaptureToCuda();
             }
             else {
                 LogErrors(stat, "xiOpenDevice" + camera_index);
@@ -211,7 +204,7 @@ namespace openCVGraph
             // always bump up to full 16 bit range
             //graphData.m_CommonData->m_imCapture *= 16;
 
-            graphData.CopyCaptureToRequiredFormats();
+            graphData.UploadCaptureToCuda();
 
             if (m_focusMovementStepSize != 0) {
                 FocusStep();

@@ -28,8 +28,6 @@ namespace openCVGraph
         bool FocusFFT::init(GraphData& graphData) override
         {
             Filter::init(graphData);
-            graphData.m_CommonData->m_NeedCV_8UC1 = true;
-            graphData.m_CommonData->m_NeedCV_16UC1 = true;
 
             if (m_Enabled) {
                 if (m_showView) {
@@ -44,6 +42,9 @@ namespace openCVGraph
 
         ProcessResult FocusFFT::process(GraphData& graphData) override
         {
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
+
             int w = graphData.m_CommonData->m_imCapture.size().width;
             int h = graphData.m_CommonData->m_imCapture.size().height;
             Rect rCropped = Rect(Point(w/2 - m_DFTSize/2, h/2 - m_DFTSize/2), Size(m_DFTSize, m_DFTSize));
@@ -246,7 +247,7 @@ namespace openCVGraph
         };
 
         ImageToView m_ImageIndex;           // which image to view
-        int m_DFTSize = 512;
+        int m_DFTSize = 256;
         int m_Omega = 50;           // number of high frequency components to consider
         double m_FocusScore;
         double m_AstigmatismScore;

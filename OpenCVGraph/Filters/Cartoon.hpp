@@ -37,8 +37,8 @@ namespace openCVGraph
 
         ProcessResult Cartoon::process(GraphData& graphData) override
         {
-            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_8UC1);
-            graphData.CopyCaptureToFormat(graphData.m_UseCuda, CV_8UC3);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC3);
 
 
             if (graphData.m_UseCuda) {
