@@ -88,14 +88,14 @@ namespace openCVGraph
         cv::Mat m_imOut16UC1;             
         cv::Mat m_imOut32FC1;   
 
-        //cv::Mat m_imOut;
+        cv::Mat m_imOut;
 
         // Cuda!
         bool m_UseCuda = true;
 
 #ifdef WITH_CUDA
         // Cuda output Mats
-        //cv::cuda::GpuMat m_imOutGpu;
+        cv::cuda::GpuMat m_imOutGpu;
         cv::cuda::GpuMat m_imOutGpu8UC3;
         cv::cuda::GpuMat m_imOutGpu8UC1;
         cv::cuda::GpuMat m_imOutGpu16UC1;

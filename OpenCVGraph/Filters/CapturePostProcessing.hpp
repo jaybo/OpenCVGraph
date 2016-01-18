@@ -72,6 +72,8 @@ namespace openCVGraph
 
         ProcessResult CapturePostProcessing::process(GraphData& graphData) override
         {
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
+
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 // upshift
@@ -88,12 +90,18 @@ namespace openCVGraph
                     cuda::divide(m_imTemp32FGpu, m_imBrightMinusDarkFieldGpu32F, m_imTempGpu);
                     // Create the corrected image
                     m_imTempGpu.convertTo(graphData.m_CommonData->m_imCaptureCorrectedGpu, CV_16U, UINT16_MAX);
+                    graphData.m_CommonData->m_imCaptureCorrectedGpu.download(graphData.m_CommonData->m_imCaptureCorrected); // for FileWriter
+
+                    graphData.m_imOutGpu = graphData.m_CommonData->m_imCaptureCorrectedGpu;
+                }
+                else {
+                    graphData.m_imOutGpu = graphData.m_CommonData->m_imCapGpu16UC1;
                 }
 
-                graphData.m_imOutGpu16UC1.download(graphData.m_CommonData->m_imCaptureCorrected);
 
                 // Create Preview Image
                 if (m_DownsampleForJpgFactor != 0) {
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
                     if (m_DownsampleForJpgFactor == 1) {
                         graphData.m_CommonData->m_imCapGpu8UC1.download(graphData.m_CommonData->m_imPreview);
                     }
@@ -121,10 +129,15 @@ namespace openCVGraph
                     m_imTemp = m_imTemp32F / m_imBrightMinusDarkField32F;
 
                     m_imTemp.convertTo(graphData.m_CommonData->m_imCaptureCorrected, CV_16U, UINT16_MAX);
+                    graphData.m_imOut = graphData.m_CommonData->m_imCaptureCorrected;
+                }
+                else {
+                    graphData.m_imOut = graphData.m_CommonData->m_imCaptureCorrected;
                 }
 
                 // Create Preview Image
                 if (m_DownsampleForJpgFactor != 0) {
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
                     if (m_DownsampleForJpgFactor == 1) {
                         graphData.m_CommonData->m_imPreview = graphData.m_CommonData->m_imCap8UC1;
                     }
@@ -133,8 +146,6 @@ namespace openCVGraph
                             graphData.m_CommonData->m_imCaptureCorrected.size() / m_DownsampleForJpgFactor, 0, 0, CV_INTER_NN);
                     }
                 }
-
-                graphData.m_imOut16UC1.copyTo(graphData.m_CommonData->m_imCaptureCorrected);
             }
 
             return ProcessResult::OK;  // if you return false, the graph stops
