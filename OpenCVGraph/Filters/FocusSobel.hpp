@@ -36,7 +36,7 @@ namespace openCVGraph
 
         ProcessResult FocusSobel::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
 
             if (graphData.m_UseCuda) {
                 Scalar s;

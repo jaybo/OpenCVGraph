@@ -37,16 +37,15 @@ namespace openCVGraph
 
         ProcessResult Cartoon::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC3);
-
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC3, false);
 
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 cuda::GpuMat src;
 
                 switch (m_StreamIn) {
-                case StreamIn::CaptureProcessed:
+                case StreamIn::Corrected:
                 case StreamIn::CaptureRaw:
                     src = graphData.m_CommonData->m_imCapGpu8UC3;
                     break;
@@ -84,7 +83,7 @@ namespace openCVGraph
                 Mat src, tmp;
 
                 switch (m_StreamIn) {
-                case StreamIn::CaptureProcessed:
+                case StreamIn::Corrected:
                 case StreamIn::CaptureRaw:
                     src = graphData.m_CommonData->m_imCap8UC3;
                     break;

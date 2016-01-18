@@ -42,8 +42,8 @@ namespace openCVGraph
 
         ProcessResult FocusFFT::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
 
             int w = graphData.m_CommonData->m_imCapture.size().width;
             int h = graphData.m_CommonData->m_imCapture.size().height;

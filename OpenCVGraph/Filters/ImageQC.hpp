@@ -38,8 +38,9 @@ namespace openCVGraph
 
         ProcessResult ImageQC::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1);
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, true);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, true);
+
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 cv::cuda::minMax(graphData.m_CommonData->m_imCapGpu16UC1, &m_dCapMin, &m_dCapMax);

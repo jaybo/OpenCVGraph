@@ -53,7 +53,7 @@ namespace openCVGraph
         {
             Mat src;
 
-            if (m_WriteNextImage && !(m_UseCaptureCorrected ? graphData.m_CommonData->m_imCaptureCorrected : 
+            if (m_WriteNextImage && !(m_UseCaptureCorrected ? graphData.m_CommonData->m_imCorrected : 
                 graphData.m_CommonData->m_imCapture).empty()) {
                 string fullName;
                 if (m_UseSourceFileName && !graphData.m_CommonData->m_SourceFileName.empty()) {
@@ -73,7 +73,7 @@ namespace openCVGraph
                     259,1,      // No compression, turn off LZW
                     279, 64     // Rows per strip (doesn't seem to affect perf - why not?)
                 };
-                imwrite(fullName, m_UseCaptureCorrected ? graphData.m_CommonData->m_imCaptureCorrected : graphData.m_CommonData->m_imCapture, params);
+                imwrite(fullName, m_UseCaptureCorrected ? graphData.m_CommonData->m_imCorrected : graphData.m_CommonData->m_imCapture, params);
 
                 if (m_WriteOnKeyHit != "") {
                     m_WriteNextImage = false;

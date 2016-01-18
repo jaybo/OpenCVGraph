@@ -33,7 +33,7 @@ namespace openCVGraph
         // Do all of the work here.
         ProcessResult Simple::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(false, CV_16UC1);
+            graphData.EnsureFormatIsAvailable(false, CV_16UC1, false);
             graphData.m_CommonData->m_imCap16UC1.copyTo(graphData.m_imOut16UC1);
 
             // shift 12 bit images up to full 16 bit resolution

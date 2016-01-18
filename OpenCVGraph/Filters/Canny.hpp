@@ -34,7 +34,7 @@ namespace openCVGraph
 
         ProcessResult Canny::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 auto canny = cuda::createCannyEdgeDetector(m_Threshold1, m_Threshold2);

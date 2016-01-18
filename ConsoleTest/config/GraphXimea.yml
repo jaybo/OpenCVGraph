@@ -3,7 +3,7 @@ GraphManager:
    Enabled: 1
    # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
    LogLevel: 2
-   FPS: "3.37"
+   FPS: "2.66"
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 1
@@ -13,16 +13,16 @@ CamXimea:
    ShowViewControls: 1
    ZoomViewLockIndex: 0
    UseCaptureCorrectedStream: 0
-   Duration_MS_Mean: "97.0"
-   Duration_MS_Min: "96.2"
-   Duration_MS_Max: "98.2"
-   Duration_MS_Last: "97.3"
+   Duration_MS_Mean: "94.7"
+   Duration_MS_Min: "94.3"
+   Duration_MS_Max: "95.8"
+   Duration_MS_Last: "94.7"
    camera_index: 0
    trigger_software: 1
    minimum_buffers: 1
    aperture: 0
    minFocusMovementValue: 2
-   exposure: 2901
+   exposure: 2028
    exposureSliderMax: 10000
    gain: 0
    gainSliderMax: 10000
@@ -36,9 +36,9 @@ CapturePostProcessing:
    ShowViewControls: 1
    ZoomViewLockIndex: 0
    UseCaptureCorrectedStream: 0
-   Duration_MS_Mean: "53.0"
-   Duration_MS_Min: "40.6"
-   Duration_MS_Max: "358.1"
+   Duration_MS_Mean: "49.1"
+   Duration_MS_Min: "40.9"
+   Duration_MS_Max: "348.7"
    Duration_MS_Last: "41.2"
    correction_bright_dark: 1
    correction_upshift4bits: 1
@@ -51,10 +51,10 @@ QC:
    ShowViewControls: 0
    ZoomViewLockIndex: 0
    UseCaptureCorrectedStream: 0
-   Duration_MS_Mean: "10.0"
-   Duration_MS_Min: "9.5"
-   Duration_MS_Max: "11.2"
-   Duration_MS_Last: "9.6"
+   Duration_MS_Mean: "9.3"
+   Duration_MS_Min: "8.8"
+   Duration_MS_Max: "13.5"
+   Duration_MS_Last: "9.3"
 Stats:
    IsEnabled: 0
    ShowView: 0
@@ -72,13 +72,35 @@ FocusFFT:
    ShowViewControls: 1
    ZoomViewLockIndex: 8
    UseCaptureCorrectedStream: 0
-   Duration_MS_Mean: "21.1"
+   Duration_MS_Mean: "21.0"
    Duration_MS_Min: "20.8"
-   Duration_MS_Max: "21.7"
-   Duration_MS_Last: "21.5"
+   Duration_MS_Max: "21.4"
+   Duration_MS_Last: "21.0"
    # Power of 2 (256, 512, 1024, 2048)
    dft_size: 256
    omega: 102
+FocusSobel:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   UseCaptureCorrectedStream: 1
+   Duration_MS_Mean: "18.1"
+   Duration_MS_Min: "17.2"
+   Duration_MS_Max: "19.0"
+   Duration_MS_Last: "17.7"
+   kernel_size: 3
+FocusLaplace:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   UseCaptureCorrectedStream: 1
+   Duration_MS_Mean: "16.2"
+   Duration_MS_Min: "15.9"
+   Duration_MS_Max: "19.8"
+   Duration_MS_Last: "16.0"
+   kernel_size: 3
 Canny:
    IsEnabled: 0
    ShowView: 1
@@ -97,10 +119,10 @@ FileWriter:
    ShowViewControls: 0
    ZoomViewLockIndex: 0
    UseCaptureCorrectedStream: 1
-   Duration_MS_Mean: "49.8"
-   Duration_MS_Min: "48.1"
-   Duration_MS_Max: "54.0"
-   Duration_MS_Last: "49.9"
+   Duration_MS_Mean: "39.3"
+   Duration_MS_Min: "35.1"
+   Duration_MS_Max: "103.8"
+   Duration_MS_Last: "37.7"
    directory: "J:/junk"
    baseFileName: test
    ext: ".tif"

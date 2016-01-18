@@ -200,7 +200,7 @@ namespace openCVGraph
         {
             m_firstTime = false;
 
-            graphData.EnsureFormatIsAvailable(m_UseCuda, CV_32FC1);
+            graphData.EnsureFormatIsAvailable(m_UseCuda, CV_32FC1, false);
 
             // let the camera stabilize
             // if (graphData.m_FrameNumber < 2) return true;

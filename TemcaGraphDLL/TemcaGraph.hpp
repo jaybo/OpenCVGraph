@@ -104,7 +104,7 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, m_graphCommonData, false);
 
-        CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), StreamIn::CaptureProcessed));
+        CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), StreamIn::Corrected));
         graph->AddFilter(fileWriter);
 
         return graph;
@@ -119,7 +119,7 @@ private:
         CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(filter);
 
-        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::CaptureProcessed, 512, 512));
+        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
         graph->AddFilter(fFocusFFT);
 
 #endif

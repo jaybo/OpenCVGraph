@@ -40,13 +40,12 @@ namespace openCVGraph
                 cuda::GpuMat src;
                     
                 switch (m_StreamIn) {
-                case StreamIn::CaptureProcessed:
-                    // bugbug todo, this ain't right!
-                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
-                    src = graphData.m_CommonData->m_imCapGpu32FC1;
+                case StreamIn::Corrected:
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, true);
+                    src = graphData.m_CommonData->m_imCorrectedGpu32FC1;
                     break;
                 case StreamIn::CaptureRaw:
-                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, false);
                     src = graphData.m_CommonData->m_imCapGpu32FC1;
                     break;
                 case StreamIn::Out:
@@ -78,17 +77,16 @@ namespace openCVGraph
                 Mat src;
 
                 switch (m_StreamIn) {
-                case StreamIn::CaptureProcessed:
-                    // bugbug todo, this ain't right!
-                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
-                    src = graphData.m_CommonData->m_imCap32FC1;
+                case StreamIn::Corrected:
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, true);
+                    src = graphData.m_CommonData->m_imCorrected32FC1;
                     break;
                 case StreamIn::CaptureRaw:
-                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, false);
                     src = graphData.m_CommonData->m_imCap32FC1;
                     break;
                 case StreamIn::Out:
-                    src = graphData.m_imOut32FC1;
+                    src = graphData.m_imOut;
                     break;
                 }
 
@@ -104,9 +102,7 @@ namespace openCVGraph
                     if (m_FramesToAverage > 1) {
                         cv::divide(m_imAverage32F, Scalar(m_FramesToAverage), m_imAverage32F);
                     }
-                    m_imAverage32F.copyTo(graphData.m_imOut32FC1);
-                    m_imAverage32F.convertTo(graphData.m_imOut16UC1, CV_16U);
-                    m_imAverage32F.convertTo(graphData.m_imOut8UC1, CV_8U, 1.0 / 256);
+                    m_imAverage32F.copyTo(graphData.m_imOut);
                     m_imAverage32F.setTo(Scalar(0));
 
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
