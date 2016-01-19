@@ -60,10 +60,6 @@ private:
         CvFilter camera(new CamXimea("CamXimea", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(camera);
 
-#ifdef WITH_CUDA
-        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
-        graph->AddFilter(fbrightDark);
-#endif
         return graph;
     }
 
@@ -75,10 +71,6 @@ private:
         CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512));
         graph->AddFilter(camera);
 
-#ifdef WITH_CUDA
-        CvFilter fbrightDark(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
-        graph->AddFilter(fbrightDark);
-#endif
         return graph;
     }
 
@@ -92,10 +84,9 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, m_graphCommonData);
 
-#ifdef WITH_CUDA
         CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(fCapPost);
-#endif
+
         return graph;
     }
 
@@ -115,17 +106,23 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, m_graphCommonData, true);
 
-#ifdef WITH_CUDA
         CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(filter);
+
+        return graph;
+    }
+
+
+    GraphManager* CreateGraphFocus()
+    {
+        // Create a graph
+        GraphManager *graph = new GraphManager("GraphFocus", true, graphCallback, m_graphCommonData, true);
 
         CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
         graph->AddFilter(fFocusFFT);
 
-#endif
         return graph;
     }
-
 
     GraphManager* CreateGraphStitchingCheck()
     {
@@ -177,6 +174,7 @@ public:
         }
     }
 
+#if foo
     bool init(bool fDummyCamera, StatusCallbackType callback)
     {
         m_fDummyCamera = fDummyCamera;
@@ -187,10 +185,11 @@ public:
         m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
         m_gmFileWriter = CreateGraphFileWriter();
         m_gmQC = CreateGraphQC();
+        m_gmFocus = CreateGraphFocus();
         m_gmStitchingCheck = CreateGraphStitchingCheck();
 
         m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmFocus, m_gmQC, m_gmStitchingCheck });
 
         // Create a list of all steps
         m_Steps.push_back(m_StepCapture);
@@ -213,6 +212,7 @@ public:
 
         return fOK;
     }
+#endif
 
     // Sets the overall mode of operation for the Temca graph.
     //    Each mode reconfigures or deactivates parts of the overall temca graph.
@@ -226,61 +226,105 @@ public:
     //    preview :       ximea, lshift4,
     //    auto_exposure : ximea, lshift4,          QC
 
+    bool init (bool fDummyCamera, StatusCallbackType callback)
+    {
+        m_fDummyCamera = fDummyCamera;
+
+        bool fOK = true;
+        m_PythonCallback = callback;
+
+        // Create the single capture graph containing the camera
+        m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
+
+        //
+        // The singular capture step, which is always in use
+        //
+        
+        m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> () =
+        { 
+                m_gmCapture 
+        });
+        m_AllSteps.push_back(m_StepCapture); // always only one capture step
+
+        //
+        // Main TEMCA CAPTURE steps
+        //
+        m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaSync", list<GraphManager*> () =
+        {
+                CreateGraphCapturePostprocessing(),
+                CreateGraphFileWriter(),
+                CreateGraphQC(),
+                CreateGraphFocus(),
+        }));
+        m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaAsync", list<GraphManager*> () =
+        {
+            CreateGraphStitchingCheck(),
+        }, -1, true /*runAsync*/));
+        m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureTemca.begin(), m_StepsPostCaptureTemca.end());
+
+        //
+        // Preview Steps
+        //
+        m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*> () =
+        {
+            CreateGraphCapturePostprocessing(),
+        }));
+        m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCapturePreview.begin(), m_StepsPostCapturePreview.end());
+
+        //
+        // Test with Delay Steps
+        //
+        m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelaySync", list<GraphManager*> () =
+        {
+            CreateGraphDelay("DelaySync", 2000),
+        }));
+        m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelayAsync", list<GraphManager*> () =
+        {
+            CreateGraphDelay("DelayAsync", 2000),
+        }, -1, true /*runAsync*/));
+        m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureDelayTest.begin(), m_StepsPostCaptureDelayTest.end());
+
+        // init all of the steps
+        for (auto step : m_AllSteps) {
+            fOK = step->init();
+            if (!fOK) {
+                m_Logger->error("init of " + step->GetName() + " failed!");
+                return fOK;
+            }
+        }
+
+        m_StepsPostCapture = m_StepsPostCaptureTemca;
+        
+        setMode("temca");
+
+        return fOK;
+    }
+
     bool setMode(const char * graphType)
     {
         bool fOK = true;
         string sGraphType(graphType);
 
-        // Create the graphs
+        // Select a sequence of steps to run
         if (sGraphType == "temca") {
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
+            m_StepsPostCapture = m_StepsPostCaptureTemca;
         }
-        else if (sGraphType == "dummy") {
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmQC, m_gmStitchingCheck });
-            // ... could have more steps here
-        }
-        else if (sGraphType == "camera_only") {
-            //m_gmCapture = GraphCamXimea(m_graphCommonData, false);  // no CapturePostProcessing
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> {});
+        else if (sGraphType == "preview") {
+            m_StepsPostCapture = m_StepsPostCapturePreview;
         }
         else if (sGraphType == "delay") {
-            // Experiment with adding delays at various points in the graph
-            auto g1 = CreateGraphDelay("DelayCap", 2000);
-            // fake out QC and Stitching
-            auto g2 = CreateGraphDelay("Delay1", 2000);
-            auto g3 = CreateGraphDelay("Delay2", 2000);
-
-            // Each step runs to completion.  
-            // Each graph in a step runs in parallel with other graphs in the step.
-            m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { g1 });
-            m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { g2, g3 });
+            m_StepsPostCapture = m_StepsPostCaptureDelayTest;
         }
 
-        // Create a list of all steps
-        m_Steps.push_back(m_StepCapture);
-        m_Steps.push_back(m_StepPostCapture);
-
-        // and just those steps following capture
-        m_StepsPostCapture.push_back(m_StepPostCapture);
+        // ITemcaCamera, ITemcaFocus, etc..
+        FindTemcaInterfaces();
 
         return fOK;
     }
 
     void fini() {
         bool fOK = true;
-        for (auto step : m_Steps) {
+        for (auto step : m_AllSteps) {
             fOK = step->fini();
             if (!fOK) {
                 m_Logger->error("fini of " + step->GetName() + " failed!");
@@ -372,7 +416,7 @@ public:
     // ITemcaFocus 
     // ------------------------------------------------
     FocusInfo getFocusInfo() {
-        FocusInfo info;
+        FocusInfo info = {0};
         if (m_ITemcaFocus) {
             info = m_ITemcaFocus->getFocusInfo();
         }
@@ -383,7 +427,7 @@ public:
     // ITemcaQC
     // ------------------------------------------------
     QCInfo getQCInfo() {
-        QCInfo info;
+        QCInfo info = {0};
         if (m_ITemcaQC) {
             info = m_ITemcaQC->getQCInfo();
         }
@@ -396,18 +440,22 @@ private:
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
     GraphManager* m_gmCapture = NULL;
-    GraphManager* m_gmFileWriter = NULL;
-    GraphManager* m_gmQC = NULL;
-    GraphManager* m_gmStitchingCheck = NULL;
 
     GraphCommonData *m_graphCommonData = new GraphCommonData();
 
     // Bundled graphs which step together
     GraphParallelStep* m_StepCapture = NULL;
-    GraphParallelStep* m_StepPostCapture = NULL;
+    //GraphParallelStep* m_StepPostCapture = NULL;
 
-    std::list<GraphParallelStep*> m_Steps;
+    std::list<GraphParallelStep*> m_AllSteps;
+
     std::list<GraphParallelStep*> m_StepsPostCapture;
+
+    std::list<GraphParallelStep*> m_StepsPostCaptureTemca;
+    std::list<GraphParallelStep*> m_StepsPostCaptureRaw;
+    std::list<GraphParallelStep*> m_StepsPostCapturePreview;
+    std::list<GraphParallelStep*> m_StepsPostCaptureFocus;
+    std::list<GraphParallelStep*> m_StepsPostCaptureDelayTest;
 
     bool m_Enabled = true;
     std::atomic_bool m_Aborting = false;
@@ -434,9 +482,15 @@ private:
     StatusCallbackInfo m_PythonInfo = { 0 };
     StatusCallbackType m_PythonCallback = NULL;
 
+    // Find the control interfaces which may shift between filters and graphs 
+    // as the configurations change
     void FindTemcaInterfaces()
     {
-        for (auto step : m_Steps) {
+        m_ITemcaCamera = NULL;
+        m_ITemcaQC = NULL;
+        m_ITemcaFocus = NULL;
+
+        for (auto step : m_AllSteps) {
             for (auto graph : step->m_Graphs) {
                 for (auto processor : graph->GetFilters()) {
                     // the next line took me 2 hours to figure out!!!
@@ -528,21 +582,21 @@ private:
                             fOK &= PythonCallback(CaptureFinished, 0, "");
 
                             // Verify all downstream ASYNC steps have finished from the LAST capture (overlapped case)
-                            for (auto step : m_StepsPostCapture) {
-                                if (fOK) {
-                                    if (step->RunningAsync()) {
-                                        if (!(fOK &= step->WaitStepCompletion())) {
-                                            s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
-                                            m_Logger->error(s);
-                                            PythonCallback(FatalError, 0, s.c_str());
-                                            m_Aborting = true;
-                                            break;
-                                        }
-                                        else {
-                                        }
-                                    }
-                                }
-                            }
+                            //for (auto step : m_StepsPostCapture) {
+                            //    if (fOK) {
+                            //        if (step->RunningAsync()) {
+                            //            if (!(fOK &= step->WaitStepCompletion())) {
+                            //                s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
+                            //                m_Logger->error(s);
+                            //                PythonCallback(FatalError, 0, s.c_str());
+                            //                m_Aborting = true;
+                            //                break;
+                            //            }
+                            //            else {
+                            //            }
+                            //        }
+                            //    }
+                            //}
                             //PythonCallback(AsyncStepCompleted, 0, s.c_str());
 
                             // step all of the post capture steps
