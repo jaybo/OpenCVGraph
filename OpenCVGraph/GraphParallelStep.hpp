@@ -92,6 +92,21 @@ namespace openCVGraph
             return fOK;
         }
 
+        // Check to see if all graphs in a step have completed their work
+        bool AllGraphsHaveStepped()
+        {
+            bool fOK = true;
+            for (auto& graph : m_Graphs)
+            {
+                if (graph->IsEnabled()) {
+                    fOK &= graph->CompletedStep();
+                }
+            }
+
+            return fOK;
+        }
+
+
         string & GetName() { return m_Name; }
 
         int GetCompletionEventId() { return m_CompletionEventId; }

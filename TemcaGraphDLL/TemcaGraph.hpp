@@ -519,6 +519,19 @@ private:
                             // fire finished capture event
                             fOK &= PythonCallback(CaptureFinished, 0, "");
 
+                            // Verify all downstream steps have finished from the LAST capture (overlapped case)
+                            for (auto step : m_StepsPostCapture) {
+                                if (fOK) {
+                                    if (!(fOK &= step->WaitStepCompletion())) {
+                                        s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
+                                        m_Logger->error(s);
+                                        PythonCallback(FatalError, 0, s.c_str());
+                                        m_Aborting = true;
+                                        break;
+                                    }
+                                }
+                            }
+
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
                                 if (!(fOK &= step->Step())) {
