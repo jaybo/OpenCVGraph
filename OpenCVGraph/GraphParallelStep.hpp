@@ -15,11 +15,15 @@ namespace openCVGraph
     class  GraphParallelStep {
     public:
 
-        GraphParallelStep(string name, list<GraphManager *> graphs, int completionEventId = -1, bool waitForCompletion = true) {
+        GraphParallelStep(string name, 
+            list<GraphManager *> graphs, 
+            int completionEventId = -1, 
+            bool runAsync = false) 
+        {
             m_Name = name;
             m_Graphs = graphs;
             m_CompletionEventId = completionEventId;
-            m_WaitForCompletion = waitForCompletion;
+            m_RunAsync = runAsync;
         }
 
         // Start the thread for each graph and then go to the "Pause" state
@@ -75,7 +79,7 @@ namespace openCVGraph
         bool WaitStepCompletion()
         {
             bool fOK = true;
-            if (m_WaitForCompletion) {
+            if (m_RunAsync) {
                 // Wait for them all to complete
                 for (auto& graph : m_Graphs)
                 {
@@ -106,17 +110,18 @@ namespace openCVGraph
             return fOK;
         }
 
-
         string & GetName() { return m_Name; }
 
         int GetCompletionEventId() { return m_CompletionEventId; }
 
         list<GraphManager *> m_Graphs;
 
+        bool RunningAsync() { return m_RunAsync; }
+
     private:
         string m_Name;
         bool m_Initialized = false;
-        bool m_WaitForCompletion;       // if True, wait for completion of graph
+        bool m_RunAsync;                // if True, allow overlap with capture step
         int m_CompletionEventId;        // Id of Event fired when graph step completes
     };
 }

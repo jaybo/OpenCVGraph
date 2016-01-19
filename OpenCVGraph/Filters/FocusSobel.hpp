@@ -39,6 +39,7 @@ namespace openCVGraph
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
 
             if (graphData.m_UseCuda) {
+#if WITH_CUDA
                 Scalar s;
                 graphData.m_imOutGpu = graphData.m_CommonData->m_imCaptureGpu16UC1;
                 auto nPoints = graphData.m_CommonData->m_imCaptureGpu16UC1.size().area();
@@ -56,6 +57,9 @@ namespace openCVGraph
                 meanY = s[0] / nPoints;
 
                 meanXY = (meanX + meanY) / 2;
+#else
+                assert(0);
+#endif
             }
             else {
                 cv::Sobel(graphData.m_CommonData->m_imCapture, m_imSx,
@@ -117,7 +121,9 @@ namespace openCVGraph
         Mat m_imSx;
         Mat m_imSy;
         double meanX, meanY, meanXY;
+#ifdef WITH_CUDA
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
+#endif
         int m_kSize = 3;
 
         static void FocusSobel::SliderCallback(int pos, void * userData) {

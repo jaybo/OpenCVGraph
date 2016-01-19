@@ -1,8 +1,8 @@
 #pragma once
 
 typedef struct tStatusCallbackInfo {
-    int status; // -1: fatal error, 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
-    int error_code; // 0: OK, 
+    int status;         // -1: fatal error, 0: init complete, 1: grab complete (move stage), 2: graph complete, -1: error, see error_string
+    int info_code;      //  
     char error_string[256];
 } StatusCallbackInfo;
 

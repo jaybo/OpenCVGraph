@@ -26,9 +26,12 @@ class StatusCallbackInfo(Structure):
         # 0: finishied init (startup), 
         # 1: starting new frame, 
         # 2: finished frame capture  (ie. time to move the stage), 
-        # 3: finished frame processing and file writing, 
-        # 4: finished fini (shutdown)
-        ("error_code", c_int),
+        # 3: Sync step completed 
+        # 4: Async step completed
+        # 5: Processing finished (except Async graphs)
+        # 6: Shutdown finished
+        ("info_code", c_int),
+        # value indicates which sync or async step completed
         ("error_string", c_char * 256)
         ]
 
@@ -119,6 +122,8 @@ class TemcaGraph(object):
         self.eventInitCompleted = threading.Event()
         self.eventStartNewFrame = threading.Event()
         self.eventCaptureCompleted = threading.Event()
+        self.eventSyncProcessingCompleted = threading.Event()
+        self.eventAsyncProcessingCompleted = threading.Event()
         self.eventProcessingCompleted = threading.Event()
         self.eventFiniCompleted = threading.Event()
 
@@ -194,17 +199,18 @@ class TemcaGraph(object):
     def statusCallback (self, statusInfo):
         ''' Called by the c++ Temca graph runner whenever status changes:
             status values:
-               -1: fatal error
-                0: finishied init (startup)
-                1: starting new frame
-                2: finished frame capture  (ie. time to move the stage)
-                3: finished frame processing and file writing
-                4: finished fini (shutdown)
-                ...
+            # -1 : fatal error
+            # 0: finishied init (startup), 
+            # 1: starting new frame, 
+            # 2: finished frame capture  (ie. time to move the stage), 
+            # 3: Sync step completed 
+            # 4: Async step completed
+            # 5: Processing finished (except Async graphs)
+            # 6: Shutdown finished
         '''
         status = statusInfo.contents.status
-        error = statusInfo.contents.error_code
-        logging.info ('callback status: ' + str(status) + ', error: ' + str(error))
+        info = statusInfo.contents.info_code
+        logging.info ('callback status: ' + str(status) + ', info: ' + str(info))
         tid = threading.currentThread()
         if (status == -1):
             self.aborting = True
@@ -215,19 +221,27 @@ class TemcaGraph(object):
             # finished initialization of all graphs
             self.eventInitCompleted.set()
         elif status == 1:
-            # ready to start the next frame
+            # ready to start the next frame (start of the loop)
             self.eventProcessingCompleted.clear()
+            self.eventSyncProcessingCompleted.clear()
             self.eventStartNewFrame.set()
         elif status == 2:
-            # capture frame is now available
+            # capture completed
             # (move the stage now)
             self.eventCaptureCompleted.set()
         elif status == 3:
-            # all processing for the frame is complete
+            # all synchronous processing for the frame is complete
+            self.eventSyncProcessingCompleted.set()
+        elif status == 4:
+            # all asynchronous processing for the frame is complete
+            self.eventAsyncProcessingCompleted.set()
+            self.eventAsyncProcessingCompleted.clear()
+        elif status == 5:
+            # all synchronous processing for the frame is complete
             self.eventCaptureCompleted.clear()
             self.eventStartNewFrame.clear()
             self.eventProcessingCompleted.set()
-        elif status == 4:
+        elif status == 6:
             # graph is finished all processing. Close app.
             self.eventFiniCompleted.set()
         return True

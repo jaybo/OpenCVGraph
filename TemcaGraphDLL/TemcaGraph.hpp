@@ -464,7 +464,7 @@ private:
         bool fOK = true;
         if (m_PythonCallback) {
             m_PythonInfo.status = status;
-            m_PythonInfo.error_code = error;
+            m_PythonInfo.info_code = error;
             strcpy_s(m_PythonInfo.error_string, errorString);
             // Keep going if the python callback returns True
             fOK = ((m_PythonCallback)(&m_PythonInfo) != 0);
@@ -473,15 +473,21 @@ private:
     }
 
     enum StatusCodes {
-        FatalError = -1,
-        InitFinished = 0,
-        StartNewFrame = 1,
-        CaptureFinished = 2,
-        ProcessingFinished = 3,
-        ShutdownFinished = 4
+        FatalError = -1,            // Aborting processing loop.
+        InitFinished = 0,           // Ready to party, dude!
+        StartNewFrame = 1,          // Ready for client to issue get_image()
+        CaptureFinished = 2,        // Capture completed, ready to step the stage
+        SyncStepCompleted = 3,      // A synchronous processing step post capture has completed
+        AsyncStepCompleted = 4,     // An asynchronous processing step post capture has completed
+        ProcessingFinished = 5,     // At the end of the loop.  All steps except ASYNC steps have completed
+        ShutdownFinished = 6        // Police just showed up.
     };
 
     // The main capture loop
+    // After the capture step, there are two kinds of additional steps:
+    //   Async - which can run until the END of the next capture.
+    //   Sync - which are awaited in the loop.
+
     bool ProcessLoop()
     {
         bool fOK = true;
@@ -502,6 +508,7 @@ private:
 
                 if (!m_Aborting) {
 
+                    // Step CAPTURE
                     if (!(fOK = m_StepCapture->Step())) {
                         s = m_StepCapture->GetName() + " failed Capture Step.";
                         m_Logger->error(s);
@@ -509,6 +516,7 @@ private:
                         m_Aborting = true;
                     }
                     else {
+                        // Wait for CAPTURE to complete
                         if (!(fOK &= m_StepCapture->WaitStepCompletion())) {
                             s = m_StepCapture->GetName() + " Capture WaitStepCompletion.";
                             m_Logger->error(s);
@@ -519,18 +527,23 @@ private:
                             // fire finished capture event
                             fOK &= PythonCallback(CaptureFinished, 0, "");
 
-                            // Verify all downstream steps have finished from the LAST capture (overlapped case)
+                            // Verify all downstream ASYNC steps have finished from the LAST capture (overlapped case)
                             for (auto step : m_StepsPostCapture) {
                                 if (fOK) {
-                                    if (!(fOK &= step->WaitStepCompletion())) {
-                                        s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
-                                        m_Logger->error(s);
-                                        PythonCallback(FatalError, 0, s.c_str());
-                                        m_Aborting = true;
-                                        break;
+                                    if (step->RunningAsync()) {
+                                        if (!(fOK &= step->WaitStepCompletion())) {
+                                            s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
+                                            m_Logger->error(s);
+                                            PythonCallback(FatalError, 0, s.c_str());
+                                            m_Aborting = true;
+                                            break;
+                                        }
+                                        else {
+                                        }
                                     }
                                 }
                             }
+                            //PythonCallback(AsyncStepCompleted, 0, s.c_str());
 
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
@@ -551,6 +564,10 @@ private:
                                         PythonCallback(FatalError, 0, s.c_str());
                                         m_Aborting = true;
                                         break;
+                                    }
+                                    else {
+                                        // todo PythonCallback(SyncStepCompleted, 0, s.c_str());
+
                                     }
                                 }
                             }
