@@ -34,10 +34,10 @@ namespace openCVGraph
         ProcessResult Simple::process(GraphData& graphData) override
         {
             graphData.EnsureFormatIsAvailable(false, CV_16UC1, false);
-            graphData.m_CommonData->m_imCap16UC1.copyTo(graphData.m_imOut16UC1);
+            graphData.m_CommonData->m_imCapture16UC1.copyTo(graphData.m_imOut);
 
             // shift 12 bit images up to full 16 bit resolution
-            // graphData.m_imOut16UC1 = 4 * graphData.m_CommonData->m_imCap16UC1;
+            // graphData.m_imOut16UC1 = 4 * graphData.m_CommonData->m_imOut;
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }
@@ -47,7 +47,7 @@ namespace openCVGraph
         void Simple::processView(GraphData& graphData) override
         {
             if (m_showView) {
-                m_imView = graphData.m_imOut16UC1;
+                m_imView = graphData.m_imOut;
                 Filter::processView(graphData);
             }
         }

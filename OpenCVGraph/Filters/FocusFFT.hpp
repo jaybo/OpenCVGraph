@@ -51,7 +51,7 @@ namespace openCVGraph
 
             // if (graphData.m_UseCuda) {
             if (false) {
-                cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCapGpu16UC1, rCropped);
+                cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCaptureGpu16UC1, rCropped);
 
                 /*Mat I = Mat_<float>(IC);*/
                 cuda::GpuMat I;
@@ -116,12 +116,12 @@ namespace openCVGraph
                 
                 // http://docs.opencv.org/master/d8/d01/tutorial_discrete_fourier_transform.html#gsc.tab=0 
 
-                if (graphData.m_CommonData->m_imCap16UC1.empty())
+                if (graphData.m_CommonData->m_imCapture16UC1.empty())
                 {
-                    graphData.m_CommonData->m_imCap16UC1 = graphData.m_CommonData->m_imCapture;
+                    graphData.m_CommonData->m_imCapture16UC1 = graphData.m_CommonData->m_imCapture;
                 }
 
-                Mat IC = Mat(graphData.m_CommonData->m_imCap16UC1, rCropped);
+                Mat IC = Mat(graphData.m_CommonData->m_imCapture16UC1, rCropped);
                 
                 /*Mat I = Mat_<float>(IC);*/
                 Mat I;

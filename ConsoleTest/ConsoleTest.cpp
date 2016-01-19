@@ -170,8 +170,11 @@ void GraphXimea()
     CvFilter canny(new openCVGraph::Canny("Canny", *gd));
     graph.AddFilter(canny);
 
-    //CvFilter fpSimple(new Simple("Simple", *gd));
-    //graph.AddFilter(fpSimple);
+    //CvFilter cartoon1(new openCVGraph::Cartoon("Cartoon1", *gd));
+    //graph.AddFilter(cartoon1);
+
+    CvFilter fpSimple(new Simple("Simple", *gd));
+    graph.AddFilter(fpSimple);
 
     CvFilter fileWriter(new FileWriter("FileWriter", *gd, StreamIn::CaptureRaw));
     graph.AddFilter(fileWriter);
@@ -196,8 +199,8 @@ int main()
 
 #ifdef WITH_CUDA
     //xiSample();
-    GraphWebCam();
-    //GraphXimea();
+    // GraphWebCam();
+    GraphXimea();
 #else
     GraphWebCam();
 #endif

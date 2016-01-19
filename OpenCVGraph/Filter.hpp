@@ -17,6 +17,7 @@ namespace openCVGraph
         Continue,       // GoTo beginning of the loop.  Averaging filters will issue this result until they've accumulated enough images.
     };
 
+    //
     // Filter
     // Performs discrete work on image stream
     //
@@ -25,8 +26,11 @@ namespace openCVGraph
     {
     public:
         /// Base class for all filters in the graph
-        Filter::Filter(std::string name, GraphData& data, StreamIn streamIn = StreamIn::CaptureRaw, int viewWidth = 512, int viewHeight = 512)
-            : m_FilterName(name), m_StreamIn(streamIn), m_ViewWidth(viewWidth), m_ViewHeight(viewHeight)
+        Filter::Filter(std::string name, 
+            GraphData& data, 
+            StreamIn defaultStreamIn = StreamIn::CaptureRaw, 
+            int viewWidth = 512, int viewHeight = 512)
+            : m_FilterName(name), m_StreamIn(defaultStreamIn), m_ViewWidth(viewWidth), m_ViewHeight(viewHeight)
         {
             m_Logger = data.m_Logger;
 
@@ -113,7 +117,9 @@ namespace openCVGraph
             fs << "ShowView" << m_showView;
             fs << "ShowViewControls" << m_showViewControls;
             fs << "ZoomViewLockIndex" << m_ZoomViewLockIndex;
-            fs << "UseCaptureCorrectedStream" << m_UseCaptureCorrected;
+
+            // cvWriteComment((CvFileStorage *)*fs, "InputStream: 0=RawCapture, 1=Corrected, 2=Output prev filter", 0);
+            fs << "InputStream" << (int) m_StreamIn;
 
             // Save how long the filter took to process its last sample, mean, min, max
             // Help, take me back to C#!!! or even javascript
@@ -155,7 +161,9 @@ namespace openCVGraph
             fs["ShowView"] >> m_showView;
             fs["ShowViewControls"] >> m_showViewControls;
             fs["ZoomViewLockIndex"] >> m_ZoomViewLockIndex;
-            fs["UseCaptureCorrectedStream"] >> m_UseCaptureCorrected;
+            int temp;   // can't >> enums!
+            fs["InputStream"] >> temp;
+            m_StreamIn = (StreamIn) temp;
 
             if (m_ZoomViewLockIndex >= MAX_ZOOMVIEW_LOCKS) {
                 m_ZoomViewLockIndex = -1;
@@ -194,6 +202,14 @@ namespace openCVGraph
             m_imViewTextOverlay.setTo(0);
         }
 
+        // At the start of each loop, the input stream can be changed.
+        void Filter::SetInputStream(StreamIn inputStream) {
+            m_StreamIn = inputStream;
+        }
+
+        StreamIn Filter::GetInputStream() {
+            return m_StreamIn;
+        }
 
         bool Filter::IsEnabled() { return m_Enabled; }
 
@@ -205,16 +221,15 @@ namespace openCVGraph
         double m_DurationMSMin = 9999;             
         double m_DurationMSMax = 0;
 
-        int m_ZoomViewLockIndex = 0;
+        int m_ZoomViewLockIndex = 0;            // Lock window zooms together
 
 	protected:
-        StreamIn m_StreamIn;                       // source format (CV_8UC1, CV8UC3, ...)
+        StreamIn m_StreamIn;                    // what stream should the filter process? Capture, Processed, or Out
 		bool m_firstTime = true;
 		bool m_showView = false;
-        bool m_showViewControls = false;    // view sliders
+        bool m_showViewControls = false;        // view sliders
         bool m_Enabled = true;
         bool m_IsInitialized = false;
-        bool m_UseCaptureCorrected = true;     // use capture stream after post processing (Dark/Light, spatial, etc)
         double m_TimeStart;
         double m_TimeEnd;
 

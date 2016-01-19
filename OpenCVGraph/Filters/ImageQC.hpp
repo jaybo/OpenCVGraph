@@ -38,32 +38,53 @@ namespace openCVGraph
 
         ProcessResult ImageQC::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, true);
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, true);
+            bool useCorrected = (m_StreamIn == StreamIn::Corrected);
+
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, useCorrected);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, useCorrected);
 
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
-                cv::cuda::minMax(graphData.m_CommonData->m_imCapGpu16UC1, &m_dCapMin, &m_dCapMax);
-                cv::cuda::calcHist(graphData.m_CommonData->m_imCapGpu8UC1, m_histogramGpu);
+                cuda::GpuMat src16, src8;
+                if (useCorrected) {
+                    src16 = graphData.m_CommonData->m_imCorrectedGpu16UC1;
+                    src8 = graphData.m_CommonData->m_imCorrectedGpu8UC1;
+                }
+                else {
+                    src16 = graphData.m_CommonData->m_imCaptureGpu16UC1;
+                    src8 = graphData.m_CommonData->m_imCaptureGpu8UC1;
+                }
+                cv::cuda::minMax(src16, &m_dCapMin, &m_dCapMax);
+                cv::cuda::calcHist(src8, m_histogramGpu);
                 
                 // This version fails!!!
-                // cv::cuda::histEven(graphData.m_CommonData->m_imCapGpu16UC1, m_histogramGpu, 256, 0, UINT16_MAX);
+                // cv::cuda::histEven(graphData.m_CommonData->m_imCaptureGpu16UC1, m_histogramGpu, 256, 0, UINT16_MAX);
 
-                auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
-                m_Mean = (int) (cv::cuda::sum(graphData.m_CommonData->m_imCapGpu16UC1)[0] / nPoints);
+                auto nPoints = src16.size().area();
+                m_Mean = (int) (cv::cuda::sum(src16)[0] / nPoints);
 #endif
             }
             else {
-                cv::minMaxLoc(graphData.m_CommonData->m_imCap16UC1, &m_dCapMin, &m_dCapMax);
+                Mat src16, src8;
+                if (useCorrected) {
+                    src16 = graphData.m_CommonData->m_imCorrected16UC1;
+                    src8 = graphData.m_CommonData->m_imCorrected8UC1;
+                }
+                else {
+                    src16 = graphData.m_CommonData->m_imCapture16UC1;
+                    src8 = graphData.m_CommonData->m_imCapture8UC1;
+                }
+
+                cv::minMaxLoc(src16, &m_dCapMin, &m_dCapMax);
                 int channels[] = { 0 };
                 int histSize[] = { 256 };
                 float range[] = { 0, 256 };
                 const float* ranges[] = { range };
 
-                cv::calcHist(&graphData.m_CommonData->m_imCap8UC1, 1, channels, Mat(), m_histogram, 1, histSize, ranges, true, false);
+                cv::calcHist(&src8, 1, channels, Mat(), m_histogram, 1, histSize, ranges, true, false);
 
-                auto nPoints = graphData.m_CommonData->m_imCap16UC1.size().area();
-                m_Mean = (int)(cv::sum(graphData.m_CommonData->m_imCap16UC1)[0] / nPoints);
+                auto nPoints = src16.size().area();
+                m_Mean = (int)(cv::sum(src16)[0] / nPoints);
             }
             return ProcessResult::OK;
         }

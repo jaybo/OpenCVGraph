@@ -36,23 +36,23 @@ namespace openCVGraph
 
         ProcessResult FocusLaplace::process(GraphData& graphData) override
         {
-            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
+            graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
 
             if (graphData.m_UseCuda) {
-                graphData.m_imOutGpu16UC1 = graphData.m_CommonData->m_imCapGpu16UC1;
-                auto nPoints = graphData.m_CommonData->m_imCapGpu16UC1.size().area();
+                m_imGpuLaplace = graphData.m_CommonData->m_imCaptureGpu8UC1.clone();
+                auto nPoints = graphData.m_CommonData->m_imCaptureGpu8UC1.size().area();
 
-                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_CommonData->m_imCapGpu16UC1.type(), graphData.m_imOutGpu16UC1.type(), 
+                m_cudaFilter = cv::cuda::createLaplacianFilter(graphData.m_CommonData->m_imCaptureGpu8UC1.type(), m_imGpuLaplace.type(),
                     (m_kSize == 1 || m_kSize == 3) ? m_kSize : 3);  // only 1 or 3 in cuda
-                m_cudaFilter->apply(graphData.m_CommonData->m_imCapGpu16UC1, m_imGpuLaplace);
+                m_cudaFilter->apply(graphData.m_CommonData->m_imCaptureGpu8UC1, m_imGpuLaplace);
 
                 Scalar mean, std;
-                m_imGpuLaplace.convertTo(m_imGpuTemp, CV_8UC1, 1/256.0f);
-                m_imGpuLaplace = m_imGpuTemp;
-                cv::cuda::meanStdDev(m_imGpuTemp, mean, std);
+                m_imGpuLaplace.download(graphData.m_imOut);
+                cv::cuda::meanStdDev(m_imGpuLaplace, mean, std);
                 m_var = std[0] * std[0];
             }
             else {
+                m_imLaplace = graphData.m_CommonData->m_imCapture.clone();
                 cv::Laplacian(graphData.m_CommonData->m_imCapture, m_imLaplace,
                     graphData.m_CommonData->m_imCapture.depth(),
                     m_kSize,
@@ -116,7 +116,7 @@ namespace openCVGraph
         Mat m_imMean;
         Mat m_imStdDev;
         GpuMat m_imGpuLaplace;
-        GpuMat m_imGpuTemp;
+        //GpuMat m_imGpuTemp;
 
         double m_var;
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;

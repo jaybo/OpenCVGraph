@@ -47,10 +47,10 @@ namespace openCVGraph
                 switch (m_StreamIn) {
                 case StreamIn::Corrected:
                 case StreamIn::CaptureRaw:
-                    src = graphData.m_CommonData->m_imCapGpu8UC3;
+                    src = graphData.m_CommonData->m_imCaptureGpu8UC3;
                     break;
                 case StreamIn::Out:
-                    src = graphData.m_imOutGpu8UC3;
+                    src = graphData.m_imOutGpu;
                     break;
                 }
 
@@ -74,9 +74,8 @@ namespace openCVGraph
                     cuda::bilateralFilter(tmp, tmp, ksize, sigmaColor, sigmaSpace);
                 }
                 cuda::cvtColor(cannyOut8U, tmp, CV_GRAY2RGB);
-                cuda::bitwise_and(src, tmp, graphData.m_imOutGpu8UC3);
-                graphData.m_imOutGpu8UC3.download(graphData.m_imOut8UC3);
-                graphData.m_imOut8UC3.copyTo(m_imView);
+                cuda::bitwise_and(src, tmp, graphData.m_imOutGpu);
+                graphData.m_imOutGpu.download(graphData.m_imOut);
 #endif
             }
             else {
@@ -85,10 +84,10 @@ namespace openCVGraph
                 switch (m_StreamIn) {
                 case StreamIn::Corrected:
                 case StreamIn::CaptureRaw:
-                    src = graphData.m_CommonData->m_imCap8UC3;
+                    src = graphData.m_CommonData->m_imCapture8UC3;
                     break;
                 case StreamIn::Out:
-                    src = graphData.m_imOut8UC3;
+                    src = graphData.m_imOut;
                     break;
                 }
 
@@ -96,19 +95,21 @@ namespace openCVGraph
                 {
                 case 0:
                     cv::stylization(src,
-                        graphData.m_imOut8UC3,
+                        graphData.m_imOut,
                         (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
                     break;
                 case 1:
                     cv::edgePreservingFilter(src,
-                        graphData.m_imOut8UC3,
+                        graphData.m_imOut,
                         1, 
                         (float) (m_r / 5.0f), (float) (m_s / 1000.0f));
                     break;
                 case 2:
+                    tmp = src.clone();
+
                     cv::pencilSketch(src,
-                        graphData.m_imOut8UC1,
-                        graphData.m_imOut8UC3,
+                        graphData.m_imOut,
+                        tmp,
                         (float)(m_r / 5.0f), (float)(m_s / 1000.0f));
                     break;
                 case 3:
@@ -125,7 +126,7 @@ namespace openCVGraph
                     cv::threshold(edges, mask, EDGES_THRESHOLD, 255, THRESH_BINARY_INV);
 
                     Mat tmp, tmp1;
-                   src.copyTo(tmp);
+                    src.copyTo(tmp);
                     int repetitions = 1;  // Repetitions for strong cartoon effect. 
                     for (int i = 0; i < repetitions; i++) {
                         int ksize = 9;     // Filter size. Has a large effect on speed.  
@@ -134,10 +135,10 @@ namespace openCVGraph
                         cv::bilateralFilter(tmp, tmp1, ksize, sigmaColor, sigmaSpace);
                         cv::bilateralFilter(tmp1, tmp, ksize, sigmaColor, sigmaSpace);
                     }
-                    tmp.copyTo(graphData.m_imOut8UC3);
+                    tmp.copyTo(graphData.m_imOut);
                     tmp.setTo(0);
-                    cv::bitwise_and(graphData.m_imOut8UC3, graphData.m_imOut8UC3, tmp, mask);
-                    tmp.copyTo(graphData.m_imOut8UC3);
+                    cv::bitwise_and(graphData.m_imOut, graphData.m_imOut, tmp, mask);
+                    tmp.copyTo(graphData.m_imOut);
                     break;
                 }
             }
@@ -149,12 +150,12 @@ namespace openCVGraph
             if (m_showView) {
                 if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
-                    graphData.m_imOutGpu8UC3.download(m_imView);
+                    graphData.m_imOutGpu.download(m_imView);
 #endif
                 }
                 else
                 {
-                    m_imView = graphData.m_imOut8UC3;
+                    m_imView = graphData.m_imOut;
                 }
                 Filter::processView(graphData);
             }

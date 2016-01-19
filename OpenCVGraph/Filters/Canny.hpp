@@ -35,17 +35,18 @@ namespace openCVGraph
         ProcessResult Canny::process(GraphData& graphData) override
         {
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
+
             if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
                 auto canny = cuda::createCannyEdgeDetector(m_Threshold1, m_Threshold2);
-                canny->detect(graphData.m_CommonData->m_imCapGpu8UC1, cannyOut8U);
-                cannyOut8U.download(graphData.m_imOut8UC1);
+                canny->detect(graphData.m_CommonData->m_imCaptureGpu8UC1, cannyOut8U);
+                cannyOut8U.download(graphData.m_imOut);
 #else
                 assert(false);
 #endif
             }
             else {
-                cv::Canny(graphData.m_CommonData->m_imCap8UC1, graphData.m_imOut8UC1, m_Threshold1, m_Threshold2);
+                cv::Canny(graphData.m_CommonData->m_imCapture8UC1, graphData.m_imOut, m_Threshold1, m_Threshold2);
             }
             return ProcessResult::OK;  // if you return false, the graph stops
         }
@@ -53,7 +54,7 @@ namespace openCVGraph
         void Canny::processView(GraphData& graphData) override
         {
             if (m_showView) {
-                graphData.m_imOut8UC1.copyTo(m_imView);
+                m_imView = graphData.m_imOut;
                 Filter::processView(graphData);
             }
         }

@@ -46,10 +46,10 @@ namespace openCVGraph
                     break;
                 case StreamIn::CaptureRaw:
                     graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, false);
-                    src = graphData.m_CommonData->m_imCapGpu32FC1;
+                    src = graphData.m_CommonData->m_imCaptureGpu32FC1;
                     break;
                 case StreamIn::Out:
-                    src = graphData.m_imOutGpu32FC1;
+                    src = graphData.m_imOutGpu;
                     break;
                 }
                 if (m_imGpuAverage32F.empty()) {
@@ -61,11 +61,7 @@ namespace openCVGraph
 
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
                     cuda::divide(m_imGpuAverage32F, Scalar(m_FramesToAverage), m_imGpuAverage32F);
-                    m_imGpuAverage32F.copyTo(graphData.m_imOutGpu32FC1);
-                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu16UC1, CV_16U);
-                    if (m_showView) {
-                        m_imGpuAverage32F.convertTo(graphData.m_imOutGpu8UC1, CV_8U, 1.0 / 256);
-                    }
+                    m_imGpuAverage32F.convertTo(graphData.m_imOutGpu, CV_16U);
                     m_imGpuAverage32F.setTo(Scalar(0));
                     result = ProcessResult::OK;  // Let this sample continue onto the graph
                 }
@@ -83,7 +79,7 @@ namespace openCVGraph
                     break;
                 case StreamIn::CaptureRaw:
                     graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_32F, false);
-                    src = graphData.m_CommonData->m_imCap32FC1;
+                    src = graphData.m_CommonData->m_imCapture32FC1;
                     break;
                 case StreamIn::Out:
                     src = graphData.m_imOut;
@@ -120,11 +116,11 @@ namespace openCVGraph
                 if ((m_FramesAveraged > 0) && (m_FramesAveraged % m_FramesToAverage == 0)) {
                     if (graphData.m_UseCuda) {
 #ifdef WITH_CUDA
-                        graphData.m_imOutGpu8UC1.download(m_imView);
+                        m_imGpuAverage32F.convertTo(m_imView, CV_8U, 1.0 / 256);
 #endif
                     }
                     else {
-                        m_imView = graphData.m_imOut8UC1;
+                        m_imAverage32F.convertTo(m_imView, CV_8U, 1.0 / 256);
                     }
                     Filter::processView(graphData);
 

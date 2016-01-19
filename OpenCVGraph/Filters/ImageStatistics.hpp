@@ -80,8 +80,8 @@ namespace openCVGraph
 
         void ImageStatistics::Accumulate(GraphData& graphData) {
 
-            // If output stream exists, us it.  Otherwise use capture stream.
-            Mat MatSrc = graphData.m_imOut32FC1.empty() ? graphData.m_CommonData->m_imCap32FC1 : graphData.m_imOut32FC1;
+            // bugbug, todo, fix sources
+            Mat MatSrc = graphData.m_CommonData->m_imCapture32FC1;
 
             // See Knuth TAOCP vol 2, 3rd edition, page 232
             if (m_N == 1)
@@ -106,8 +106,8 @@ namespace openCVGraph
 #ifdef WITH_CUDA
         void ImageStatistics::AccumulateGpu(GraphData& graphData) {
 
-            // If output stream exists, us it.  Otherwise use capture stream.
-            cuda::GpuMat MatSrc = graphData.m_imOutGpu32FC1.empty() ? graphData.m_CommonData->m_imCapGpu32FC1 : graphData.m_imOutGpu32FC1;
+            // bugbug, todo, fix sources
+            cuda::GpuMat MatSrc = graphData.m_CommonData->m_imCaptureGpu32FC1;
 
             if (m_N == 1)
             {
@@ -134,21 +134,11 @@ namespace openCVGraph
 
         void ImageStatistics::Calc(GraphData& graphData)
         {
-            // If output stream exists, us it.  Otherwise use capture stream.
-            Mat MatSrc = graphData.m_imOut32FC1.empty() ? graphData.m_CommonData->m_imCap32FC1 : graphData.m_imOut32FC1;
+            // bugbug, todo, fix sources
+            Mat MatSrc = graphData.m_CommonData->m_imCapture32FC1;
 
             cv::Point ptMin, ptMax;
-
             cv::minMaxLoc(MatSrc, &dCapMin, &dCapMax, &ptMin, &ptMax);
-
-            //if (graphData.m_CommonData->m_imCapture.channels() > 1) {
-            //    cv::Mat gray;
-            //    cv::cvtColor(graphData.m_CommonData->m_imCapture, gray, CV_BGR2GRAY);
-            //    cv::minMaxLoc(gray, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            //}
-            //else {
-            //    cv::minMaxLoc(graphData.m_CommonData->m_imCapture, &dCapMin, &dCapMax, &ptMin, &ptMax);
-            //}
 
             cv::Scalar sMean, sStdDev;
             cv::meanStdDev(m_newM, sMean, sStdDev);   // stdDev here is across the mean image
@@ -169,8 +159,8 @@ namespace openCVGraph
 #ifdef WITH_CUDA
         void ImageStatistics::CalcGpu(GraphData& graphData)
         {
-            // If output stream exists, us it.  Otherwise use capture stream.
-            cuda::GpuMat MatSrc = graphData.m_imOutGpu32FC1.empty() ? graphData.m_CommonData->m_imCapGpu32FC1 : graphData.m_imOutGpu32FC1;
+            // bugbug, todo, fix sources
+            cuda::GpuMat MatSrc = graphData.m_CommonData->m_imCaptureGpu32FC1;
 
             cv::Point ptMin, ptMax;
             cv::cuda::minMaxLoc(MatSrc, &dCapMin, &dCapMax, &ptMin, &ptMax);
@@ -202,9 +192,6 @@ namespace openCVGraph
 
             graphData.EnsureFormatIsAvailable(m_UseCuda, CV_32FC1, false);
 
-            // let the camera stabilize
-            // if (graphData.m_FrameNumber < 2) return true;
-
             m_N++;  // count of frames processed
 
             if (m_UseCuda) {
@@ -232,13 +219,7 @@ namespace openCVGraph
         void ImageStatistics::processView(GraphData& graphData)
         {
             if (m_showView) {
-                //// Convert back to 8 bits for the view
-                //if (graphData.m_CommonData->m_imCapture.depth() == CV_16U) {
-                //    graphData.m_CommonData->m_imCapture.convertTo(m_imView, CV_8UC1, 1.0 / 256);
-                //}
-                //else {
-                    m_imView = graphData.m_CommonData->m_imCapture;
-                //}
+                m_imView = graphData.m_CommonData->m_imCapture;
                 if (m_N >= 2) {
                     DrawOverlay(graphData);
                 }
