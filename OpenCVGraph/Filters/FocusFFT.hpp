@@ -51,7 +51,7 @@ namespace openCVGraph
 
             // if (graphData.m_UseCuda) {
             if (false) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                 cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCaptureGpu16UC1, rCropped);
 
                 /*Mat I = Mat_<float>(IC);*/
@@ -255,7 +255,7 @@ namespace openCVGraph
         double m_FocusScore;
         double m_AstigmatismScore;
         double m_AstigmatismAngle;
-#if WITH_CUDA
+#ifdef WITH_CUDA
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
 #endif
         Mat m_PowerSpectrum;

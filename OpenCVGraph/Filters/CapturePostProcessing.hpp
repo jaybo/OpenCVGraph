@@ -163,7 +163,7 @@ namespace openCVGraph
                 switch (m_FieldToView) {
                 case 0:
                     if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                         graphData.m_CommonData->m_imCaptureGpu16UC1.download(m_imView);
 #endif
                     }
@@ -174,7 +174,7 @@ namespace openCVGraph
                     break;
                 case 1:
                     if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                         graphData.m_CommonData->m_imCorrectedGpu.download(m_imView);
 #endif
                     }
@@ -185,7 +185,7 @@ namespace openCVGraph
                     break;
                 case 2:
                     if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                         m_imBrightFieldGpu16U.download(m_imView);
 #endif
                     }
@@ -196,7 +196,7 @@ namespace openCVGraph
                     break;
                 case 3:
                     if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                         m_imDarkFieldGpu16U.download(m_imView);
 #endif
                     }

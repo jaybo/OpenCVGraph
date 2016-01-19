@@ -39,7 +39,7 @@ namespace openCVGraph
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
 
             if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                 m_imGpuLaplace = graphData.m_CommonData->m_imCaptureGpu8UC1.clone();
                 auto nPoints = graphData.m_CommonData->m_imCaptureGpu8UC1.size().area();
 
@@ -123,7 +123,7 @@ namespace openCVGraph
         //GpuMat m_imGpuTemp;
 
         double m_var;
-#if WITH_CUDA
+#ifdef WITH_CUDA
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
 #endif
         int m_kSize = 3;

@@ -39,7 +39,7 @@ namespace openCVGraph
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
 
             if (graphData.m_UseCuda) {
-#if WITH_CUDA
+#ifdef WITH_CUDA
                 Scalar s;
                 graphData.m_imOutGpu = graphData.m_CommonData->m_imCaptureGpu16UC1;
                 auto nPoints = graphData.m_CommonData->m_imCaptureGpu16UC1.size().area();
