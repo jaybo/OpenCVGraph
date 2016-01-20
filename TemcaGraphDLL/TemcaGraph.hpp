@@ -46,7 +46,7 @@ private:
     GraphManager* CreateGraphCamXimea()
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphCamXimea", true, graphCallback, m_graphCommonData);
+        GraphManager *graph = new GraphManager("Cam-Ximea", true, graphCallback, m_graphCommonData);
 
         CvFilter camera(new CamXimea("CamXimea", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(camera);
@@ -57,7 +57,7 @@ private:
     GraphManager* CreateGraphCamXimeaDummy()
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphCamXimeaDummy", true, graphCallback, m_graphCommonData);
+        GraphManager *graph = new GraphManager("Cam-Dummy", true, graphCallback, m_graphCommonData);
 
         CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512));
         graph->AddFilter(camera);
@@ -191,12 +191,15 @@ public:
         // ------------------------------------------------------------------------------
         // Main TEMCA CAPTURE configuration
         // ------------------------------------------------------------------------------
+        m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaPostProcessing", list<GraphManager*>() =
+        {
+            CreateGraphCapturePostprocessing("Temca-PostProcessing", true /* enableBrightDarkCorrection */),
+        }));
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaSync", list<GraphManager*> () =
         {
-                CreateGraphCapturePostprocessing("Temca-PostProcessing", false /* enableBrightDarkCorrection */),
-                CreateGraphFileWriter("Temca-FileWriter"),
                 CreateGraphQC("Temca-QC"),
                 CreateGraphFocus("Temca-Focus"),
+                CreateGraphFileWriter("Temca-FileWriter"),
         }));
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaAsync", list<GraphManager*> () =
         {
@@ -207,9 +210,12 @@ public:
         // ------------------------------------------------------------------------------
         // Raw CAPTURE configuration (no foreground background correction)
         // ------------------------------------------------------------------------------
+        m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawPostProcessing", list<GraphManager*>() =
+        {
+            CreateGraphCapturePostprocessing("Raw-PostProcessing", false /* enableBrightDarkCorrection */),
+        }));
         m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawSync", list<GraphManager*>() =
         {
-            CreateGraphCapturePostprocessing("Raw-PostProcessing", true /* enableBrightDarkCorrection */),
             CreateGraphFileWriter("Raw-FileWriter"),
         }));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureRaw.begin(), m_StepsPostCaptureRaw.end());
@@ -217,12 +223,15 @@ public:
         // ------------------------------------------------------------------------------
         // Preview configuration
         // ------------------------------------------------------------------------------
-        m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*> () =
+        m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewPostProcessing", list<GraphManager*> () =
         {
             CreateGraphCapturePostprocessing("Preview-PostProcessing"),
+        }));
+        m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*>() =
+        {
             // enable QC and Focus during Preview?
-            //CreateGraphQC("Preview-QC"),    
-            //CreateGraphFocus("Preview-Focus"),
+            CreateGraphQC("Preview-QC"),    
+            CreateGraphFocus("Preview-Focus"),
         }));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCapturePreview.begin(), m_StepsPostCapturePreview.end());
 
@@ -442,7 +451,7 @@ private:
 
     std::mutex m_mtx;                                   
     std::condition_variable m_cv;                       // 
-    std::atomic_bool m_CanChangeMode = false;           // Has the step finished?
+    std::atomic_bool m_CanChangeMode = true;           // Has the step finished?
     //std::atomic_bool m_CompletedRun = false;            // Has the run finished?
 
     int m_LogLevel = spd::level::info;
@@ -584,10 +593,7 @@ private:
                                     m_Aborting = true;
                                     break;
                                 }
-                            }
-                            // and now wait for all the steps to complete
-                            for (auto step : m_StepsPostCapture) {
-                                if (fOK) {
+                                else {
                                     if (!(fOK &= step->WaitStepCompletion())) {
                                         s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
                                         m_Logger->error(s);
@@ -595,12 +601,9 @@ private:
                                         m_Aborting = true;
                                         break;
                                     }
-                                    else {
-                                        // todo PythonCallback(SyncStepCompleted, 0, s.c_str());
-
-                                    }
                                 }
                             }
+                            PythonCallback(SyncStepCompleted, 0, s.c_str());
                         }
                     }
                 }

@@ -33,6 +33,7 @@
 #endif
 
 // Local
+#include "timer.hpp"
 #include "util.h"
 #include "GraphData.h"
 #include "ZoomView.hpp"

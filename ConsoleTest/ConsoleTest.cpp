@@ -190,6 +190,90 @@ void GraphXimea()
 
 int xiSample();
 
+void timeMatOps()
+{
+    int nLoopCount;
+    const int d = 3840;
+
+    auto mm = new uint16_t[d][d]();
+
+    Mat m1(d, d, CV_16UC1);
+    Mat m2(d, d, CV_16UC1);
+    cv::randu(m1, Scalar::all(0), Scalar::all(65535));
+    cv::randu(m2, Scalar::all(0), Scalar::all(65535));
+    GpuMat gm1(m1);
+    GpuMat gm2(m1);
+
+    auto timer = Timer();
+    nLoopCount = 100;
+
+    cout << "Mat dimensions: " << d << "x" << d << " CV_16UC1" << std::endl << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+         // 27 mS
+         m1 = m1 * 16;
+    }
+    cout << "m1 = m1 * 16                   : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 34mS
+        for (int x = 0; x < d; x++) {
+            for (int y = 0; y < d; y++) {
+                mm[x][y] <<= 4;
+            }
+        }
+    }
+    cout << "mm[x][y] <<= 4                 : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+#ifdef WITH_CUDA
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 28mS
+        gm1.upload(m1);
+    }
+    cout << "gm1.upload(m1)                 : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 22mS
+        gm1.download(m1);
+    }
+    cout << "gm1.download(m1)               : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    nLoopCount = 1000;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        cuda::add(gm1, gm2, gm1);
+    }
+    cout << "cuda::add(gm1, gm2, gm1)       : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 0.9mS
+        cuda::lshift(gm1, 4, gm1);
+    }
+    cout << "cuda::lshift(gm1, 4, gm1)      : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 0.3mS
+        cuda::multiply (gm1, 16, gm1);
+    }
+    cout << "cuda::multiply (gm1, 16, gm1)  : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+
+    timer.reset();
+    for (int i = 0; i < nLoopCount; i++) {
+        // 0.4mS
+        cuda::divide(gm1, 16, gm2);
+    }
+    cout << "cuda::divide(gm1, 16, gm2)     : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
+#endif
+}
+
+
 int main()
 {
 #if false
@@ -198,9 +282,10 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
-    //xiSample();
+    timeMatOps();
+    // xiSample();
     // GraphWebCam();
-    GraphXimea();
+    // GraphXimea();
 #else
     GraphWebCam();
 #endif

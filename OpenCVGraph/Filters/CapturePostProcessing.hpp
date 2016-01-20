@@ -82,7 +82,7 @@ namespace openCVGraph
 #ifdef WITH_CUDA
                 // upshift
                 if (m_CorrectionUpshift4Bits) {
-                    cv::cuda::lshift(graphData.m_CommonData->m_imCaptureGpu16UC1, Scalar(4), graphData.m_CommonData->m_imCaptureGpu16UC1);
+                    cv::cuda::multiply(graphData.m_CommonData->m_imCaptureGpu16UC1, Scalar(4), graphData.m_CommonData->m_imCaptureGpu16UC1);
                     graphData.m_CommonData->m_imCaptureGpu16UC1.download(graphData.m_CommonData->m_imCapture);
                 }
 
@@ -261,7 +261,7 @@ namespace openCVGraph
 
         int m_FieldToView = 0;                      // 0 is processed, 1 is unprocessed, 2 is darkfield, 3 is brightfield
         bool m_CorrectionBrightDark = true;         // perform bright dark field correction
-        bool m_CorrectionUpshift4Bits = true;       // multiply incoming 12 bit data by 16 to convert to full range 16bpp
+        bool m_CorrectionUpshift4Bits = false;      // multiply incoming 12 bit data by 16 to convert to full range 16bpp
         int m_DownsampleForJpgFactor = 4;
     };
 }

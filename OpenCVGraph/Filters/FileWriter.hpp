@@ -55,7 +55,7 @@ namespace openCVGraph
 
             switch (m_StreamIn) {
             case StreamIn::Corrected:
-                src = graphData.m_CommonData->m_imCorrected;
+                graphData.m_CommonData->m_imCorrectedGpu.download(src);
                 break;
             case StreamIn::CaptureRaw:
                 src = graphData.m_CommonData->m_imCapture;

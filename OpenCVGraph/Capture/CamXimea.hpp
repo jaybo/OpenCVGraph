@@ -201,8 +201,10 @@ namespace openCVGraph
 #if !PAGE_LOCKED_MEMORY
             copyCaptureImage(graphData);
 #endif
-            // always bump up to full 16 bit range
-            //graphData.m_CommonData->m_imCapture *= 16;
+            // always bump up to full 16 bit range  
+            // This takes 25mS on my Lenovo!!!
+            // do it on the GPU???
+            graphData.m_CommonData->m_imCapture = 16 * graphData.m_CommonData->m_imCapture;
 
             graphData.UploadCaptureToCuda();
 
