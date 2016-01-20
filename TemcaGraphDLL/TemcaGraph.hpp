@@ -70,10 +70,11 @@ private:
     // -----------------------------------------------------------------------------------
 
 
-    GraphManager* CreateGraphCapturePostprocessing(int enableBrightDarkCorrection = FROM_YAML)
+    GraphManager* CreateGraphCapturePostprocessing(string graphName, 
+        int enableBrightDarkCorrection = FROM_YAML)
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, m_graphCommonData);
+        GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData);
 
         CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw, 
             256, 256, 
@@ -83,10 +84,10 @@ private:
         return graph;
     }
 
-    GraphManager* CreateGraphFileWriter()
+    GraphManager* CreateGraphFileWriter(string graphName)
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphFileWriter", true, graphCallback, m_graphCommonData, false);
+        GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, false);
 
         CvFilter fileWriter(new FileWriter("FileWriter", *graph->getGraphData(), StreamIn::Corrected));
         graph->AddFilter(fileWriter);
@@ -94,10 +95,10 @@ private:
         return graph;
     }
 
-    GraphManager* CreateGraphQC()
+    GraphManager* CreateGraphQC(string graphName)
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphQC", true, graphCallback, m_graphCommonData, true);
+        GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
 
         CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(filter);
@@ -105,10 +106,10 @@ private:
         return graph;
     }
 
-    GraphManager* CreateGraphFocus()
+    GraphManager* CreateGraphFocus(string graphName)
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphFocus", true, graphCallback, m_graphCommonData, true);
+        GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
 
         CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
         graph->AddFilter(fFocusFFT);
@@ -116,10 +117,10 @@ private:
         return graph;
     }
 
-    GraphManager* CreateGraphStitchingCheck()
+    GraphManager* CreateGraphStitchingCheck(string graphName)
     {
         // Create a graph
-        GraphManager *graph = new GraphManager("GraphStitchingCheck", true, graphCallback, m_graphCommonData, true);
+        GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
 
         // todo, bugbug fix
         CvFilter filter(new Delay("Delay", *graph->getGraphData()));
@@ -158,7 +159,7 @@ public:
                 spdlog::register_logger(m_Logger);
             }
 
-            m_Logger->info("Temca starting up -----------------------------------");
+            m_Logger->info("Temca starting up ----------------------------------------------------------------------");
         }
         catch (const spdlog::spdlog_ex& ex)
         {
@@ -166,6 +167,7 @@ public:
         }
     }
 
+    // Startup the Temca graph, with either a real or dummy camera
     bool init (bool fDummyCamera, StatusCallbackType callback)
     {
         m_fDummyCamera = fDummyCamera;
@@ -191,14 +193,14 @@ public:
         // ------------------------------------------------------------------------------
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaSync", list<GraphManager*> () =
         {
-                CreateGraphCapturePostprocessing(false /* enableBrightDarkCorrection */),
-                CreateGraphFileWriter(),
-                CreateGraphQC(),
-                CreateGraphFocus(),
+                CreateGraphCapturePostprocessing("Temca-PostProcessing", false /* enableBrightDarkCorrection */),
+                CreateGraphFileWriter("Temca-FileWriter"),
+                CreateGraphQC("Temca-QC"),
+                CreateGraphFocus("Temca-Focus"),
         }));
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaAsync", list<GraphManager*> () =
         {
-            CreateGraphStitchingCheck(),
+            CreateGraphStitchingCheck("Temca-Stitching"),
         }, -1, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureTemca.begin(), m_StepsPostCaptureTemca.end());
 
@@ -207,10 +209,8 @@ public:
         // ------------------------------------------------------------------------------
         m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawSync", list<GraphManager*>() =
         {
-            CreateGraphCapturePostprocessing(true /* enableBrightDarkCorrection */), 
-            CreateGraphFileWriter(),
-            //CreateGraphQC(),
-            //CreateGraphFocus(),
+            CreateGraphCapturePostprocessing("Raw-PostProcessing", true /* enableBrightDarkCorrection */),
+            CreateGraphFileWriter("Raw-FileWriter"),
         }));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureRaw.begin(), m_StepsPostCaptureRaw.end());
 
@@ -219,7 +219,10 @@ public:
         // ------------------------------------------------------------------------------
         m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*> () =
         {
-            CreateGraphCapturePostprocessing(),
+            CreateGraphCapturePostprocessing("Preview-PostProcessing"),
+            // enable QC and Focus during Preview?
+            //CreateGraphQC("Preview-QC"),    
+            //CreateGraphFocus("Preview-Focus"),
         }));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCapturePreview.begin(), m_StepsPostCapturePreview.end());
 
@@ -228,15 +231,13 @@ public:
         // ------------------------------------------------------------------------------
         m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelaySync", list<GraphManager*> () =
         {
-            CreateGraphDelay("DelaySync", 2000),
+            CreateGraphDelay("Delay-Sync", 2000),
         }));
         m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelayAsync", list<GraphManager*> () =
         {
-            CreateGraphDelay("DelayAsync", 2000),
+            CreateGraphDelay("Delay-Async", 2000),
         }, -1, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureDelayTest.begin(), m_StepsPostCaptureDelayTest.end());
-
-
 
         // init all of the steps
         for (auto step : m_AllSteps) {
@@ -317,7 +318,7 @@ public:
         m_Aborting = true;
         m_cv.notify_all();
         m_thread.join();
-        m_Logger->info("Temca fini ------------------------------------------------");
+        m_Logger->info("Temca fini ----------------------------------------------------------------------");
     }
 
     // -----------------------------------------------------------------
