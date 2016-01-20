@@ -190,6 +190,18 @@ void GraphXimea()
 
 int xiSample();
 
+// Jay's Lenovo Desktop
+//Mat dimensions: 3840x3840 CV_16UC1
+//
+//m1 = m1 * 16                   : 0.0266
+//mm[x][y] <<= 4                 : 0.0347
+//gm1.upload(m1)                 : 0.0232
+//gm1.download(m1)               : 0.0220
+//cuda::add(gm1, gm2, gm1)       : 0.0005
+//cuda::lshift(gm1, 4, gm1)      : 0.0006
+//cuda::multiply (gm1, 16, gm1)  : 0.0004
+//cuda::divide(gm1, 16, gm2)     : 0.0006
+
 void timeMatOps()
 {
     int nLoopCount;
