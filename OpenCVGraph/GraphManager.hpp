@@ -13,7 +13,7 @@ namespace openCVGraph
     // GraphManager
     // Keeps a vector of Filters and call each in turn to process images
     // (or perform other arbitrary work)
-    // Possible states are: Stop, Pause, and Run
+    // Possible states are: Stop, Pause, and Run.  The Pause state can be single stepped, which is the normal Temca operational mode.
 
     class  GraphManager {
 

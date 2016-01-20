@@ -83,6 +83,7 @@ namespace openCVGraph
         string m_SourceFileName;                // Used when source images come from file, directory, or movie
         string m_DestinationFileName;           // Name of output file
 
+        int m_FrameNumber = 0;
         //std::shared_ptr<logger> m_Logger;
     };
 
@@ -111,7 +112,7 @@ namespace openCVGraph
 
         GraphCommonData * m_CommonData;
         std::shared_ptr<logger> m_Logger;
-        int m_FrameNumber = 0;                  // Current frame being processed.
+        int m_FrameNumber = 0;                  // Current frame being processed by this graph.
 
         // A capture or source filter has already put an image into m_CommonData->m_imCapture.
         // Clear the image cache flags and upload a copy to Cuda if available.

@@ -310,6 +310,28 @@ if __name__ == '__main__':
 
             frameCounter += 1
 
+    temcaGraph.set_mode("preview");
+    frameCounter = 0
+    for y in range(roiInfo.gridY):
+        for x in range (roiInfo.gridX):
+            if temcaGraph.aborting:
+                break
+            temcaGraph.eventStartNewFrame.wait(waitTime)
+            temcaGraph.grab_frame('', x, y)
+            temcaGraph.eventCaptureCompleted.wait(waitTime)
+
+            # move stage here
+            temcaGraph.eventProcessingCompleted.wait(waitTime)
+
+            # get a copy of the frame and display it?
+            if showImages:
+                temcaGraph.get_last_frame(img)
+                plt.imshow(img)
+                plt.show()
+
+            frameCounter += 1
+
+
     temcaGraph.eventFiniCompleted.wait(waitTime)
     temcaGraph.close()
 

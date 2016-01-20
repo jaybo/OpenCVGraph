@@ -79,7 +79,7 @@ namespace openCVGraph
         bool WaitStepCompletion()
         {
             bool fOK = true;
-            if (m_RunAsync) {
+            if (!m_RunAsync) {
                 // Wait for them all to complete
                 for (auto& graph : m_Graphs)
                 {

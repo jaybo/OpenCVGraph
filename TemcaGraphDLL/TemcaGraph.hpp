@@ -10,7 +10,7 @@ using namespace std;
 using namespace openCVGraph;
 
 // -----------------------------------------------------------------------------------
-// Called at the completion of each loop through a graph to check for user input.
+// Optionally called at the completion of each loop through a graph to check for user input.
 // -----------------------------------------------------------------------------------
 
 bool graphCallback(GraphManager* graphManager)
@@ -30,15 +30,6 @@ bool graphCallback(GraphManager* graphManager)
     }
     return true;
 }
-
-// -----------------------------------------------------------------------------------
-// The graphs.  Graphs are run in parallel, each with own thread.
-// -----------------------------------------------------------------------------------
-
-
-
-
-
 
 // -----------------------------------------------------------------------------------
 // The Temca Class used by Python
@@ -79,12 +70,14 @@ private:
     // -----------------------------------------------------------------------------------
 
 
-    GraphManager* CreateGraphCapturePostprocessing()
+    GraphManager* CreateGraphCapturePostprocessing(int enableBrightDarkCorrection = FROM_YAML)
     {
         // Create a graph
         GraphManager *graph = new GraphManager("GraphCapturePostProcessing", true, graphCallback, m_graphCommonData);
 
-        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw));
+        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw, 
+            256, 256, 
+            enableBrightDarkCorrection));
         graph->AddFilter(fCapPost);
 
         return graph;
@@ -111,7 +104,6 @@ private:
 
         return graph;
     }
-
 
     GraphManager* CreateGraphFocus()
     {
@@ -174,58 +166,6 @@ public:
         }
     }
 
-#if foo
-    bool init(bool fDummyCamera, StatusCallbackType callback)
-    {
-        m_fDummyCamera = fDummyCamera;
-
-        bool fOK = true;
-        m_PythonCallback = callback;
-
-        m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
-        m_gmFileWriter = CreateGraphFileWriter();
-        m_gmQC = CreateGraphQC();
-        m_gmFocus = CreateGraphFocus();
-        m_gmStitchingCheck = CreateGraphStitchingCheck();
-
-        m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> { m_gmCapture });
-        m_StepPostCapture = new GraphParallelStep("StepPostCapture", list<GraphManager*> { m_gmFileWriter, m_gmFocus, m_gmQC, m_gmStitchingCheck });
-
-        // Create a list of all steps
-        m_Steps.push_back(m_StepCapture);
-        m_Steps.push_back(m_StepPostCapture);
-
-        // and just those steps following capture
-        m_StepsPostCapture.push_back(m_StepPostCapture);
-
-        // init each step
-        for (auto step : m_Steps) {
-            fOK = step->init();
-            if (!fOK) {
-                m_Logger->error("init of " + step->GetName() + " failed!");
-                return fOK;
-            }
-        }
-
-        // ITemcaCamera, ITemcaFocus, etc..
-        FindTemcaInterfaces();
-
-        return fOK;
-    }
-#endif
-
-    // Sets the overall mode of operation for the Temca graph.
-    //    Each mode reconfigures or deactivates parts of the overall temca graph.
-
-    //    temca :         ximea, lshift4, postCap, QC
-    //                                             Focus
-    //                                             FW
-    //                                             Stitch
-    //    
-    //    capture_raw :   ximea, lshift4,          FW
-    //    preview :       ximea, lshift4,
-    //    auto_exposure : ximea, lshift4,          QC
-
     bool init (bool fDummyCamera, StatusCallbackType callback)
     {
         m_fDummyCamera = fDummyCamera;
@@ -236,9 +176,9 @@ public:
         // Create the single capture graph containing the camera
         m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
 
-        //
+        // ------------------------------------------------------------------------------
         // The singular capture step, which is always in use
-        //
+        // ------------------------------------------------------------------------------
         
         m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> () =
         { 
@@ -246,12 +186,12 @@ public:
         });
         m_AllSteps.push_back(m_StepCapture); // always only one capture step
 
-        //
-        // Main TEMCA CAPTURE steps
-        //
+        // ------------------------------------------------------------------------------
+        // Main TEMCA CAPTURE configuration
+        // ------------------------------------------------------------------------------
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaSync", list<GraphManager*> () =
         {
-                CreateGraphCapturePostprocessing(),
+                CreateGraphCapturePostprocessing(false /* enableBrightDarkCorrection */),
                 CreateGraphFileWriter(),
                 CreateGraphQC(),
                 CreateGraphFocus(),
@@ -262,18 +202,30 @@ public:
         }, -1, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureTemca.begin(), m_StepsPostCaptureTemca.end());
 
-        //
-        // Preview Steps
-        //
+        // ------------------------------------------------------------------------------
+        // Raw CAPTURE configuration (no foreground background correction)
+        // ------------------------------------------------------------------------------
+        m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawSync", list<GraphManager*>() =
+        {
+            CreateGraphCapturePostprocessing(true /* enableBrightDarkCorrection */), 
+            CreateGraphFileWriter(),
+            //CreateGraphQC(),
+            //CreateGraphFocus(),
+        }));
+        m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureRaw.begin(), m_StepsPostCaptureRaw.end());
+
+        // ------------------------------------------------------------------------------
+        // Preview configuration
+        // ------------------------------------------------------------------------------
         m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*> () =
         {
             CreateGraphCapturePostprocessing(),
         }));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCapturePreview.begin(), m_StepsPostCapturePreview.end());
 
-        //
-        // Test with Delay Steps
-        //
+        // ------------------------------------------------------------------------------
+        // Test with Delay configuration
+        // ------------------------------------------------------------------------------
         m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelaySync", list<GraphManager*> () =
         {
             CreateGraphDelay("DelaySync", 2000),
@@ -283,6 +235,8 @@ public:
             CreateGraphDelay("DelayAsync", 2000),
         }, -1, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureDelayTest.begin(), m_StepsPostCaptureDelayTest.end());
+
+
 
         // init all of the steps
         for (auto step : m_AllSteps) {
@@ -300,14 +254,35 @@ public:
         return fOK;
     }
 
+    // ------------------------------------------------------------------------------
+    // Sets the overall mode of operation for the Temca graph.
+    //    Each mode reconfigures or deactivates parts of the overall temca graph.
+
+    //    temca :         ximea, lshift4, postCap, QC
+    //                                             Focus
+    //                                             FW
+    //                                             Stitch
+    //    
+    //    capture_raw :   ximea, lshift4,          FW
+    //    preview :       ximea, lshift4,
+    //    auto_exposure : ximea, lshift4,          QC
+    // ------------------------------------------------------------------------------
+
     bool setMode(const char * graphType)
     {
-        bool fOK = true;
+        if (!m_CanChangeMode) {
+            m_Logger->error("Can't change mode when a step is in progress");
+            return false;  
+        }
         string sGraphType(graphType);
+        m_graphCommonData->m_FrameNumber = 0;
 
         // Select a sequence of steps to run
         if (sGraphType == "temca") {
             m_StepsPostCapture = m_StepsPostCaptureTemca;
+        }
+        else if (sGraphType == "raw") {
+            m_StepsPostCapture = m_StepsPostCaptureRaw;
         }
         else if (sGraphType == "preview") {
             m_StepsPostCapture = m_StepsPostCapturePreview;
@@ -319,7 +294,7 @@ public:
         // ITemcaCamera, ITemcaFocus, etc..
         FindTemcaInterfaces();
 
-        return fOK;
+        return true;
     }
 
     void fini() {
@@ -352,7 +327,7 @@ public:
     void GrabFrame(const char * filename, int roiX, int roiY)
     {
         std::unique_lock<std::mutex> lk(m_mtx);
-        m_CompletedStep = false;
+        m_CanChangeMode = false;
         m_Stepping = true;
         m_graphCommonData->m_DestinationFileName = filename;
         m_graphCommonData->m_roiX = roiX;
@@ -447,10 +422,11 @@ private:
     GraphParallelStep* m_StepCapture = NULL;
     //GraphParallelStep* m_StepPostCapture = NULL;
 
-    std::list<GraphParallelStep*> m_AllSteps;
+    std::list<GraphParallelStep*> m_AllSteps;                   // all steps, including camera
 
-    std::list<GraphParallelStep*> m_StepsPostCapture;
+    std::list<GraphParallelStep*> m_StepsPostCapture;           // post capture steps for the current configuraiton (one of the below items):
 
+    // The graph steps which are selected by setMode()
     std::list<GraphParallelStep*> m_StepsPostCaptureTemca;
     std::list<GraphParallelStep*> m_StepsPostCaptureRaw;
     std::list<GraphParallelStep*> m_StepsPostCapturePreview;
@@ -465,7 +441,7 @@ private:
 
     std::mutex m_mtx;                                   
     std::condition_variable m_cv;                       // 
-    std::atomic_bool m_CompletedStep = false;           // Has the step finished?
+    std::atomic_bool m_CanChangeMode = false;           // Has the step finished?
     //std::atomic_bool m_CompletedRun = false;            // Has the run finished?
 
     int m_LogLevel = spd::level::info;
@@ -486,11 +462,10 @@ private:
     // as the configurations change
     void FindTemcaInterfaces()
     {
-        m_ITemcaCamera = NULL;
         m_ITemcaQC = NULL;
         m_ITemcaFocus = NULL;
 
-        for (auto step : m_AllSteps) {
+        for (auto step : m_StepsPostCapture) {
             for (auto graph : step->m_Graphs) {
                 for (auto processor : graph->GetFilters()) {
                     // the next line took me 2 hours to figure out!!!
@@ -551,7 +526,7 @@ private:
 
         try {
             while (fOK && !m_Aborting) {
-                m_CompletedStep = false;
+                m_CanChangeMode = true;
                 fOK &= PythonCallback(StartNewFrame, 0, "");
 
                 // Wait for the client to issue a grab, which sets m_Stepping
@@ -629,7 +604,6 @@ private:
                     }
                 }
                 fOK &= PythonCallback(ProcessingFinished, 0, "");
-                m_CompletedStep = true;
             }
             fini(); // cleanup
         }

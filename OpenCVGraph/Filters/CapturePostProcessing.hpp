@@ -22,9 +22,13 @@ namespace openCVGraph
     public:
         CapturePostProcessing::CapturePostProcessing(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
-            int width = 512, int height = 512)
+            int width = 512, int height = 512, int enableBrightDarkCorrection = FROM_YAML)
             : Filter(name, graphData, streamIn, width, height)
         {
+            if (enableBrightDarkCorrection != FROM_YAML)
+            {
+                m_CorrectionBrightDark = (enableBrightDarkCorrection == 1);
+            }
         }
 
         bool CapturePostProcessing::init(GraphData& graphData) override

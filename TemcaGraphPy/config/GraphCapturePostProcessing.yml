@@ -3,7 +3,22 @@ GraphManager:
    Enabled: 1
    # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
    LogLevel: 2
-   FPS: "0.00"
+   FPS: "0.36"
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 1
+CapturePostProcessing:
+   IsEnabled: 1
+   ShowView: 0
+   ShowViewControls: 0
+   ZoomViewLockIndex: 0
+   InputStream: 0
+   Duration_MS_Mean: "37.0"
+   Duration_MS_Min: "36.5"
+   Duration_MS_Max: "39.8"
+   Duration_MS_Last: "36.6"
+   correction_bright_dark: 1
+   correction_upshift4bits: 1
+   bright_field_path: "config/BrightField.tif"
+   dark_field_path: "config/DarkField.tif"
+   downsample_preview_factor: 4
