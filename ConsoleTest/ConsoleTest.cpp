@@ -208,12 +208,13 @@ int xiSample();
 //m1 = m1 * 16                   : 0.0254
 //mm[x][y] <<= 4                 : 0.0347
 
-void timeMatOps()
+void timeMatOps(int v = 3840)
 {
     int nLoopCount;
-    const int d = 3840;
+    const int d = v;
 
-    auto mm = new uint16_t[d][d]();
+    // uint16_t *a = new uint16_t[d*d];
+    uint16_t * mm = new uint16_t[d *d];
 
     Mat m1(d, d, CV_16UC1);
     Mat m2(d, d, CV_16UC1);
@@ -226,8 +227,8 @@ void timeMatOps()
     auto timer = Timer();
     nLoopCount = 100;
 
-    cout << "Mat dimensions: " << d << "x" << d << " CV_16UC1" << std::endl << std::endl;
-
+    cout << std::endl << "Mat dimensions: " << d << "x" << d << " CV_16UC1" << std::endl << std::endl;
+    cout << "Pixels                         : " << fixed << (d*d) << std::endl;
     timer.reset();
     for (int i = 0; i < nLoopCount; i++) {
          // 27 mS
@@ -238,10 +239,8 @@ void timeMatOps()
     timer.reset();
     for (int i = 0; i < nLoopCount; i++) {
         // 34mS
-        for (int x = 0; x < d; x++) {
-            for (int y = 0; y < d; y++) {
-                mm[x][y] <<= 4;
-            }
+        for (int x = 0; x < d*d; x++) {
+            mm[x] <<= 4;
         }
     }
     cout << "mm[x][y] <<= 4                 : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
@@ -290,6 +289,7 @@ void timeMatOps()
     }
     cout << "cuda::divide(gm1, 16, gm2)     : " << fixed << setprecision(4) << (timer.elapsed() / nLoopCount) << std::endl;
 #endif
+    delete[] mm;
 }
 
 
@@ -299,12 +299,14 @@ int main()
     // GraphCopyOldTEMCAUpshifted();
     // GraphImageDir();
 #endif
-    // timeMatOps();
+    for (int d = 512; d < 5000; d+=512)
+        timeMatOps(d);
+    timeMatOps(3840);
 
 #ifdef WITH_CUDA
     // xiSample();
     // GraphWebCam();
-    GraphXimea();
+    // GraphXimea();
 #else
      GraphWebCam();
 #endif
