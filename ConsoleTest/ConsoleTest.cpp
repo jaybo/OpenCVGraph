@@ -55,11 +55,11 @@ void GraphWebCam()
     CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
     graph.AddFilter(fFocusFFT);
 
-    CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
-    graph.AddFilter(fFocusSobel);
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
+    //graph.AddFilter(fFocusSobel);
 
-    CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
-    graph.AddFilter(fFocusLaplace);
+    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
+    //graph.AddFilter(fFocusLaplace);
 
     CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
     graph.AddFilter(canny1);
@@ -202,6 +202,12 @@ int xiSample();
 //cuda::multiply (gm1, 16, gm1)  : 0.0004
 //cuda::divide(gm1, 16, gm2)     : 0.0006
 
+// Jay's Lenovo Carbon X1 laptop
+//Mat dimensions: 3840x3840 CV_16UC1
+//
+//m1 = m1 * 16                   : 0.0254
+//mm[x][y] <<= 4                 : 0.0347
+
 void timeMatOps()
 {
     int nLoopCount;
@@ -213,9 +219,10 @@ void timeMatOps()
     Mat m2(d, d, CV_16UC1);
     cv::randu(m1, Scalar::all(0), Scalar::all(65535));
     cv::randu(m2, Scalar::all(0), Scalar::all(65535));
+#ifdef WITH_CUDA
     GpuMat gm1(m1);
     GpuMat gm2(m1);
-
+#endif
     auto timer = Timer();
     nLoopCount = 100;
 
@@ -292,14 +299,14 @@ int main()
     // GraphCopyOldTEMCAUpshifted();
     // GraphImageDir();
 #endif
+    // timeMatOps();
 
 #ifdef WITH_CUDA
-    timeMatOps();
     // xiSample();
     // GraphWebCam();
-    // GraphXimea();
+    GraphXimea();
 #else
-    GraphWebCam();
+     GraphWebCam();
 #endif
     return 0;
 }
