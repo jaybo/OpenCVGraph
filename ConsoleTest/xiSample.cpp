@@ -9,9 +9,9 @@
 #include <m3api/xiApi.h> // Linux, OSX
 #endif
 #include <memory.h>
-
 #include <time.h>	
 #include <conio.h>
+
 
 #define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)\n",place,res);goto finish;}
 
