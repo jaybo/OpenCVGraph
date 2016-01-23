@@ -45,6 +45,7 @@
 #include "ITemcaCamera.hpp"
 #include "ITemcaQC.hpp"
 #include "ITemcaFocus.hpp"
+#include "ITemcaCapturePostProcessing.hpp"
 
 // Filters
 #include "Filters/Simple.hpp"

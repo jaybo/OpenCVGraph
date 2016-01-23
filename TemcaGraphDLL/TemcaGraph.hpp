@@ -66,9 +66,8 @@ private:
     }
 
     // -----------------------------------------------------------------------------------
-    // Post capture graphs
+    // CapturePostProcessing graph
     // -----------------------------------------------------------------------------------
-
 
     GraphManager* CreateGraphCapturePostprocessing(string graphName, 
         int enableBrightDarkCorrection = FROM_YAML)
@@ -76,13 +75,18 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData);
 
-        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), StreamIn::CaptureRaw, 
+        CvFilter fCapPost(new CapturePostProcessing("CapturePostProcessing", *graph->getGraphData(), 
+            StreamIn::CaptureRaw, 
             256, 256, 
             enableBrightDarkCorrection));
         graph->AddFilter(fCapPost);
 
         return graph;
     }
+
+    // -----------------------------------------------------------------------------------
+    // Post capture graphs
+    // -----------------------------------------------------------------------------------
 
     GraphManager* CreateGraphFileWriter(string graphName)
     {
@@ -178,61 +182,65 @@ public:
         // Create the single capture graph containing the camera
         m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
 
+        // Create the post processing graph
+        m_gmCapturePostProcessing = CreateGraphCapturePostprocessing("Temca-CapturePostProcessing", true /*enable BrightDark correction*/);
+
         // ------------------------------------------------------------------------------
         // The singular capture step, which is always in use
         // ------------------------------------------------------------------------------
         
         m_StepCapture = new GraphParallelStep("StepCapture", list<GraphManager*> () =
         { 
-                m_gmCapture 
-        });
+            m_gmCapture 
+        }, StatusCaptureFinished);
         m_AllSteps.push_back(m_StepCapture); // always only one capture step
+
+        // ------------------------------------------------------------------------------
+        // The singular CapturePostProcessing step, which is always in use
+        // ------------------------------------------------------------------------------
+
+        m_StepCapturePostProcessing = new GraphParallelStep("StepCapturePostProcessing", list<GraphManager*>() =
+        {
+            m_gmCapturePostProcessing
+        }, StatusCapturePostProcessingFinished);
+        m_AllSteps.push_back(m_StepCapturePostProcessing); // always only one capture post processing step
 
         // ------------------------------------------------------------------------------
         // Main TEMCA CAPTURE configuration
         // ------------------------------------------------------------------------------
-        m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaPostProcessing", list<GraphManager*>() =
-        {
-            CreateGraphCapturePostprocessing("Temca-PostProcessing", true /* enableBrightDarkCorrection */),
-        }));
+
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaSync", list<GraphManager*> () =
         {
                 CreateGraphQC("Temca-QC"),
                 CreateGraphFocus("Temca-Focus"),
                 CreateGraphFileWriter("Temca-FileWriter"),
-        }));
+        }, StatusSyncStepFinished));
         m_StepsPostCaptureTemca.push_back(new GraphParallelStep("StepsTemcaAsync", list<GraphManager*> () =
         {
             CreateGraphStitchingCheck("Temca-Stitching"),
-        }, -1, true /*runAsync*/));
+        }, StatusAsyncStepFinished, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureTemca.begin(), m_StepsPostCaptureTemca.end());
 
         // ------------------------------------------------------------------------------
         // Raw CAPTURE configuration (no foreground background correction)
         // ------------------------------------------------------------------------------
-        m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawPostProcessing", list<GraphManager*>() =
-        {
-            CreateGraphCapturePostprocessing("Raw-PostProcessing", false /* enableBrightDarkCorrection */),
-        }));
+
         m_StepsPostCaptureRaw.push_back(new GraphParallelStep("StepsRawSync", list<GraphManager*>() =
         {
             CreateGraphFileWriter("Raw-FileWriter"),
-        }));
+        }, StatusSyncStepFinished));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureRaw.begin(), m_StepsPostCaptureRaw.end());
 
         // ------------------------------------------------------------------------------
         // Preview configuration
         // ------------------------------------------------------------------------------
-        m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewPostProcessing", list<GraphManager*> () =
-        {
-            CreateGraphCapturePostprocessing("Preview-PostProcessing"),
-        }));
+
         m_StepsPostCapturePreview.push_back(new GraphParallelStep("StepsPreviewSync", list<GraphManager*>() =
         {
             // enable QC and Focus during Preview?
             CreateGraphQC("Preview-QC"),    
             CreateGraphFocus("Preview-Focus"),
-        }));
+        }, StatusSyncStepFinished));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCapturePreview.begin(), m_StepsPostCapturePreview.end());
 
         // ------------------------------------------------------------------------------
@@ -241,11 +249,11 @@ public:
         m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelaySync", list<GraphManager*> () =
         {
             CreateGraphDelay("Delay-Sync", 2000),
-        }));
+        }, StatusSyncStepFinished));
         m_StepsPostCaptureDelayTest.push_back(new GraphParallelStep("StepsTestDelayAsync", list<GraphManager*> () =
         {
             CreateGraphDelay("Delay-Async", 2000),
-        }, -1, true /*runAsync*/));
+        }, StatusAsyncStepFinished, true /*runAsync*/));
         m_AllSteps.insert(m_AllSteps.end(), m_StepsPostCaptureDelayTest.begin(), m_StepsPostCaptureDelayTest.end());
 
         // init all of the steps
@@ -425,12 +433,13 @@ private:
     // The graphs which  can run simultaneous on separate threads, 
     // and either on GPU or CPU
     GraphManager* m_gmCapture = NULL;
+    GraphManager* m_gmCapturePostProcessing = NULL;
 
     GraphCommonData *m_graphCommonData = new GraphCommonData();
 
     // Bundled graphs which step together
     GraphParallelStep* m_StepCapture = NULL;
-    //GraphParallelStep* m_StepPostCapture = NULL;
+    GraphParallelStep* m_StepCapturePostProcessing = NULL;
 
     std::list<GraphParallelStep*> m_AllSteps;                   // all steps, including camera
 
@@ -479,11 +488,11 @@ private:
             for (auto graph : step->m_Graphs) {
                 for (auto processor : graph->GetFilters()) {
                     // the next line took me 2 hours to figure out!!!
-                    if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
-                    {
-                        m_ITemcaCamera = dynamic_cast<ITemcaCamera *> (processor.get());
-                        continue;
-                    }
+                    //if (dynamic_cast<ITemcaCamera *> (processor.get()) != nullptr)
+                    //{
+                    //    m_ITemcaCamera = dynamic_cast<ITemcaCamera *> (processor.get());
+                    //    continue;
+                    //}
                     if (dynamic_cast<ITemcaFocus *> (processor.get()) != nullptr)
                     {
                         m_ITemcaFocus = dynamic_cast<ITemcaFocus *> (processor.get());
@@ -512,14 +521,14 @@ private:
     }
 
     enum StatusCodes {
-        FatalError = -1,            // Aborting processing loop.
-        InitFinished = 0,           // Ready to party, dude!
-        StartNewFrame = 1,          // Ready for client to issue get_image()
-        CaptureFinished = 2,        // Capture completed, ready to step the stage
-        SyncStepCompleted = 3,      // A synchronous processing step post capture has completed
-        AsyncStepCompleted = 4,     // An asynchronous processing step post capture has completed
-        ProcessingFinished = 5,     // At the end of the loop.  All steps except ASYNC steps have completed
-        ShutdownFinished = 6        // Police just showed up.
+        StatusFatalError = -1,                      // Aborting processing loop.
+        StatusInitFinished = 0,                     // Ready to party, dude!
+        StatusStartNewFrame = 1,                    // Ready for client to issue get_image()
+        StatusCaptureFinished = 2,                  // Capture completed, ready to step the stage
+        StatusCapturePostProcessingFinished = 3,    // *4, BrighDark, Spatial correction finished, preview ready
+        StatusSyncStepFinished = 4,                 // A synchronous processing step post capture has completed
+        StatusAsyncStepFinished = 5,                // An asynchronous processing step post capture has completed
+        StatusShutdownFinished = 6                  // Police just showed up.
     };
 
     // The main capture loop
@@ -532,12 +541,12 @@ private:
         bool fOK = true;
         string s;
 
-        fOK = PythonCallback(InitFinished, 0, "");
+        fOK = PythonCallback(StatusInitFinished, 0, "");
 
         try {
             while (fOK && !m_Aborting) {
                 m_CanChangeMode = true;
-                fOK &= PythonCallback(StartNewFrame, 0, "");
+                fOK &= PythonCallback(StatusStartNewFrame, 0, "");
 
                 // Wait for the client to issue a grab, which sets m_Stepping
 
@@ -551,7 +560,7 @@ private:
                     if (!(fOK = m_StepCapture->Step())) {
                         s = m_StepCapture->GetName() + " failed Capture Step.";
                         m_Logger->error(s);
-                        PythonCallback(FatalError, 0, s.c_str());
+                        PythonCallback(StatusFatalError, 0, s.c_str());
                         m_Aborting = true;
                     }
                     else {
@@ -559,37 +568,57 @@ private:
                         if (!(fOK &= m_StepCapture->WaitStepCompletion())) {
                             s = m_StepCapture->GetName() + " Capture WaitStepCompletion.";
                             m_Logger->error(s);
-                            PythonCallback(FatalError, 0, s.c_str());
+                            PythonCallback(StatusFatalError, 0, s.c_str());
                             m_Aborting = true;
                         }
                         else {
                             // fire finished capture event
-                            fOK &= PythonCallback(CaptureFinished, 0, "");
+                            fOK &= PythonCallback(StatusCaptureFinished, 0, "");
 
                             // Verify all downstream ASYNC steps have finished from the LAST capture (overlapped case)
-                            //for (auto step : m_StepsPostCapture) {
-                            //    if (fOK) {
-                            //        if (step->RunningAsync()) {
-                            //            if (!(fOK &= step->WaitStepCompletion())) {
-                            //                s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
-                            //                m_Logger->error(s);
-                            //                PythonCallback(FatalError, 0, s.c_str());
-                            //                m_Aborting = true;
-                            //                break;
-                            //            }
-                            //            else {
-                            //            }
-                            //        }
-                            //    }
-                            //}
-                            //PythonCallback(AsyncStepCompleted, 0, s.c_str());
+                            for (auto step : m_StepsPostCapture) {
+                                if (fOK) {
+                                    if (step->RunningAsync()) {
+                                        if (!(fOK &= step->WaitStepCompletion(true /*async*/))) {
+                                            s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
+                                            m_Logger->error(s);
+                                            PythonCallback(StatusFatalError, 0, s.c_str());
+                                            m_Aborting = true;
+                                            break;
+                                        }
+                                        else {
+                                            PythonCallback(step->GetCompletionEventId(), 0, "");  // async completion event
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!(fOK = m_StepCapturePostProcessing->Step())) {
+                                s = m_StepCapturePostProcessing->GetName() + " failed CapturePostProcessing Step.";
+                                m_Logger->error(s);
+                                PythonCallback(StatusFatalError, 0, s.c_str());
+                                m_Aborting = true;
+                            }
+                            else {
+                                // Wait for CapturePostProcessing to complete
+                                if (!(fOK &= m_StepCapturePostProcessing->WaitStepCompletion())) {
+                                    s = m_StepCapture->GetName() + " CapturePostProcessing WaitStepCompletion.";
+                                    m_Logger->error(s);
+                                    PythonCallback(StatusFatalError, 0, s.c_str());
+                                    m_Aborting = true;
+                                }
+                                else {
+                                    // fire finished capture event
+                                    fOK &= PythonCallback(StatusCapturePostProcessingFinished, 0, "");
+                                }
+                            }
 
                             // step all of the post capture steps
                             for (auto step : m_StepsPostCapture) {
                                 if (!(fOK &= step->Step())) {
                                     s = m_StepCapture->GetName() + " failed to Step.";
                                     m_Logger->error(s);
-                                    PythonCallback(FatalError, 0, s.c_str());
+                                    PythonCallback(StatusFatalError, 0, s.c_str());
                                     m_Aborting = true;
                                     break;
                                 }
@@ -597,17 +626,19 @@ private:
                                     if (!(fOK &= step->WaitStepCompletion())) {
                                         s = m_StepCapture->GetName() + " failed WaitStepCompletion.";
                                         m_Logger->error(s);
-                                        PythonCallback(FatalError, 0, s.c_str());
+                                        PythonCallback(StatusFatalError, 0, s.c_str());
                                         m_Aborting = true;
                                         break;
                                     }
+                                    else {
+                                        PythonCallback(step->GetCompletionEventId(), 0, "");  // sync completion event
+                                    }
                                 }
                             }
-                            PythonCallback(SyncStepCompleted, 0, s.c_str());
                         }
                     }
                 }
-                fOK &= PythonCallback(ProcessingFinished, 0, "");
+                //fOK &= PythonCallback(ProcessingFinished, 0, "");
             }
             fini(); // cleanup
         }
@@ -615,7 +646,7 @@ private:
         {
             std::cout << "main processing loop: " << ex.what() << std::endl;
         }
-        fOK &= PythonCallback(ShutdownFinished, 0, "");
+        fOK &= PythonCallback(StatusShutdownFinished, 0, "");
         return fOK;
     }
 

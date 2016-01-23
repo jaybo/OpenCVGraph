@@ -82,12 +82,12 @@ namespace openCVGraph
 
         void GraphManager::StartThread()
         {
-            thread = std::thread::thread(&GraphManager::ProcessLoop, this);
+            m_Thread = std::thread::thread(&GraphManager::ProcessLoop, this);
         }
 
         void GraphManager::JoinThread()
         {
-            thread.join();
+            m_Thread.join();
         }
 
         ProcessResult GraphManager::ProcessOne(int key)
@@ -357,7 +357,7 @@ namespace openCVGraph
         bool m_Enabled = true;
         bool m_Aborting = false;
 
-        std::thread thread;
+        std::thread m_Thread;
         GraphState m_GraphState;
         bool m_Stepping = false;
 

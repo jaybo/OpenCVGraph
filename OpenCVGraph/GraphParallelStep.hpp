@@ -10,7 +10,7 @@ namespace openCVGraph
     // Handles stepping a list of filter graphs in parallel.  
     //
     // All graphs in the list will be stepped in unison (and since each graph runs on its own thread all will run simultaneously)
-    // and then WaitStepCompletion will only return when all graphs have completed their work.
+    // and then WaitStepCompletion() will only return when all graphs have completed their work.
 
     class  GraphParallelStep {
     public:
@@ -67,6 +67,7 @@ namespace openCVGraph
             for (auto& graph : m_Graphs)
             {
                 if (graph->IsEnabled()) {
+                    m_HasStepped = true;
                     fOK &= graph->Step();
                 }
             }
@@ -75,11 +76,12 @@ namespace openCVGraph
         }
 
         // Wait for all graphs to finish their work.
+        // Either wait on async steps or sync steps
 
-        bool WaitStepCompletion()
+        bool WaitStepCompletion(bool async = false)
         {
             bool fOK = true;
-            if (!m_RunAsync) {
+            if (m_HasStepped && (m_RunAsync == async)) {
                 // Wait for them all to complete
                 for (auto& graph : m_Graphs)
                 {
@@ -123,5 +125,6 @@ namespace openCVGraph
         bool m_Initialized = false;
         bool m_RunAsync;                // if True, allow overlap with capture step
         int m_CompletionEventId;        // Id of Event fired when graph step completes
+        bool m_HasStepped = false;
     };
 }

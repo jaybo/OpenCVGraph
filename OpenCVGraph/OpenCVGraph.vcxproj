@@ -177,6 +177,7 @@
     <ClInclude Include="include\spdlog\logger.h" />
     <ClInclude Include="include\spdlog\spdlog.h" />
     <ClInclude Include="include\spdlog\tweakme.h" />
+    <ClInclude Include="ITemcaCapturePostProcessing.hpp" />
     <ClInclude Include="ITemcaFocus.hpp" />
     <ClInclude Include="ITemcaQC.hpp" />
     <ClInclude Include="timer.hpp" />

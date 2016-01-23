@@ -17,7 +17,7 @@ namespace openCVGraph
     // Brightfield / Darkfield correction
     // Corrected = (Image - Darkfield) / (Brightfield - Darkfield) * 2**16 (for 16 bit data)
 
-    class CapturePostProcessing : public Filter
+    class CapturePostProcessing : public Filter, public ITemcaCapturePostProcessing
     {
     public:
         CapturePostProcessing::CapturePostProcessing(std::string name, GraphData& graphData,
@@ -239,6 +239,9 @@ namespace openCVGraph
             fs["dark_field_path"] >> m_DarkFieldPath;
             fs["downsample_preview_factor"] >> m_DownsampleForJpgFactor;
         }
+
+        void CapturePostProcessing::setBrightDarkCorrectionEnabled(bool v) {m_CorrectionBrightDark = v;}
+        bool CapturePostProcessing::getBrightDarkCorrectionEnabled() { return m_CorrectionBrightDark; }
 
     private:
 #ifdef WITH_CUDA

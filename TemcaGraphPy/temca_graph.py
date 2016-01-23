@@ -122,9 +122,9 @@ class TemcaGraph(object):
         self.eventInitCompleted = threading.Event()
         self.eventStartNewFrame = threading.Event()
         self.eventCaptureCompleted = threading.Event()
+        self.eventCapturePostProcessingCompleted = threading.Event()
         self.eventSyncProcessingCompleted = threading.Event()
         self.eventAsyncProcessingCompleted = threading.Event()
-        self.eventProcessingCompleted = threading.Event()
         self.eventFiniCompleted = threading.Event()
 
     def open(self, dummyCamera = False, callback=None):
@@ -203,9 +203,9 @@ class TemcaGraph(object):
             # 0: finishied init (startup), 
             # 1: starting new frame, 
             # 2: finished frame capture  (ie. time to move the stage), 
-            # 3: Sync step completed 
-            # 4: Async step completed
-            # 5: Processing finished (except Async graphs)
+            # 3: capture post processing finished (preview ready)
+            # 4: Sync step completed 
+            # 5: Async step completed
             # 6: Shutdown finished
         '''
         status = statusInfo.contents.status
@@ -222,25 +222,24 @@ class TemcaGraph(object):
             self.eventInitCompleted.set()
         elif status == 1:
             # ready to start the next frame (start of the loop)
-            self.eventProcessingCompleted.clear()
-            self.eventSyncProcessingCompleted.clear()
             self.eventStartNewFrame.set()
         elif status == 2:
             # capture completed
             # (move the stage now)
             self.eventCaptureCompleted.set()
+            self.eventCaptureCompleted.clear()
         elif status == 3:
+            # post processing finished (*16, bright dark, spatial correction, preview ready)
+            self.eventCapturePostProcessingCompleted.set()
+            self.eventCapturePostProcessingCompleted.clear()
+        elif status == 4:
             # all synchronous processing for the frame is complete
             self.eventSyncProcessingCompleted.set()
-        elif status == 4:
+            self.eventSyncProcessingCompleted.clear()
+        elif status == 5:
             # all asynchronous processing for the frame is complete
             self.eventAsyncProcessingCompleted.set()
             self.eventAsyncProcessingCompleted.clear()
-        elif status == 5:
-            # all synchronous processing for the frame is complete
-            self.eventCaptureCompleted.clear()
-            self.eventStartNewFrame.clear()
-            self.eventProcessingCompleted.set()
         elif status == 6:
             # graph is finished all processing. Close app.
             self.eventFiniCompleted.set()
@@ -259,7 +258,7 @@ if __name__ == '__main__':
     # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph()
 
-    temcaGraph.open(dummyCamera = False) 
+    temcaGraph.open(dummyCamera = True) 
 
     # get info about frame dimensions
     fi = temcaGraph.get_camera_info()
@@ -296,40 +295,31 @@ if __name__ == '__main__':
             temcaGraph.grab_frame('j:/junk/pyframe' + str(frameCounter) + '.tif', x, y)
             temcaGraph.eventCaptureCompleted.wait(waitTime)
 
-            # move stage here
-            temcaGraph.eventProcessingCompleted.wait(waitTime)
+            # move the stage here
+
+            # wait for preview ready event
+            temcaGraph.eventCapturePostProcessingCompleted.wait(waitTime)
+
+            # get a copy of the frame and display it?
+            if showImages:
+                temcaGraph.get_last_frame(img)
+                plt.imshow(img)
+                plt.show()
+
+            
+            # wait for sync ready event (focus and qc complete)
+            temcaGraph.eventSyncProcessingCompleted.wait(waitTime)
 
             qcInfo = temcaGraph.get_qc_info()
             focusInfo = temcaGraph.get_focus_info()
 
-            # get a copy of the frame and display it?
-            if showImages:
-                temcaGraph.get_last_frame(img)
-                plt.imshow(img)
-                plt.show()
+            # wait for async ready event (stitching)
+
+            temcaGraph.eventAsyncProcessingCompleted.wait(waitTime)
 
             frameCounter += 1
 
-    temcaGraph.set_mode("preview");
-    frameCounter = 0
-    for y in range(roiInfo.gridY):
-        for x in range (roiInfo.gridX):
-            if temcaGraph.aborting:
-                break
-            temcaGraph.eventStartNewFrame.wait(waitTime)
-            temcaGraph.grab_frame('Preview', x, y)
-            temcaGraph.eventCaptureCompleted.wait(waitTime)
-
-            # move stage here
-            temcaGraph.eventProcessingCompleted.wait(waitTime)
-
-            # get a copy of the frame and display it?
-            if showImages:
-                temcaGraph.get_last_frame(img)
-                plt.imshow(img)
-                plt.show()
-
-            frameCounter += 1
+    #temcaGraph.set_mode("preview");
 
 
     temcaGraph.eventFiniCompleted.wait(waitTime)
