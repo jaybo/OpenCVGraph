@@ -194,13 +194,16 @@ int main()
     // GraphCopyOldTEMCAUpshifted();
     // GraphImageDir();
 #endif
+
+#if false
     for (int d = 512; d < 5000; d+=512)
         timeMatOps(d);
     timeMatOps(3840);
+#endif
 
 #ifdef WITH_CUDA
     // xiSample();
-    // GraphWebCam();
+     GraphWebCam();
     // GraphXimea();
 #else
      GraphWebCam();

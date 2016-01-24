@@ -317,7 +317,9 @@ namespace openCVGraph
         void GraphManager::loadConfig()
         {
             FileStorage fs(m_persistFile, FileStorage::READ);
-            if (!fs.isOpened()) { m_GraphData.m_Logger->error() << "ERROR: unable to open file storage!" << m_persistFile; return; }
+            if (!fs.isOpened()) { 
+                m_GraphData.m_Logger->error() << " unable to open file storage " << m_persistFile; return; 
+            }
 
             auto node = fs["GraphManager"];
             node["CudaDeviceIndex"] >> m_CudaDeviceIndex;
@@ -334,7 +336,7 @@ namespace openCVGraph
             for (int i = 0; i < m_Filters.size(); i++) {
                 Processor filter = m_Filters[i];
                 auto node = fs[filter->m_FilterName.c_str()];
-                if (!node.empty()) {
+                if (!node.empty()) {  // force loadConfig to be called even if empty!
                     filter->loadConfig(node, m_GraphData);
                 }
             }

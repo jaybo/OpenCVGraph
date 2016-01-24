@@ -15,21 +15,41 @@ namespace openCVGraph
         //   elif "movie_name" is set, use that movie
         //   elif "image_dir" is set and contains images, use all images in dir
         //   else create a noise image
-
+       
         CamDefault(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
-            int width = 512, int height = 512, int format = CV_16U)
+            int width = 512, int height = 512, int format = CV_16U, 
+            int cameraIndex =  0, string imageName = "", string movieName = "", string imageDir = "")
             : Filter(name, graphData, streamIn, width, height)
         {
             m_Format = format;
             source = Noise;
+
+            construct_camera_index = cameraIndex;
+            construct_image_name = imageName;
+            construct_movie_name = movieName;
+            construct_image_dir = imageDir;
         }
 
         //Allocate resources if needed
         bool init(GraphData& graphData) override
         {
-            // call the base to read/write configs
             Filter::init(graphData);
+
+            // if parms were passed to constructor, use them, else use YAML
+
+            if (construct_camera_index != FROM_YAML) {
+                camera_index = construct_camera_index;
+            }
+            if (construct_image_name != "") {
+                image_name = construct_image_name;
+            }
+            if (construct_movie_name != "") {
+                movie_name = construct_movie_name;
+            }
+            if (construct_image_dir != "") {
+                image_dir = construct_image_dir;
+            }
 
             bool fOK = false;
 
@@ -79,6 +99,9 @@ namespace openCVGraph
                     graphData.m_CommonData->m_SourceFileName = movie_name;
                     fOK = true;
                 }
+                else {
+                    graphData.m_Logger->error() << "Could not open movie " << movie_name;
+                }
             }
 
             // Directory Directory Directory Directory Directory Directory Directory 
@@ -115,9 +138,8 @@ namespace openCVGraph
                     fOK = true;
                 }
                 else {
-                    /* could not open directory */
+                    graphData.m_Logger->error() << "Could not open directory" << image_dir;
                 }
-
             }
 
             // Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise Noise 
@@ -172,9 +194,7 @@ namespace openCVGraph
                 }
                 break;
             }
-
             graphData.UploadCaptureToCuda();
-
 
             return ProcessResult::OK;
         }
@@ -196,8 +216,6 @@ namespace openCVGraph
             return true;
         }
 
-
-
         void  saveConfig(FileStorage& fs, GraphData& data) override
         {
             Filter::saveConfig(fs, data);
@@ -209,6 +227,7 @@ namespace openCVGraph
             fs << "image_dir" << image_dir.c_str();
         }
 
+        // Get setting either from YAML or constructor
         void  loadConfig(FileNode& fs, GraphData& data) override
         {
             Filter::loadConfig(fs, data);
@@ -235,6 +254,12 @@ namespace openCVGraph
         std::string image_name;
         std::string movie_name;
         std::string image_dir;
+
+        // Value passed in constructor which may direct to take the selection from YAML
+        int construct_camera_index = 0;
+        std::string construct_image_name;
+        std::string construct_movie_name;
+        std::string construct_image_dir;
 
         cv::VideoCapture cap;
         vector<string> images;

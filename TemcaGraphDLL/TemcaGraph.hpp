@@ -59,7 +59,8 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager("Cam-Dummy", true, graphCallback, m_graphCommonData);
 
-        CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512));
+        CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512,
+            CV_16UC1, -2, "", "", "./SampleImages"));
         graph->AddFilter(camera);
 
         return graph;
