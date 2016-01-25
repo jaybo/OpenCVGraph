@@ -17,7 +17,7 @@
 
 #define EXPECTED_IMAGES 100
 
-int xiSample()
+extern "C" int xiSample()
 {
     clock_t start_time, end_time, t;
 
@@ -38,8 +38,6 @@ int xiSample()
     stat = xiSetParamInt(xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_RAW16);
     HandleResult(stat, "xiSetParam (XI_PRM_IMAGE_DATA_FORMAT)");
 
-    stat = xiSetParamInt(xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
-    HandleResult(stat, "XI_PRM_LIMIT_BANDWIDTH");
 
     stat = xiSetParamInt(xiH, XI_PRM_EXPOSURE, 10000);
     HandleResult(stat, "xiSetParam (XI_PRM_IMAGE_DATA_FORMAT)");
@@ -57,6 +55,12 @@ int xiSample()
 
     stat = xiSetParamInt(xiH, XI_PRM_RECENT_FRAME, 1);
     HandleResult(stat, "XI_PRM_RECENT_FRAME");
+
+    stat = xiSetParamInt(xiH, XI_PRM_OUTPUT_DATA_PACKING, XI_OFF);
+    HandleResult(stat, "XI_PRM_RECENT_FRAME");
+
+    stat = xiSetParamInt(xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
+    HandleResult(stat, "XI_PRM_LIMIT_BANDWIDTH");
 
     stat = xiStartAcquisition(xiH);
     HandleResult(stat, "xiStartAcquisition");
