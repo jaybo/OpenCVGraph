@@ -202,9 +202,9 @@ int main()
 #endif
 
 #ifdef WITH_CUDA
-    // xiSample();
-     GraphWebCam();
-    // GraphXimea();
+    //xiSample();
+    // GraphWebCam();
+     GraphXimea();
 #else
      GraphWebCam();
 #endif

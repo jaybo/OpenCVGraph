@@ -14,6 +14,7 @@ namespace openCVGraph
 #define PAGE_LOCKED_MEMORY 0            // page lock the main capture buffer
 #define XI_TIMEOUT 5000                 // No operation should take longer than 5 seconds
 #define LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 1
+#define BETTER_SOFTWARE_TRIGGER_PERF 1  // was 44mS per capture, down to 17mS with this (Ximea Support Question #51949)
 
     // Filter which hosts the Ximea 20MPix camera without using OpenCV capture
 
@@ -55,11 +56,18 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_MONO16);
                 LogErrors(stat, "XI_PRM_IMAGE_DATA_FORMAT");
 
-#if LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT
+#if LIMIT_BANDWIDTH_TO_FIX_DOTS_UPPER_RIGHT 
                 stat = xiSetParamInt(m_xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
                 LogErrors(stat, "XI_PRM_LIMIT_BANDWIDTH");
 #endif
-                
+
+#if BETTER_SOFTWARE_TRIGGER_PERF 
+                stat = xiSetParamInt(m_xiH, XI_PRM_LIMIT_BANDWIDTH, 5000);
+                LogErrors(stat, "XI_PRM_LIMIT_BANDWIDTH");
+
+                stat = xiSetParamInt(m_xiH, XI_PRM_OUTPUT_DATA_PACKING, XI_OFF);
+                LogErrors(stat, "XI_PRM_OUTPUT_DATA_PACKING");
+#endif                
                 // AutoGain off
                 stat = xiSetParamInt(m_xiH, XI_PRM_AEAG, 0);
                 LogErrors(stat, "XI_PRM_AEAG");
@@ -201,12 +209,11 @@ namespace openCVGraph
 #if !PAGE_LOCKED_MEMORY
             copyCaptureImage(graphData);
 #endif
-            // always bump up to full 16 bit range  
-            // This takes 25mS on my Lenovo!!!
-            // do it on the GPU???
-            graphData.m_CommonData->m_imCapture = 16 * graphData.m_CommonData->m_imCapture;
 
-            graphData.UploadCaptureToCuda();
+            // These steps are now done in CapturePostProcessing
+            // This takes 25mS on my Lenovo!!!
+            // graphData.m_CommonData->m_imCapture = 16 * graphData.m_CommonData->m_imCapture;
+            // graphData.UploadCaptureToCuda();
 
             if (m_focusMovementStepSize != 0) {
                 FocusStep();
@@ -218,6 +225,7 @@ namespace openCVGraph
         void processView(GraphData& graphData) override
         {
             if (m_showView) {
+                // The capture post processing filter hasn't bumped up the raw data yet, so we have to do it here
                 m_imView = graphData.m_CommonData->m_imCapture * 16;
                 Filter::processView(graphData);
             }

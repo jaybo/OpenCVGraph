@@ -194,7 +194,6 @@ namespace openCVGraph
                 }
                 break;
             }
-            graphData.UploadCaptureToCuda();
 
             return ProcessResult::OK;
         }

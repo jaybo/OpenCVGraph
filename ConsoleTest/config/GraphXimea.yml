@@ -3,26 +3,26 @@ GraphManager:
    Enabled: 1
    # Log Levels: 0=trace, 1=debug, 2=info, 3=notice, 4=warn, 5=err, 6=critical, 7=alert, 8=emerg, 9=off
    LogLevel: 2
-   FPS: "2.62"
+   FPS: "3.52"
    CudaEnabledDeviceCount: 1
    CudaDeviceIndex: 1
    UseCuda: 1
 CamXimea:
    IsEnabled: 1
-   ShowView: 0
+   ShowView: 1
    ShowViewControls: 1
    ZoomViewLockIndex: 0
    InputStream: 0
-   Duration_MS_Mean: "293.0"
-   Duration_MS_Min: "292.7"
-   Duration_MS_Max: "294.4"
-   Duration_MS_Last: "292.9"
+   Duration_MS_Mean: "44.4"
+   Duration_MS_Min: "43.8"
+   Duration_MS_Max: "47.1"
+   Duration_MS_Last: "43.9"
    camera_index: 0
    trigger_software: 1
    minimum_buffers: 1
    aperture: 0
    minFocusMovementValue: 2
-   exposure: 200000
+   exposure: 1268
    exposureSliderMax: 10000
    gain: 0
    gainSliderMax: 10000
@@ -32,29 +32,29 @@ CamXimea:
    show_aperature_slider: 1
 CapturePostProcessing:
    IsEnabled: 1
-   ShowView: 0
+   ShowView: 1
    ShowViewControls: 1
    ZoomViewLockIndex: 0
    InputStream: 0
-   Duration_MS_Mean: "42.3"
-   Duration_MS_Min: "33.9"
-   Duration_MS_Max: "365.0"
-   Duration_MS_Last: "34.1"
+   Duration_MS_Mean: "66.2"
+   Duration_MS_Min: "64.5"
+   Duration_MS_Max: "103.1"
+   Duration_MS_Last: "66.3"
    correction_bright_dark: 1
    correction_upshift4bits: 1
    bright_field_path: "config/BrightField.tif"
    dark_field_path: "config/DarkField.tif"
-   downsample_preview_factor: 0
+   downsample_preview_factor: 2
 QC:
    IsEnabled: 1
    ShowView: 0
    ShowViewControls: 0
    ZoomViewLockIndex: 0
    InputStream: 0
-   Duration_MS_Mean: "24.9"
-   Duration_MS_Min: "24.3"
-   Duration_MS_Max: "28.0"
-   Duration_MS_Last: "24.7"
+   Duration_MS_Mean: "9.0"
+   Duration_MS_Min: "8.3"
+   Duration_MS_Max: "10.2"
+   Duration_MS_Last: "8.5"
 Stats:
    IsEnabled: 0
    ShowView: 0
@@ -68,14 +68,14 @@ Stats:
    use_Cuda: 1
 FocusFFT:
    IsEnabled: 1
-   ShowView: 0
+   ShowView: 1
    ShowViewControls: 1
    ZoomViewLockIndex: 8
    InputStream: 0
-   Duration_MS_Mean: "20.9"
-   Duration_MS_Min: "20.7"
-   Duration_MS_Max: "22.1"
-   Duration_MS_Last: "20.7"
+   Duration_MS_Mean: "21.1"
+   Duration_MS_Min: "20.8"
+   Duration_MS_Max: "22.3"
+   Duration_MS_Last: "21.2"
    # Power of 2 (256, 512, 1024, 2048)
    dft_size: 256
    omega: 102
@@ -129,10 +129,10 @@ FileWriter:
    ShowViewControls: 0
    ZoomViewLockIndex: 0
    InputStream: 1
-   Duration_MS_Mean: "0.0"
-   Duration_MS_Min: "0.0"
-   Duration_MS_Max: "0.0"
-   Duration_MS_Last: "0.0"
+   Duration_MS_Mean: "79.3"
+   Duration_MS_Min: "74.3"
+   Duration_MS_Max: "100.8"
+   Duration_MS_Last: "77.3"
    directory: "J:/junk"
    baseFileName: test
    ext: ".tif"

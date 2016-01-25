@@ -67,7 +67,7 @@ namespace openCVGraph
 
                 if (m_showView) {
                     if (m_showViewControls) {
-                        createTrackbar("Image: ", m_CombinedName, &m_FieldToView, 3);
+                        createTrackbar("Image: ", m_CombinedName, &m_FieldToView, 4);
                     }
                 }
             }
@@ -76,13 +76,17 @@ namespace openCVGraph
 
         ProcessResult CapturePostProcessing::process(GraphData& graphData) override
         {
+            // If CUDA is available, upload the capture image
+            graphData.UploadCaptureToCuda();
+
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
 
             if (graphData.m_UseCuda) {
+
 #ifdef WITH_CUDA
                 // upshift
                 if (m_CorrectionUpshift4Bits) {
-                    cv::cuda::multiply(graphData.m_CommonData->m_imCaptureGpu16UC1, Scalar(4), graphData.m_CommonData->m_imCaptureGpu16UC1);
+                    cv::cuda::multiply(graphData.m_CommonData->m_imCaptureGpu16UC1, Scalar(16), graphData.m_CommonData->m_imCaptureGpu16UC1);
                     graphData.m_CommonData->m_imCaptureGpu16UC1.download(graphData.m_CommonData->m_imCapture);
                 }
 
@@ -210,6 +214,10 @@ namespace openCVGraph
                     str << "dark";
                     break;
 
+                case 4:
+                    m_imView = graphData.m_CommonData->m_imPreview;
+                    str << "preview";
+                    break;
                 }
                 int posLeft = 10;
                 double scale = 1.0;
@@ -242,6 +250,9 @@ namespace openCVGraph
 
         void CapturePostProcessing::setBrightDarkCorrectionEnabled(bool v) {m_CorrectionBrightDark = v;}
         bool CapturePostProcessing::getBrightDarkCorrectionEnabled() { return m_CorrectionBrightDark; }
+
+        void CapturePostProcessing::setPreviewDecimationFactor(int decimationFactor) { m_DownsampleForJpgFactor = decimationFactor; }
+        int CapturePostProcessing::getPreviewDecimationFactor() { return m_DownsampleForJpgFactor; }
 
     private:
 #ifdef WITH_CUDA
