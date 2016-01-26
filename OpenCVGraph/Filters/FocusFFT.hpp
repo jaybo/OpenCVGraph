@@ -49,8 +49,8 @@ namespace openCVGraph
             int h = graphData.m_CommonData->m_imCapture.size().height;
             Rect rCropped = Rect(Point(w/2 - m_DFTSize/2, h/2 - m_DFTSize/2), Size(m_DFTSize, m_DFTSize));
 
-            // if (graphData.m_UseCuda) {
-            if (false) {
+             if (graphData.m_UseCuda) {
+            //if (false) {
 #ifdef WITH_CUDA
                 cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCaptureGpu16UC1, rCropped);
 
@@ -63,8 +63,6 @@ namespace openCVGraph
                 GpuMat complexI;
                 cuda::merge(planes, 2, complexI);                               // Add to the expanded another plane with zeros
                 cuda::dft(complexI, complexI, Size(m_DFTSize, m_DFTSize));      // this way the result may fit in the source matrix
-
-
 
                                                                                 // compute the magnitude and switch to logarithmic scale
                                                                                 // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
@@ -100,17 +98,18 @@ namespace openCVGraph
 
                 // adaptive_filter in python
                 cuda::bilateralFilter(magI, tmp, 5, 50, 50);
-#if 0
+
                 // polar transform
-                GpuMat polar;
-                cuda::cartToPolar(tmp, polar)
-                cuda::linearPolar(tmp, polar, Point(rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
+                Mat tmpCpu;
+                tmp.download(tmpCpu);
+                Mat polar;
+                
+                cv::linearPolar(tmpCpu, polar, Point(rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
                 m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
                 auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
 
-#endif
 #else
                 assert(0);
 #endif
@@ -189,6 +188,9 @@ namespace openCVGraph
 
             switch (m_ImageIndex) {
             case ImageToView::PowerSpectrum:
+                if (graphData.m_UseCuda) {
+                    m_PowerSpectrumGpu.download(m_PowerSpectrum);
+                }
                 m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             case ImageToView::PowerSpectrumROI:
