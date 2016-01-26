@@ -347,6 +347,7 @@ namespace openCVGraph
         std::condition_variable& getConditionalVariable() { return m_cv; }
         bool CompletedStep() { return m_CompletedStep; }
         bool IsEnabled() { return m_Enabled; }
+        void Enable(bool enable) { m_Enabled = enable; }
         void Abort() { m_Aborting = true; }
         bool IsAborted() { return m_Aborting; }
         bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }

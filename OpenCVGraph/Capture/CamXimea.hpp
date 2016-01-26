@@ -369,10 +369,10 @@ namespace openCVGraph
         int m_minFocusMovementValue = 2;
         int m_exposure = 10000;             // in microseconds
         int m_exposureSliderMax = 260000;         // for setting the slider max
-        bool m_showGainSlider = false;
-        bool m_showExposureSlider = false;
-        bool m_showFocusSlider = false;
-        bool m_showApertureSlider = false;
+        bool m_showGainSlider = true;
+        bool m_showExposureSlider = true;
+        bool m_showFocusSlider = true;
+        bool m_showApertureSlider = true;
         int m_LEDMode = XI_LED_EXPOSURE_ACTIVE;
         std::shared_ptr<logger> m_Logger;
 

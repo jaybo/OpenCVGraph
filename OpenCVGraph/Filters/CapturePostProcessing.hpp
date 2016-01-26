@@ -12,7 +12,7 @@ namespace openCVGraph
     //    optionally:
     //    1. Upshift by 4 bits to full 16 bit range
     //    2. Perform bright and darkfield corrections
-    //    3. Perform lens distortion corrections
+    //    3. Perform lens distortion corrections (todo)
 
     // Brightfield / Darkfield correction
     // Corrected = (Image - Darkfield) / (Brightfield - Darkfield) * 2**16 (for 16 bit data)
@@ -22,12 +22,16 @@ namespace openCVGraph
     public:
         CapturePostProcessing::CapturePostProcessing(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
-            int width = 512, int height = 512, int enableBrightDarkCorrection = FROM_YAML)
+            int width = 512, int height = 512, int enableBrightDarkCorrection = FROM_YAML, int enableUpShift = FROM_YAML)
             : Filter(name, graphData, streamIn, width, height)
         {
             if (enableBrightDarkCorrection != FROM_YAML)
             {
                 m_CorrectionBrightDark = (enableBrightDarkCorrection == 1);
+            }
+            if (enableUpShift != FROM_YAML)
+            {
+                m_CorrectionUpshift4Bits = (enableUpShift == 1);
             }
         }
 
@@ -231,8 +235,8 @@ namespace openCVGraph
         void  CapturePostProcessing::saveConfig(FileStorage& fs, GraphData& data)
         {
             Filter::saveConfig(fs, data);
-            fs << "correction_bright_dark" << m_CorrectionBrightDark;
-            fs << "correction_upshift4bits" << m_CorrectionUpshift4Bits;
+            //fs << "correction_bright_dark" << m_CorrectionBrightDark;
+            //fs << "correction_upshift4bits" << m_CorrectionUpshift4Bits;
             fs << "bright_field_path" << m_BrightFieldPath.c_str();
             fs << "dark_field_path" << m_DarkFieldPath.c_str();
             fs << "downsample_preview_factor" << m_DownsampleForJpgFactor;
@@ -241,8 +245,9 @@ namespace openCVGraph
         void  CapturePostProcessing::loadConfig(FileNode& fs, GraphData& data)
         {
             Filter::loadConfig(fs, data);
-            fs["correction_bright_dark"] >> m_CorrectionBrightDark;
-            fs["correction_upshift4bits"] >> m_CorrectionUpshift4Bits;
+            // only set these from constructor
+            //fs["correction_bright_dark"] >> m_CorrectionBrightDark;
+            //fs["correction_upshift4bits"] >> m_CorrectionUpshift4Bits;
             fs["bright_field_path"] >> m_BrightFieldPath;
             fs["dark_field_path"] >> m_DarkFieldPath;
             fs["downsample_preview_factor"] >> m_DownsampleForJpgFactor;
@@ -275,7 +280,7 @@ namespace openCVGraph
 
         int m_FieldToView = 0;                      // 0 is processed, 1 is unprocessed, 2 is darkfield, 3 is brightfield
         bool m_CorrectionBrightDark = true;         // perform bright dark field correction
-        bool m_CorrectionUpshift4Bits = false;      // multiply incoming 12 bit data by 16 to convert to full range 16bpp
+        bool m_CorrectionUpshift4Bits = true;       // multiply incoming 12 bit data by 16 to convert to full range 16bpp
         int m_DownsampleForJpgFactor = 4;
     };
 }

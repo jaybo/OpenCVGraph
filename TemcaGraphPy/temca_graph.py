@@ -210,7 +210,7 @@ class TemcaGraph(object):
         '''
         status = statusInfo.contents.status
         info = statusInfo.contents.info_code
-        logging.info ('callback status: ' + str(status) + ', info: ' + str(info))
+        #logging.info ('callback status: ' + str(status) + ', info: ' + str(info))
         tid = threading.currentThread()
         if (status == -1):
             self.aborting = True
@@ -274,15 +274,15 @@ if __name__ == '__main__':
         import matplotlib.pyplot as plt
         img = np.zeros(shape=(w,h), dtype= np.uint16)
 
-    waitTime = 3.0
+    waitTime = 100.0
 
     # wait for graph to complete initialization
     temcaGraph.eventInitCompleted.wait(waitTime)
 
     # set ROI grid size (for stitching only)
     roiInfo = ROIInfo()
-    roiInfo.gridX = 5
-    roiInfo.gridY = 5
+    roiInfo.gridX = 6
+    roiInfo.gridY = 6
     temcaGraph.set_roi_info (roiInfo)
 
     frameCounter = 0
@@ -296,6 +296,7 @@ if __name__ == '__main__':
             temcaGraph.eventCaptureCompleted.wait(waitTime)
 
             # move the stage here
+
 
             # wait for preview ready event
             temcaGraph.eventCapturePostProcessingCompleted.wait(waitTime)
@@ -314,16 +315,15 @@ if __name__ == '__main__':
             focusInfo = temcaGraph.get_focus_info()
 
             # wait for async ready event (stitching)
-
-            temcaGraph.eventAsyncProcessingCompleted.wait(waitTime)
+            # temcaGraph.eventAsyncProcessingCompleted.wait(waitTime)
 
             frameCounter += 1
 
     #temcaGraph.set_mode("preview");
 
-
-    temcaGraph.eventFiniCompleted.wait(waitTime)
     temcaGraph.close()
+    temcaGraph.eventFiniCompleted.wait(waitTime)
+
 
 
  
