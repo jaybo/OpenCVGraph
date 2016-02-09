@@ -13,6 +13,7 @@ namespace openCVGraph
     // effected by low - frequency effects.
     // See: http://www.csl.cornell.edu/~cbatten/pdfs/batten-image-processing-sem-ucthesis2000.pdf 
 
+#define ASTIGMATISM_SIZE 360
 
     class FocusFFT : public Filter , public ITemcaFocus
     {
@@ -98,7 +99,7 @@ namespace openCVGraph
 
                 // adaptive_filter in python
                 cuda::bilateralFilter(magI, tmp, 5, 50, 50);
-
+#if true
                 // polar transform
                 Mat tmpCpu;
                 tmp.download(tmpCpu);
@@ -109,6 +110,15 @@ namespace openCVGraph
                 m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
                 auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
+#else
+
+                GpuMat rangeX(Range(0, rCropped.width - m_Omega));
+                auto rangeY = Range(0, ASTIGMATISM_SIZE);
+                GpuMat outX, outY;
+
+                cuda::polarToCart(rangeX, rangeY, outX, outY, true);
+
+#endif
 
 #else
                 assert(0);

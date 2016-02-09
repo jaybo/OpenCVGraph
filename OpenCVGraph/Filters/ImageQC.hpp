@@ -148,7 +148,7 @@ namespace openCVGraph
             }
         }
 
-        void ImageQC::DrawOverlay(GraphData graphData) {
+        void ImageQC::DrawOverlay(GraphData& graphData) {
             ClearOverlayText();
 
             std::ostringstream str;

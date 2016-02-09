@@ -37,7 +37,7 @@ namespace openCVGraph
         ProcessResult Delay::process(GraphData& graphData) override
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(m_delayMS));
-            m_Logger->info(m_CombinedName + " completed");
+            //m_Logger->info(m_CombinedName + " completed");
 
             return ProcessResult::OK;  // if you return false, the graph stops
         }

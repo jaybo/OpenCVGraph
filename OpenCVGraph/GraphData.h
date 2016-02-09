@@ -35,6 +35,7 @@ namespace openCVGraph
         bool m_Have_Capture_Gpu_CV_16UC1 = false;
         bool m_Have_Capture_Gpu_CV_32FC1 = false;
 
+        bool m_Have_Corrected = false;
         bool m_Have_Corrected_CV_8UC1 = false;
         bool m_Have_Corrected_CV_8UC3 = false;
         bool m_Have_Corrected_CV_16UC1 = false;
@@ -94,6 +95,8 @@ namespace openCVGraph
     // -----------------------------------------------------------------------------------------------------------------
 
 	class  GraphData {
+    private:
+        std::mutex m_mutex;
     public:
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
@@ -129,6 +132,20 @@ namespace openCVGraph
             }
         }
 
+
+        void EnsureCorrectedOnCpu()
+        {
+            if (m_UseCuda && !m_CommonData->m_Have_Corrected) {
+#ifdef WITH_CUDA
+                m_CommonData->m_imCorrectedGpu.download(m_CommonData->m_imCorrected);
+#endif
+            }
+            // for non-CUDA scenarios, the CapturePostProcessing filter always is working 
+            // with Corrected so no need to copy
+            m_CommonData->m_Have_Corrected = true;
+        }
+
+
         // At the start of the loop, mark all buffers invalid
         void ResetImageCache()
         {
@@ -142,6 +159,7 @@ namespace openCVGraph
             m_CommonData->m_Have_Capture_Gpu_CV_16UC1 = false;
             m_CommonData->m_Have_Capture_Gpu_CV_32FC1 = false;
 
+            m_CommonData->m_Have_Corrected = false;
             m_CommonData->m_Have_Corrected_CV_8UC1 = false;
             m_CommonData->m_Have_Corrected_CV_8UC3 = false;
             m_CommonData->m_Have_Corrected_CV_16UC1 = false;
@@ -161,6 +179,8 @@ namespace openCVGraph
 
         void EnsureFormatIsAvailable(bool cuda, int needFormat, bool corrected)
         {
+            // std::lock_guard<std::mutex> lock(m_mutex);
+
             int nChannels = m_CommonData->m_imCapture.channels();
             int nDepth = m_CommonData->m_imCapture.depth();
             int nType = m_CommonData->m_imCapture.type();
@@ -392,7 +412,7 @@ namespace openCVGraph
                     case CV_8UC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC1) {
-                                m_CommonData->m_imCapture8UC1 = m_CommonData->m_imCapture;
+                                m_CommonData->m_imCorrected8UC1 = m_CommonData->m_imCorrected;
                                 m_CommonData->m_Have_Corrected_CV_8UC1 = true;
                             }
                         }
@@ -407,7 +427,7 @@ namespace openCVGraph
                     case CV_16UC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_16UC1) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture16UC1, CV_16UC1, 256.0);
+                                m_CommonData->m_imCorrected.convertTo(m_CommonData->m_imCorrected16UC1, CV_16UC1, 256.0);
                                 m_CommonData->m_Have_Corrected_CV_16UC1 = true;
                             }
                         }
@@ -422,7 +442,7 @@ namespace openCVGraph
                     case CV_32FC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_32FC1) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
+                                m_CommonData->m_imCorrected.convertTo(m_CommonData->m_imCorrected32FC1, CV_32FC1, 256.0);  // Hmm always scale up here to fake 16bpp?
                                 m_CommonData->m_Have_Corrected_CV_32FC1 = true;
                             }
                         }
@@ -437,7 +457,7 @@ namespace openCVGraph
                     case CV_8UC3:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC3) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture8UC3, CV_8UC3);
+                                cv::cvtColor(m_CommonData->m_imCorrected, m_CommonData->m_imCorrected8UC3, CV_8UC3);
                                 m_CommonData->m_Have_Corrected_CV_8UC3 = true;
                             }
                         }
@@ -460,7 +480,8 @@ namespace openCVGraph
                     case CV_8UC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC1) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture8UC1, CV_8UC1, 1.0 / 256);
+                                EnsureCorrectedOnCpu();
+                                m_CommonData->m_imCorrected.convertTo(m_CommonData->m_imCorrected8UC1, CV_8UC1, 1.0 / 256);
                                 m_CommonData->m_Have_Corrected_CV_8UC1 = true;
                             }
                         }
@@ -475,7 +496,7 @@ namespace openCVGraph
                     case CV_16UC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_16UC1) {
-                                m_CommonData->m_imCapture16UC1 = m_CommonData->m_imCapture;
+                                m_CommonData->m_imCorrected16UC1 = m_CommonData->m_imCorrected;
                                 m_CommonData->m_Have_Corrected_CV_16UC1 = true;
                             }
                         }
@@ -490,7 +511,7 @@ namespace openCVGraph
                     case CV_32FC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_32FC1) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture32FC1, CV_32FC1);
+                                m_CommonData->m_imCorrected.convertTo(m_CommonData->m_imCorrected32FC1, CV_32FC1);
                                 m_CommonData->m_Have_Corrected_CV_32FC1 = true;
                             }
                         }
@@ -505,7 +526,7 @@ namespace openCVGraph
                     case CV_8UC3:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC3) {
-                                m_CommonData->m_imCapture.convertTo(m_CommonData->m_imCapture8UC3, CV_8UC3, 1.0 / 256);
+                                m_CommonData->m_imCorrected.convertTo(m_CommonData->m_imCorrected8UC3, CV_8UC3, 1.0 / 256);
                                 m_CommonData->m_Have_Corrected_CV_8UC3 = true;
                             }
                         }
@@ -528,7 +549,7 @@ namespace openCVGraph
                     case CV_8UC1:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC1) {
-                                cv::cvtColor(m_CommonData->m_imCapture, m_CommonData->m_imCapture8UC1, COLOR_RGB2GRAY);
+                                cv::cvtColor(m_CommonData->m_imCorrected, m_CommonData->m_imCorrected8UC1, COLOR_RGB2GRAY);
                                 m_CommonData->m_Have_Corrected_CV_8UC1 = true;
                             }
                         }
@@ -544,7 +565,7 @@ namespace openCVGraph
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_16UC1) {
                                 EnsureFormatIsAvailable(cuda, CV_8UC1, corrected);
-                                m_CommonData->m_imCapture8UC1.convertTo(m_CommonData->m_imCapture16UC1, CV_16UC1, 256.0);
+                                m_CommonData->m_imCorrected8UC1.convertTo(m_CommonData->m_imCorrected16UC1, CV_16UC1, 256.0);
                                 m_CommonData->m_Have_Corrected_CV_16UC1 = true;
                             }
                         }
@@ -561,7 +582,7 @@ namespace openCVGraph
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_32FC1) {
                                 EnsureFormatIsAvailable(cuda, CV_8UC1, corrected);
-                                m_CommonData->m_imCapture8UC1.convertTo(m_CommonData->m_imCapture32FC1, CV_32FC1); // Hmm scale up here?
+                                m_CommonData->m_imCorrected8UC1.convertTo(m_CommonData->m_imCorrected32FC1, CV_32FC1); // Hmm scale up here?
                                 m_CommonData->m_Have_Corrected_CV_32FC1 = true;
                             }
                         }
@@ -577,7 +598,7 @@ namespace openCVGraph
                     case CV_8UC3:
                         if (corrected) {
                             if (!m_CommonData->m_Have_Corrected_CV_8UC3) {
-                                m_CommonData->m_imCapture8UC3 = m_CommonData->m_imCapture;
+                                m_CommonData->m_imCorrected8UC3 = m_CommonData->m_imCorrected;
                                 m_CommonData->m_Have_Corrected_CV_8UC3 = true;
                             }
                         }

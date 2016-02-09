@@ -149,14 +149,13 @@ namespace openCVGraph
             // Init everybody
             for (int i = 0; i < m_Filters.size(); i++) {
                 filter = m_Filters[i];
-                if (filter->IsEnabled()) {
-                    fOK &= filter->init(m_GraphData);
-                    if (!fOK) {
-                        m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
-                    }
+                fOK &= filter->init(m_GraphData);
+                if (!fOK) {
+                    m_GraphData.m_Logger->error() << "ERROR: " + m_Filters[i]->m_CombinedName << " failed init()";
                 }
             }
 
+            m_IsInitialized = true;
             m_TimeStart = static_cast<double>(cv::getTickCount());
 
             // main processing loop
@@ -213,9 +212,7 @@ namespace openCVGraph
             // clean up
             for (int i = 0; i < m_Filters.size(); i++) {
                 filter = m_Filters[i];
-                if (filter->IsEnabled()) {
-                    filter->fini(m_GraphData);
-                }
+                filter->fini(m_GraphData);
             }
 
             {
@@ -347,11 +344,13 @@ namespace openCVGraph
         std::condition_variable& getConditionalVariable() { return m_cv; }
         bool CompletedStep() { return m_CompletedStep; }
         bool IsEnabled() { return m_Enabled; }
+        bool IsInitialized() { return m_IsInitialized; }
         void Enable(bool enable) { m_Enabled = enable; }
         void Abort() { m_Aborting = true; }
         bool IsAborted() { return m_Aborting; }
         bool AbortOnEscape() { return m_GraphData.m_AbortOnESC; }
         std::vector<Processor> GetFilters() { return m_Filters; }
+        std::string GetName() { return m_Name; }
 
     private:
         std::string m_Name;
@@ -359,6 +358,7 @@ namespace openCVGraph
         GraphCallback m_GraphCallback;
         bool m_Enabled = true;
         bool m_Aborting = false;
+        bool m_IsInitialized = false;
 
         std::thread m_Thread;
         GraphState m_GraphState;

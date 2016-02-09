@@ -108,3 +108,4 @@ UpgradeLog*.XML
 *.chk
 *.jrs
 *.ide
+*.pyc

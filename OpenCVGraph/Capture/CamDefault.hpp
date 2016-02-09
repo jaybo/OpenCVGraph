@@ -15,11 +15,13 @@ namespace openCVGraph
         //   elif "movie_name" is set, use that movie
         //   elif "image_dir" is set and contains images, use all images in dir
         //   else create a noise image
+        //
+        //   if temcaDummy == true, then switch the colorspace to CV_16UC1 and resize the image to default TEMCA image size.
        
         CamDefault(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512, int format = CV_16U, 
-            int cameraIndex =  0, string imageName = "", string movieName = "", string imageDir = "")
+            int cameraIndex =  0, string imageName = "", string movieName = "", string imageDir = "", bool temcaDummy = false)
             : Filter(name, graphData, streamIn, width, height)
         {
             m_Format = format;
@@ -29,12 +31,17 @@ namespace openCVGraph
             construct_image_name = imageName;
             construct_movie_name = movieName;
             construct_image_dir = imageDir;
+
+            m_TemcaDummy = temcaDummy;
         }
 
         //Allocate resources if needed
         bool init(GraphData& graphData) override
         {
             Filter::init(graphData);
+
+            auto info = this->getCameraInfo();
+            m_OutSize = Size(info.width, info.height);
 
             // if parms were passed to constructor, use them, else use YAML
 
@@ -195,6 +202,26 @@ namespace openCVGraph
                 break;
             }
 
+            if (m_TemcaDummy) {
+                if ((m_OutSize != graphData.m_CommonData->m_imCapture.size()) || (graphData.m_CommonData->m_imCapture.type() != CV_16UC1)) {
+                    Mat output;
+                    switch (graphData.m_CommonData->m_imCapture.type())
+                    {
+                    case CV_8UC3:
+                        cv::cvtColor(graphData.m_CommonData->m_imCapture, output, COLOR_RGB2GRAY);
+                        output.convertTo(output, CV_16UC1, 256.0);
+                        cv::resize(output, graphData.m_CommonData->m_imCapture, m_OutSize);
+                        break;
+                    case CV_8UC1:
+                        graphData.m_CommonData->m_imCapture.convertTo(output, CV_16UC1, 256.0);
+                        cv::resize(output, graphData.m_CommonData->m_imCapture, m_OutSize);
+                        break;
+                    case CV_16UC1:
+                        cv::resize(graphData.m_CommonData->m_imCapture, graphData.m_CommonData->m_imCapture, m_OutSize);
+                        break;
+                    }
+                }
+            }
             return ProcessResult::OK;
         }
 
@@ -263,5 +290,7 @@ namespace openCVGraph
         cv::VideoCapture cap;
         vector<string> images;
         int imageIndex = 0;
+        bool m_TemcaDummy;      // if true, size output image to size from the ITemcaCamera interface
+        Size m_OutSize;         // if m_TemcaDummy is true, make the images this size
     };
 }

@@ -105,23 +105,24 @@ namespace openCVGraph
                     m_imTempGpu.convertTo(graphData.m_CommonData->m_imCorrectedGpu, CV_16U, UINT16_MAX);
                     graphData.m_imOutGpu = graphData.m_CommonData->m_imCorrectedGpu;
 
-                    // graphData.m_CommonData->m_imCorrectedGpu.download(graphData.m_CommonData->m_imCorrected); // for FileWriter
                 }
                 else {
                     // no correction applied, just use Capture stream
                     graphData.m_CommonData->m_imCorrectedGpu = graphData.m_CommonData->m_imCaptureGpu;
                     graphData.m_imOutGpu = graphData.m_CommonData->m_imCaptureGpu16UC1;
+                    graphData.m_CommonData->m_imCorrected = graphData.m_CommonData->m_imCapture;
+                    graphData.m_imOut = graphData.m_CommonData->m_imCapture;
                 }
 
                 // Create Preview Image
                 if (m_DownsampleForJpgFactor != 0) {
-                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
+                    graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, true);
                     if (m_DownsampleForJpgFactor == 1) {
                         graphData.m_CommonData->m_imCaptureGpu8UC1.download(graphData.m_CommonData->m_imPreview);
                     }
                     else {
-                        cv::cuda::resize(graphData.m_CommonData->m_imCorrectedGpu, m_imTempGpu,
-                            graphData.m_CommonData->m_imCorrectedGpu.size() / m_DownsampleForJpgFactor, 0, 0, CV_INTER_NN);
+                        cv::cuda::resize(graphData.m_CommonData->m_imCorrectedGpu8UC1, m_imTempGpu,
+                            graphData.m_CommonData->m_imCorrectedGpu8UC1.size() / m_DownsampleForJpgFactor, 0, 0, CV_INTER_NN);
                         m_imTempGpu.download(graphData.m_CommonData->m_imPreview);
                     }
                 }

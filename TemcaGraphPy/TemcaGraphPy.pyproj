@@ -6,7 +6,7 @@
     <ProjectGuid>12b2a5c2-d2a2-4776-a3f5-1bc267790809</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>temca_graph.py</StartupFile>
+    <StartupFile>stage_test.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -14,7 +14,7 @@
     <Name>TemcaGraphPy</Name>
     <RootNamespace>PythonTest</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>
     </Environment>
     <IsWindowsApplication>False</IsWindowsApplication>
@@ -30,6 +30,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="stage_test.py" />
     <Compile Include="temca_graph.py" />
   </ItemGroup>
   <ItemGroup>

@@ -174,6 +174,7 @@ private:
 public:
     void Run()
     {
+#if 0
         bool fOK = true;
 
         list<GraphManager*> capParallel = { cap };
@@ -227,7 +228,9 @@ public:
         can->JoinThread();
         fw->JoinThread();
         car->JoinThread();
+#endif
     }
+
 };
 
 

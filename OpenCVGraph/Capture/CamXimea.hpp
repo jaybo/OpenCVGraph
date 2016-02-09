@@ -18,12 +18,12 @@ namespace openCVGraph
 
     // Filter which hosts the Ximea 20MPix camera without using OpenCV capture
 
-    class CamXimea : public CamDefault {
+    class CamXimea : public Filter, public ITemcaCamera {
     public:
         CamXimea(std::string name, GraphData& graphData,
             StreamIn streamIn = StreamIn::CaptureRaw,
             int width = 512, int height = 512)
-            : CamDefault(name, graphData, streamIn, width, height)
+            : Filter(name, graphData, streamIn, width, height)
         {
             m_Logger = graphData.m_Logger;
             m_image.size = sizeof(XI_IMG);
@@ -43,7 +43,7 @@ namespace openCVGraph
             Filter::init(graphData);
 
             XI_RETURN stat;
-            stat = xiOpenDevice(camera_index, &m_xiH);
+            stat = xiOpenDevice(m_CameraIndex, &m_xiH);
             if (stat == XI_OK) {
 
                 // 3840x3840
@@ -108,6 +108,14 @@ namespace openCVGraph
                 stat = xiSetParamInt(m_xiH, XI_PRM_LED_MODE, m_LEDMode);
                 LogErrors(stat, "XI_PRM_LED_MODE");
 
+                // get the serial number
+                unsigned int sn = 0;
+                xiGetParamInt(m_xiH, XI_PRM_DEVICE_SN, (int *) &sn);
+                std::stringstream stream;
+                stream << std::hex << sn;
+                std::string result(stream.str());
+                m_SerialNumber = result;
+
                 // perform a single frame test capture to verify operation before streaming
                 stat = xiStartAcquisition(m_xiH);
                 LogErrors(stat, "xiStartAcquisition");
@@ -153,7 +161,7 @@ namespace openCVGraph
                 graphData.UploadCaptureToCuda();
             }
             else {
-                LogErrors(stat, "xiOpenDevice" + camera_index);
+                LogErrors(stat, "xiOpenDevice" + to_string(m_CameraIndex));
                 return false;
             }
 
@@ -244,7 +252,7 @@ namespace openCVGraph
         void  saveConfig(FileStorage& fs, GraphData& data) override
         {
             Filter::saveConfig(fs, data);
-            fs << "camera_index" << camera_index;
+            fs << "camera_index" << m_CameraIndex;
             fs << "trigger_software" << m_SoftwareTrigger;
             fs << "minimum_buffers" << m_minimumBuffers;
             fs << "aperture" << m_aperture;
@@ -262,7 +270,7 @@ namespace openCVGraph
         void  loadConfig(FileNode& fs, GraphData& data) override
         {
             Filter::loadConfig(fs, data);
-            fs["camera_index"] >> camera_index;
+            fs["camera_index"] >> m_CameraIndex;
             fs["trigger_software"] >> m_SoftwareTrigger;
             fs["minimum_buffers"] >> m_minimumBuffers;
             fs["aperture"] >> m_aperture;
@@ -352,12 +360,26 @@ namespace openCVGraph
             m_Logger->info("Exposure " + std::to_string(m_exposure));
         }
 
+        CameraInfo getCameraInfo() override {
+            CameraInfo ci;
+            ci.width = 3840;
+            ci.height = 3840;
+            ci.format = CV_16UC1;
+            ci.pixel_depth = 2;
+            ci.camera_bpp = 12;
+            strcpy_s(ci.camera_model, "Ximea CB200MG");
+            strcpy_s(ci.camera_id, m_SerialNumber.c_str());
+            return ci;
+        }
+
     private:
         bool m_InitOK = true;
-        XI_IMG m_image = { 0 };
+        int m_CameraIndex = 0;
+        XI_IMG m_image;
         HANDLE m_xiH = NULL;
         HostMem m_PageLockedHostMem;
         bool m_SoftwareTrigger = true;
+        string m_SerialNumber = "";
 
         bool m_isAutoGain = false;
         bool m_minimumBuffers = true;

@@ -1,6 +1,6 @@
-# OpenCVGraph
+# opencv_graph
 
-Purpose: Create simple, reusable OpenCV 3.0 based image processing components which can be arranged into a graph.  The graph runs on a separate thread from the main application thread.  The host application can instantiate multiple graphs simultaneously.  At present the graph is just a linear sequence of processing steps with no branching or forking allowed, other than looping back to the beginning when all processors have completed their work on the current frame.  The graph is hosted by a class called **GraphManager**.
+Purpose: Create simple, reusable OpenCV 3.0 based image processing components which can be arranged into a graph. Each graph runs on a separate thread from the main application thread. The host application can instantiate multiple graphs simultaneously and each graph can be selected to run on either the CPU or a GPU.  Each graph is hosted by a class called **GraphManager**.  
 
 The basic work item in the graph is a **Filter**.  An arbitrary number of Filters can be added to a graph and are called sequentially by the GraphManager to process the current frame.  The Filter base class provides common functionality used by subclasses such as persisting the state of the Filter, computing timing statistics on the filter performance, and default keyboard processing.  A packet of data, the **GraphData** class is passed between each Filter which contains all state information including the frame(s) to be processed. 
 
@@ -16,7 +16,10 @@ Normally the first component in a graph is a capture Filter.  The base class **C
 - A still image  
 - A directory containing .tiff, .png, or .jpg images  
 - A noise generator  
-  
+
+If using CUDA, the next filter in the graph should be CapturePostProcessing which uploads the capture image to CUDA memory and optionally performs bright / darkfield
+corrections.
+
 Each Filter can have associated view window(s) and can hook mouse and keyboard input. The **ZoomView** class implements synchronized viewing and pan operations between consenting filters.
 
 
@@ -29,64 +32,42 @@ Each Filter can have associated view window(s) and can hook mouse and keyboard i
     {
         // Create a graph
         GraphCommonData * commonData = new GraphCommonData();
-        GraphManager graph1("GraphWebCam", true, graphCallback, commonData);
-        GraphData* gd = graph1.getGraphData();
+        GraphManager graph("GraphWebCam", true, graphCallback, commonData);
+        GraphData* gd = graph.getGraphData();
     
         // Add an image source (could be camera, single image, directory, noise, movie)
         CvFilter cap1(new CamDefault("CamDefault", *gd));
-        graph1.AddFilter(cap1);
+        graph.AddFilter(cap1);
     
+        // load the capture image into CUDA and optionally perform Bright/Dark correction and up-shifting
+        CvFilter fCapturePostProcessing(new CapturePostProcessing("CapturePostProcessing", *gd, openCVGraph::CaptureRaw, 640, 480, false, false));
+        graph.AddFilter(fCapturePostProcessing);
+
         CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
-        graph1.AddFilter(canny1);
+        graph.AddFilter(canny1);
     
         // Start the thread for that graph running
-        graph1.StartThread();
-        graph1.GotoState(GraphManager::GraphState::Run);
+        graph.StartThread();
+        graph.GotoState(GraphManager::GraphState::Run);
     
-        graph1.JoinThread();
+        graph.JoinThread();
     }
  
-### Building OpenCV with CUDA and Ximea support
-The stock distribution of OpenCV does not include Cuda support or Ximea support so we need to create a custom build from the OpenCV source tree.
+### Building just OpenCVGraph
+Enlist in the following two projects.  Keep them at the same level in the directory tree to avoid needing to change include/lib paths:
+
+- opencv_temca
+- opencv_graph    
+
+#### Setting environment variables
+
+
+    OPENCV_DIR=J:/dev/opencv_temca/3.1.0.Cuda/install
+    PATH = %PATH%;J:/dev/opencv_temca/3.1.0.Cuda/install/x64/vc12/bin;j:/dev/opencv_graph/
+    PYTHONDEVPATH=C:\WinPython-64bit-2.7.10.2\python-2.7.10.amd64
 
 
 #### Install Tools
 
-- VS2013 Community Edition (required for building CUDA in OpenCV)  It is likely VS2015 will be supported when CUDA 8.0 is released.
-- CMake
-- NVidia CUDA 7.5
-
-#### Download OpenCV
-
-- Use at least (tag) 3.1.0 of OpenCV. This is the first version which supports Ximea in 16bpp mode.
-- From GitHub, download or fork the following projects:
-
-        Itseez/opencv (hereafter "opencv")
-        Itseez/opencv_contrib (hereafter "opencv_contrib")
-
-#### Use CMake GUI to create solution files
-
-CMake is used to create the .sln and .proj files for VisualStudio.
--  "Where is the source code" select the "opencv" directory 
--  "Where to build the binaries" select a new directory (not within opencv) hereafter "dest_dir"
--  Click "Configure"
--  Check "WITH_XIMEA"
--  (optionally) Check "BUILD_EXAMPLES" if you want all the examples to be pre-built.
--  Find "OPENCV_EXTRA_MODULES_PATH" and set the path to "opencv_contrib" + "/modules" as in "J:/dev/opencv_contrib/modules"
--  Click "Generate".  When asked what compiler to use, select "Visual Studio 2013 x64".  VS2015 isn't supported yet to generate the CUDA code, although it can be used for everything else other than actually building OpenCV.
-
-#### Build OpenCV with Visual Studio 2013
-
-- Open OPENCV.sln in "dest_dir"
-- Build Debug (this will take a few hours)
-- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL" (Debug)
-- Build Release (this will take a few hours)
-- Right click on the "INSTALL" project and select "Project Only -> Build Only INSTALL" (Release)
-- At this point you should have a complete build
-
-#### Setting environment variables
-
-    OPENCVEXE_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
-    OPENCVLIB_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/lib
-    OPENCV_DIR=J:/dev/OpenCVBuilds/3.1.0.Cuda/install
-    PATH = %PATH%;J:/dev/OpenCVBuilds/3.1.0.Cuda/install/x64/vc12/bin
+- VS2015 or VS2013 Community Edition or better
+- NVidia CUDA 7.5 (https://developer.nvidia.com/cuda-toolkit )

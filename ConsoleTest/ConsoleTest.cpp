@@ -46,6 +46,13 @@ void GraphWebCam()
     CvFilter cap1(new CamDefault("CamDefault", *gd));
     graph.AddFilter(cap1);
 
+    CvFilter fCapturePostProcessing(new CapturePostProcessing("CapturePostProcessing", *gd, openCVGraph::CaptureRaw, 640, 480, false, false));
+    graph.AddFilter(fCapturePostProcessing);
+
+    CvFilter fmatcher(new Matcher("Matcher", *gd, openCVGraph::Corrected, 1024, 1024));
+    graph.AddFilter(fmatcher);
+
+
     //CvFilter faverage(new Average("Average", *gd));
     //graph.AddFilter(faverage);
 
@@ -75,6 +82,58 @@ void GraphWebCam()
 
     CvFilter cartoon2(new openCVGraph::Cartoon("Cartoon2", *gd));
     graph.AddFilter(cartoon2);
+
+    // Start the thread for that graph running
+    graph.StartThread();
+    graph.GotoState(GraphManager::GraphState::Run);
+
+    graph.JoinThread();
+}
+
+// Use ANY webcam as a fake Temca camera
+void GraphWebCamTemca()
+{
+    // Create a graph
+    GraphCommonData * commonData = new GraphCommonData();
+    GraphManager graph("GraphWebCamTemca", true, graphCallback, commonData);
+    GraphData* gd = graph.getGraphData();
+
+    // Add an image source (could be camera, single image, directory, noise, movie)
+    CvFilter cap1(new CamDefault("CamDefault", *gd, CaptureRaw, 512, 512, CV_16UC1, 0, "", "", "", true));
+    graph.AddFilter(cap1);
+
+    CvFilter fCapturePostProcessing(new CapturePostProcessing("CapturePostProcessing", *gd, openCVGraph::CaptureRaw, 640, 480, false, false));
+    graph.AddFilter(fCapturePostProcessing);
+
+    //CvFilter faverage(new Average("Average", *gd));
+    //graph.AddFilter(faverage);
+
+    //CvFilter fpSimple(new Simple("Simple", *gd));
+    //graph.AddFilter(fpSimple);
+
+    CvFilter fpRunningStats(new ImageStatistics("Stats", *gd));
+    graph.AddFilter(fpRunningStats);
+
+    //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *gd, StreamIn::CaptureRaw, 512, 512));
+    //graph.AddFilter(fFocusFFT);
+
+    //CvFilter fFocusSobel(new FocusSobel("FocusSobel", *gd, StreamIn::CaptureRaw, 512, 150));
+    //graph.AddFilter(fFocusSobel);
+
+    //CvFilter fFocusLaplace(new FocusLaplace("FocusLaplace", *gd, StreamIn::CaptureRaw, 512, 512));
+    //graph.AddFilter(fFocusLaplace);
+
+    //CvFilter canny1(new openCVGraph::Canny("Canny1", *gd));
+    //graph.AddFilter(canny1);
+
+    //CvFilter canny2(new openCVGraph::Canny("Canny2", *gd));
+    //graph.AddFilter(canny2);
+
+    //CvFilter cartoon1(new openCVGraph::Cartoon("Cartoon1", *gd));
+    //graph.AddFilter(cartoon1);
+
+    //CvFilter cartoon2(new openCVGraph::Cartoon("Cartoon2", *gd));
+    //graph.AddFilter(cartoon2);
 
     // Start the thread for that graph running
     graph.StartThread();
@@ -145,11 +204,14 @@ void GraphXimea()
     CvFilter cam2(new CamXimea("CamXimea", *gd, StreamIn::CaptureRaw, 512, 512));
     graph.AddFilter(cam2);
 
-    //CvFilter faverage(new Average("Average", *gd));
-    //graph.AddFilter(faverage);
-
     CvFilter brightDark(new CapturePostProcessing("CapturePostProcessing", *gd));
     graph.AddFilter(brightDark);
+
+    CvFilter fmatcher(new Matcher("Matcher", *gd, openCVGraph::Corrected, 1024, 1024));
+    graph.AddFilter(fmatcher);
+
+    //CvFilter faverage(new Average("Average", *gd));
+    //graph.AddFilter(faverage);
 
     CvFilter fpQC(new ImageQC("QC", *gd));
     graph.AddFilter(fpQC);
@@ -190,21 +252,22 @@ void GraphXimea()
 
 int main()
 {
-#if false
+#if 0
     // GraphCopyOldTEMCAUpshifted();
     // GraphImageDir();
 #endif
 
-#if false
+#if 0
     for (int d = 512; d < 5000; d+=512)
         timeMatOps(d);
     timeMatOps(3840);
 #endif
 
 #ifdef WITH_CUDA
-    //xiSample();
+    // xiSample();
     // GraphWebCam();
-     GraphXimea();
+    // GraphWebCamTemca();
+    GraphXimea();
 #else
      GraphWebCam();
 #endif

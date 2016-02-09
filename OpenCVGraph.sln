@@ -11,12 +11,20 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVGraphTests", "OpenCVG
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TemcaGraphDLL", "TemcaGraphDLL\TemcaGraphDLL.vcxproj", "{0C2298FE-8EF1-4EBE-9A8D-CF2B52CE7242}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F2EDD354-3C52-444F-BDBF-76824DBC70CE} = {F2EDD354-3C52-444F-BDBF-76824DBC70CE}
+	EndProjectSection
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "TemcaGraphPy", "TemcaGraphPy\TemcaGraphPy.pyproj", "{12B2A5C2-D2A2-4776-A3F5-1BC267790809}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9ABBDF4B-EB97-4E35-8FBD-B4387BE01ABD}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConsoleTest", "ConsoleTest\ConsoleTest.vcxproj", "{CC2E02FD-F1F3-41E3-B3E0-5B31BF45536C}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pytemca", "C:\dev\pytemca\pytemca.pyproj", "{96568010-F55A-49E2-A594-14A6F375FF98}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +82,12 @@ Global
 		{CC2E02FD-F1F3-41E3-B3E0-5B31BF45536C}.Release|x64.Build.0 = Release|x64
 		{CC2E02FD-F1F3-41E3-B3E0-5B31BF45536C}.Release|x86.ActiveCfg = Release|Win32
 		{CC2E02FD-F1F3-41E3-B3E0-5B31BF45536C}.Release|x86.Build.0 = Release|Win32
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Release|x64.ActiveCfg = Release|Any CPU
+		{96568010-F55A-49E2-A594-14A6F375FF98}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

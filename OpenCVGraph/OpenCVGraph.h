@@ -25,6 +25,14 @@
 #include "opencv2/core.hpp"
 #include "opencv2/core/cuda.hpp"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#ifndef RAD2DEG
+#define RAD2DEG(rad) (((rad) * 180)/M_PI)
+#define DEG2RAD(deg) (((deg) * M_PI)/180)
+#endif
+
 #ifdef WITH_CUDA
 #include <opencv2/cudaimgproc.hpp>
 #include "opencv2/cudaarithm.hpp"
@@ -63,6 +71,7 @@
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
 #include "Filters/CapturePostProcessing.hpp"
+#include "Filters/Matcher.hpp"
 //#endif
 
 // Camera specific includes

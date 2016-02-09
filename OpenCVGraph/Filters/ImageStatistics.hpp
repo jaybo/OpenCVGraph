@@ -227,7 +227,7 @@ namespace openCVGraph
             }
         }
 
-        void ImageStatistics::DrawOverlay(GraphData graphData) {
+        void ImageStatistics::DrawOverlay(GraphData& graphData) {
             ClearOverlayText();
 
             std::ostringstream str;
