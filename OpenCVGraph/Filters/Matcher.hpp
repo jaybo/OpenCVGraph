@@ -195,8 +195,8 @@ namespace openCVGraph
                            m_SceneCorners.resize(4);
                            float dx = (float)m_H.at<double>(0, 2);
                            float dy = (float)m_H.at<double>(1, 2);
-                           m_dX = dx - m_TemplatePosTopLeft.x;
-                           m_dY = dy - m_TemplatePosTopLeft.y;
+                           m_dX = m_TemplatePosTopLeft.x - dx;
+                           m_dY = m_TemplatePosTopLeft.y - dy;
                            m_distance = sqrt(m_dX * m_dX + m_dY * m_dY);
                            m_Rotation = atan2f(m_dY, m_dX);
                            for (int i = 0; i < 4; i++) {

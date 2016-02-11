@@ -6,7 +6,7 @@
     <ProjectGuid>12b2a5c2-d2a2-4776-a3f5-1bc267790809</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>stage_test.py</StartupFile>
+    <StartupFile>capture_grid.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -30,6 +30,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="move_stage.py" />
+    <Compile Include="stage_calibrate.py" />
+    <Compile Include="capture_grid.py" />
     <Compile Include="stage_test.py" />
     <Compile Include="temca_graph.py" />
   </ItemGroup>

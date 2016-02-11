@@ -21,8 +21,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    #stage = RadishStage("*", 8000, 8001, "10.71.212.122:8090")
-    stage = DummyRadishStage("*", 8000, 8001, "http://localhost:8090")
+    stage = RadishStage("*", 8000, 8001, "http://10.128.26.122:8090")
+    #stage = DummyRadishStage("*", 8000, 8001, "http://localhost:8090")
 
     # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph() 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     sx, sy = stage._get_pos_2d()
     cx = sx
     cy = sy
-    dx = dy = 100
+    dx = dy = .01  # in mm 
     angle = 120
 
     #temcaGraph.optimize_exposure()
@@ -59,8 +59,8 @@ if __name__ == '__main__':
 
         # set ROI grid size (for stitching only)
         roiInfo = ROIInfo()
-        roiInfo.gridX = 5
-        roiInfo.gridY = 5
+        roiInfo.gridX = 10
+        roiInfo.gridY = 10
         temcaGraph.set_roi_info (roiInfo)
 
         for y in range(roiInfo.gridY):
@@ -75,13 +75,13 @@ if __name__ == '__main__':
                     break
 
                 temcaGraph.wait_start_of_frame()
-                temcaGraph.grab_frame('j:/RoiCapture/frame' + str(frameCounter) + '.tif', x, y) # filename doesn't matter in preview
+                temcaGraph.grab_frame('j:/RoiCapture/frame' + '-' + str(x) + '-' + str(y) + '.tif', x, y) # filename doesn't matter in preview
                 sys.stdout.write('.')
                 temcaGraph.wait_graph_event(temcaGraph.eventCaptureCompleted)
 
                 # move the stage here
                 stage._set_pos_2d(cx, cy)
-
+                
                 # wait for Async ready event (stitching complete for previous frame)
                 if frameCounter > 0:
                     temcaGraph.wait_graph_event(temcaGraph.eventAsyncProcessingCompleted)
@@ -110,7 +110,8 @@ if __name__ == '__main__':
 
                 frameCounter += 1
 
-    
+
+    stage._set_pos_2d(sx, sy)
     temcaGraph.close()
     temcaGraph.wait_graph_event(temcaGraph.eventFiniCompleted)
     

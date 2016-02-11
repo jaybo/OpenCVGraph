@@ -136,8 +136,11 @@ private:
         GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
 
         // todo, bugbug fix
-        CvFilter filter(new Delay("Delay", *graph->getGraphData()));
-        graph->AddFilter(filter);
+        //CvFilter filter(new Delay("Delay", *graph->getGraphData()));
+        //graph->AddFilter(filter);
+
+        CvFilter fmatcher(new Matcher("Matcher", *graph->getGraphData(), openCVGraph::Corrected, 768, 768));
+        graph->AddFilter(fmatcher);
 
         return graph;
     }
@@ -231,7 +234,7 @@ public:
         m_StepSync = new GraphParallelStep("StepsTemcaSync", list<GraphManager*>() =
         {
             m_gmQC,
-            m_gmFocus,
+            // m_gmFocus,
             m_gmFileWriter,
 #if ADD_DELAYS
             m_gmDelaySync,

@@ -111,12 +111,35 @@ namespace openCVGraph
                 auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
 #else
+                int nX = rCropped.width - m_Omega;
+                if (nX != m_AstigWidth)
+                {
+                    m_AstigWidth = nX;
+                    // Create a 2D lookup table which basically does the same thing as linearPolar in CPU land
 
-                GpuMat rangeX(Range(0, rCropped.width - m_Omega));
-                auto rangeY = Range(0, ASTIGMATISM_SIZE);
-                GpuMat outX, outY;
+                    // X: 0.. m_AstigWidth, Y: 0.. ASTIGMATISM_SIZE
+                    float *rowIndex = new float [ASTIGMATISM_SIZE *m_AstigWidth];
+                    float *angIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
+                    for (int i = 0; i < ASTIGMATISM_SIZE; i++) {
+                        for (int j = 0; j < m_AstigWidth; j++) {
+                            rowIndex[i * ASTIGMATISM_SIZE + j] = j;
+                            angIndex[i * ASTIGMATISM_SIZE + j] = 360.0 / (i / (float) ASTIGMATISM_SIZE);  // all rows have same angle
+                        }
+                    }
+                    Mat imRowIndex = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, rowIndex);
+                    Mat imAngIndex = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, angIndex);
+                    GpuMat rangeX(imRowIndex);
+                    GpuMat rangeY(imAngIndex);
+                    delete rowIndex;
+                    delete angIndex;
 
-                cuda::polarToCart(rangeX, rangeY, outX, outY, true);
+                    // angle
+                    GpuMat outXGpu, outYGpu;
+                    Mat outX, outY;
+                    cuda::polarToCart(rangeX, rangeY, outXGpu, outYGpu, true);
+                    outXGpu.download(outX);
+                    outYGpu.download(outY);
+                }
 
 #endif
 
@@ -273,5 +296,7 @@ namespace openCVGraph
         Mat m_PowerSpectrum;
         Mat m_RoiPowerSpectrum;
         cuda::GpuMat m_PowerSpectrumGpu;
-        cuda::GpuMat m_RoiPowerSpectrumGpu;    };
+        cuda::GpuMat m_RoiPowerSpectrumGpu;    
+        int m_AstigWidth = -1;
+    };
 }
