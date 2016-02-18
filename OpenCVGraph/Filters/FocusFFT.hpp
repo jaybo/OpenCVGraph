@@ -13,7 +13,7 @@ namespace openCVGraph
     // effected by low - frequency effects.
     // See: http://www.csl.cornell.edu/~cbatten/pdfs/batten-image-processing-sem-ucthesis2000.pdf 
 
-#define ASTIGMATISM_SIZE 360
+
 
     class FocusFFT : public Filter , public ITemcaFocus
     {
@@ -94,12 +94,12 @@ namespace openCVGraph
                 q2.copyTo(q1);
                 tmp.copyTo(q2);
 
-                cuda::normalize(magI, magI, 0, 1, NORM_MINMAX, -1); // Transform the matrix with float values into a
+                cuda::normalize(magI, magI, 0, 1, NORM_MINMAX, -1); 
                 m_PowerSpectrumGpu = magI;
 
                 // adaptive_filter in python
                 cuda::bilateralFilter(magI, tmp, 5, 50, 50);
-#if true
+#if false
                 // polar transform
                 Mat tmpCpu;
                 tmp.download(tmpCpu);
@@ -118,12 +118,12 @@ namespace openCVGraph
                     // Create a 2D lookup table which basically does the same thing as linearPolar in CPU land
 
                     // X: 0.. m_AstigWidth, Y: 0.. ASTIGMATISM_SIZE
-                    float *rowIndex = new float [ASTIGMATISM_SIZE *m_AstigWidth];
+                    float *rowIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
                     float *angIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
                     for (int i = 0; i < ASTIGMATISM_SIZE; i++) {
                         for (int j = 0; j < m_AstigWidth; j++) {
-                            rowIndex[i * ASTIGMATISM_SIZE + j] = j;
-                            angIndex[i * ASTIGMATISM_SIZE + j] = 360.0 / (i / (float) ASTIGMATISM_SIZE);  // all rows have same angle
+                            rowIndex[i * ASTIGMATISM_SIZE + j] = (float)j;
+                            angIndex[i * ASTIGMATISM_SIZE + j] = 360.0f / (i / (float)ASTIGMATISM_SIZE);  // all rows have same angle
                         }
                     }
                     Mat imRowIndex = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, rowIndex);
@@ -133,13 +133,23 @@ namespace openCVGraph
                     delete rowIndex;
                     delete angIndex;
 
-                    // angle
-                    GpuMat outXGpu, outYGpu;
+                    // create the lookup table, 
+                    cuda::polarToCart(rangeX, rangeY, m_outXLUTGPu, m_outYLUTGpu, true);
+
+                    // DEBUG ONLY bugbug, todo
                     Mat outX, outY;
-                    cuda::polarToCart(rangeX, rangeY, outXGpu, outYGpu, true);
-                    outXGpu.download(outX);
-                    outYGpu.download(outY);
+                    m_outXLUTGPu.download(outX);
+                    m_outYLUTGpu.download(outY);
                 }
+                // Create the polar version via lookup table
+                GpuMat outPolar;
+                cuda::remap(tmp, outPolar, m_outXLUTGPu, m_outYLUTGpu, INTER_NEAREST, BORDER_REFLECT101);
+
+                cuda::reduce(outPolar, m_imOutProfileGpu, 1, CV_REDUCE_AVG);
+                m_imOutProfileGpu.download(m_imOutProfile);
+                auto s = cv::mean(m_imOutProfile);
+                m_FocusScore = s[0];
+
 
 #endif
 
@@ -272,8 +282,9 @@ namespace openCVGraph
         FocusInfo getFocusInfo() { 
             FocusInfo fi; 
             fi.score = (float) m_FocusScore;
-            fi.astigmatism = (float)m_AstigmatismAngle;
-            fi.angle = (float) m_AstigmatismAngle;
+            fi.astigmatism = 0.0;       // calculated in Python world 
+            fi.angle = 0.0;             // calculated in Python world
+            memcpy(fi.astigmatism_profile, m_imOutProfile.data, sizeof(float) * ASTIGMATISM_SIZE);
             return fi;
         }
 
@@ -292,11 +303,14 @@ namespace openCVGraph
         double m_AstigmatismAngle;
 #ifdef WITH_CUDA
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
+        cuda::GpuMat m_outXLUTGPu, m_outYLUTGpu;
+        cuda::GpuMat m_imOutProfileGpu; 
+        cuda::GpuMat m_PowerSpectrumGpu;
+        cuda::GpuMat m_RoiPowerSpectrumGpu;
+        Mat m_imOutProfile;
 #endif
         Mat m_PowerSpectrum;
         Mat m_RoiPowerSpectrum;
-        cuda::GpuMat m_PowerSpectrumGpu;
-        cuda::GpuMat m_RoiPowerSpectrumGpu;    
         int m_AstigWidth = -1;
     };
 }

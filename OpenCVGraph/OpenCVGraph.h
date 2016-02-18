@@ -54,6 +54,7 @@
 #include "ITemcaQC.hpp"
 #include "ITemcaFocus.hpp"
 #include "ITemcaCapturePostProcessing.hpp"
+#include "ITemcaMatcher.hpp"
 
 // Filters
 #include "Filters/Simple.hpp"

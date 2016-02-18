@@ -61,6 +61,7 @@ class FocusInfo(Structure):
         ("score", c_float),
         ("astigmatism", c_float),
         ("angle", c_float),
+        ("astigmatism_profile", c_float * 360),
         ]
 
 class QCInfo(Structure):
@@ -267,7 +268,7 @@ class TemcaGraph(object):
     
     def get_focus_info(self):
         info = TemcaGraphDLL.get_focus_info()
-        return {'score': info.score, 'astigmatism': info.astigmatism, 'angle' : info.angle}
+        return {'score': info.score, 'astigmatism': info.astigmatism, 'angle' : info.angle, 'astigmatism_profile':info.astimatism_profile}
     
     def get_qc_info(self):
         info = TemcaGraphDLL.get_qc_info()

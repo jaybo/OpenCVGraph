@@ -195,6 +195,7 @@
     <ClInclude Include="include\spdlog\tweakme.h" />
     <ClInclude Include="ITemcaCapturePostProcessing.hpp" />
     <ClInclude Include="ITemcaFocus.hpp" />
+    <ClInclude Include="ITemcaMatcher.hpp" />
     <ClInclude Include="ITemcaQC.hpp" />
     <ClInclude Include="timer.hpp" />
     <ClInclude Include="Util.h" />
