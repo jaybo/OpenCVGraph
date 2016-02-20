@@ -10,9 +10,13 @@ using namespace std;
 using namespace openCVGraph;
 
 bool graphCallback(GraphManager* graphManager) {
-    //cin.sync_with_stdio(false);
-    //auto count = std::cin.rdbuf()->in_avail();
-    //if (count > 0) {
+    
+    // waitKey is required in OpenCV to make graphs display, 
+    // so this funtion call is required.
+    GraphCommonData * gcd = graphManager->getGraphData()->m_CommonData;
+    gcd->PerformWaitKey();
+
+    // and now check for keyhits in the console window
     if (_kbhit()) {
         int key = _getch();
         if (key == 'r' || key == 'R') {
@@ -265,9 +269,9 @@ int main()
 
 #ifdef WITH_CUDA
     // xiSample();
-    // GraphWebCam();
+    GraphWebCam();
     // GraphWebCamTemca();
-    GraphXimea();
+    // GraphXimea();
 #else
      GraphWebCam();
 #endif

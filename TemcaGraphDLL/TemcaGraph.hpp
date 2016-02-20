@@ -4,8 +4,10 @@
 //
 
 #include "stdafx.h"
+#include "C:\WinPython\WinPython-64bit-2.7.10.3\python-2.7.10.amd64\include\python.h"
 #include "Exported.hpp"
-#include "python.h"
+//#include "python.h"
+
 
 using namespace std;
 using namespace openCVGraph;
@@ -20,12 +22,12 @@ using namespace std::placeholders;
 bool graphCallback(GraphManager* graphManager)
 {
     // waitKey is required in OpenCV to make graphs display, 
-    // so this funtion call is required only when "ShowView" is true for at least one graph.
+    // so this funtion call is required.
+    GraphCommonData * gcd = graphManager->getGraphData()->m_CommonData;
 
-    int key = cv::waitKey(1);
     if (graphManager->AbortOnEscape())
     {
-        if (key == 27) // ESCAPE
+        if (gcd->m_LastKey == 27) // ESCAPE
         {
             graphManager->getGraphData()->m_Logger->error("graph aborted by user.");
             graphManager->Abort();
@@ -615,6 +617,9 @@ private:
                     m_Logger->emerg("Heap is corrupted");
                 }
 #endif
+                // see if a keyboard key has been pressed
+                m_graphCommonData->PerformWaitKey();
+
                 m_CanChangeMode = true;
                 fOK &= PythonCallback(StatusStartNewFrame, 0, "");
 

@@ -22,6 +22,17 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
+        // last keyboard key pressed when focus is on a ZoomView window
+        int m_LastKey = -1;
+
+
+        // This should be the only cv::waitKey for all graphs and it should be called once per loop.
+        // waitKey() is required to make cv image views update.
+        void PerformWaitKey()
+        {
+            m_LastKey = cv::waitKey(1);
+        }
+
         // Keep track of what formats are available, 
         // so the conversion only happens once.
 
@@ -131,7 +142,6 @@ namespace openCVGraph
 #endif
             }
         }
-
 
         void EnsureCorrectedOnCpu()
         {

@@ -12,11 +12,12 @@ bool graphCallback(GraphManager* graphManager)
 {
     // waitKey is required in OpenCV to make graphs display, 
     // so this funtion call is required.
+    GraphCommonData * gcd = graphManager->getGraphData()->m_CommonData;
+    gcd->PerformWaitKey();
 
-    int key = cv::waitKey(1);
     if (graphManager->AbortOnEscape())
     {
-        if (key == 27) // ESCAPE
+        if (gcd->m_LastKey == 27) // ESCAPE
         {
             graphManager->Abort();
             return false;

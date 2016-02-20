@@ -160,9 +160,8 @@ namespace openCVGraph
 
             // main processing loop
             while (fOK && !m_Aborting) {
-                // This should be the only waitKey() in the entire graph
-                int key = cv::waitKey(1);
-                if (m_GraphData.m_AbortOnESC && (key == 27)) {
+
+                if (m_GraphData.m_AbortOnESC && (m_GraphData.m_CommonData->m_LastKey == 27)) {  // ESCAPE key
                     fOK = false;
                     m_GraphState = GraphState::Stop;
                     break;
@@ -184,7 +183,7 @@ namespace openCVGraph
                     break;
                 case GraphState::Pause:
                     if (m_Stepping) {
-                        result = ProcessOne(key);
+                        result = ProcessOne(m_GraphData.m_CommonData->m_LastKey);
                         fOK = fOK && (result != ProcessResult::Abort);
                         {
                             std::unique_lock<std::mutex> lk(m_mtx);
@@ -195,7 +194,7 @@ namespace openCVGraph
                     }
                     break;
                 case GraphState::Run:
-                    result = ProcessOne(key);
+                    result = ProcessOne(m_GraphData.m_CommonData->m_LastKey);
                     fOK = fOK && (result != ProcessResult::Abort);
                     break;
                 }
