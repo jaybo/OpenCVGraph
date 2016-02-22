@@ -4,9 +4,14 @@
 //
 
 #include "stdafx.h"
-#include "C:\WinPython\WinPython-64bit-2.7.10.3\python-2.7.10.amd64\include\python.h"
 #include "Exported.hpp"
-//#include "python.h"
+#ifdef _DEBUG
+#undef _DEBUG
+#include <python.h>
+#define _DEBUG
+#else
+#include <python.h>
+#endif
 
 
 using namespace std;

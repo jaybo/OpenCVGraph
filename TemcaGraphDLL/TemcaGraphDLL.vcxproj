@@ -110,7 +110,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>python27_d.lib;..\x64\$(Configuration)\OpenCVGraph.lib;xiapi64.lib;%(AdditionalDependencies);opencv_calib3d310d.lib;opencv_core310d.lib;opencv_features2d310d.lib;opencv_flann310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_ml310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_shape310d.lib;opencv_stitching310d.lib;opencv_superres310d.lib;opencv_video310d.lib;opencv_videoio310d.lib;opencv_videostab310d.lib;opencv_cudaimgproc310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudawarping310d.lib;opencv_cudafeatures2d310d.lib;opencv_ximgproc310d.lib;opencv_xfeatures2d310d.lib;opencv_xobjdetect310d.lib</AdditionalDependencies>
+      <AdditionalDependencies>python27.lib;..\x64\$(Configuration)\OpenCVGraph.lib;xiapi64.lib;%(AdditionalDependencies);opencv_calib3d310d.lib;opencv_core310d.lib;opencv_features2d310d.lib;opencv_flann310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_ml310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_shape310d.lib;opencv_stitching310d.lib;opencv_superres310d.lib;opencv_video310d.lib;opencv_videoio310d.lib;opencv_videostab310d.lib;opencv_cudaimgproc310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudawarping310d.lib;opencv_cudafeatures2d310d.lib;opencv_ximgproc310d.lib;opencv_xfeatures2d310d.lib;opencv_xobjdetect310d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
