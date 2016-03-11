@@ -30,7 +30,12 @@ void createDir(std::string& dir) {
 #endif
 }
 
-
+std::string GetFileExtension(const std::string& FileName)
+{
+    if (FileName.find_last_of(".") != std::string::npos)
+        return FileName.substr(FileName.find_last_of(".") + 1);
+    return "";
+}
 
 int getU16Pix(const cv::Mat& img, cv::Point pt)
 {

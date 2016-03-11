@@ -22,15 +22,36 @@ namespace openCVGraph
 
     class GraphCommonData {
     public:
-        // last keyboard key pressed when focus is on a ZoomView window
+        // A messy part of OpenCV.  Keyboard input is global for the entire app rather than for a window or thread.
+        // Yet cv::waitKey() must be called on each thread to show image UI.  So, put pending keys into a queue.
         int m_LastKey = -1;
+        std::queue<int> m_PendingKeys;
+        std::mutex m_mtxWaitKey; 
 
-
-        // This should be the only cv::waitKey for all graphs and it should be called once per loop.
+        // Each graph has a waitKey() putting pending keyboard hits into a queue.  They are extracted from the queue here.
         // waitKey() is required to make cv image views update.
         void PerformWaitKey()
         {
-            m_LastKey = cv::waitKey(1);
+            std::unique_lock<std::mutex> lck(m_mtxWaitKey);
+
+            int key = cv::waitKey(1);       // Yuck.
+            if (key != -1) {
+                m_PendingKeys.push(key);
+            }
+        }
+
+        // Get the next key from the queue
+        void GetNextPendingKey()
+        {
+            std::unique_lock<std::mutex> lck(m_mtxWaitKey);
+
+            if (!m_PendingKeys.empty()) {
+                m_LastKey = m_PendingKeys.front();
+                m_PendingKeys.pop();
+            }
+            else {
+                m_LastKey = -1;
+            }
         }
 
         // Keep track of what formats are available, 
@@ -189,7 +210,7 @@ namespace openCVGraph
 
         void EnsureFormatIsAvailable(bool cuda, int needFormat, bool corrected)
         {
-            // std::lock_guard<std::mutex> lock(m_mutex);
+            std::lock_guard<std::mutex> lock(m_mutex);
 
             int nChannels = m_CommonData->m_imCapture.channels();
             int nDepth = m_CommonData->m_imCapture.depth();

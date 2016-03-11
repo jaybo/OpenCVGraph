@@ -12,7 +12,8 @@
 #include <numeric>
 #include <chrono>
 #include <thread>
-#include <mutex>              
+#include <mutex> 
+#include <queue>
 #include <list>
 #include <map>
 #include <condition_variable> 

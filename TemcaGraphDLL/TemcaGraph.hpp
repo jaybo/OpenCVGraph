@@ -13,12 +13,12 @@
 #include <python.h>
 #endif
 
-
 using namespace std;
 using namespace openCVGraph;
 using namespace std::placeholders;
 
-#define ADD_DELAYS 0       // Add delay filters to sync and async steps to test logic
+#define ADD_DELAYS 0                    // Add delay filters to sync and async steps to test logic
+#define FOCUS_AND_QC_IN_ONE_GRAPH 1     // OpenCV Bug forces this?
 
 // -----------------------------------------------------------------------------------
 // Optionally called at the completion of each loop through a graph to check for user input.
@@ -65,13 +65,46 @@ private:
         return graph;
     }
 
-    GraphManager* CreateGraphCamXimeaDummy()
+    GraphManager* CreateGraphCamXimeaDummy(const char * dummyPath)
     {
         // Create a graph
         GraphManager *graph = new GraphManager("Temca-CamDummy", true, graphCallback, m_graphCommonData);
+        bool useDirectory = false;
+        bool useFile = false;
+        bool useMovie = false;
+        bool useCam = false;
+        int camIndex = -2;
 
+        vector<string> movieExts = { "mov", "avi", "mpg", "mp4", "mpeg" };
+
+        if ((dummyPath != NULL) && strlen(dummyPath) > 2) {
+            std::string p(dummyPath);
+            auto fExt = GetFileExtension(p);
+            for (auto ext : movieExts) {
+                if (ext == fExt) {
+                    if (fileExists(dummyPath)) {
+                        useMovie = true;
+                    }
+                }
+            }
+            if (useMovie)
+                ;
+            else if (useDirectory = dirExists(dummyPath))
+                ;
+            else if (useFile = fileExists(dummyPath))
+                ;
+            else if (isdigit(dummyPath[0])) {
+                camIndex = atoi(dummyPath);
+                useCam = true;
+            }
+        }
         CvFilter camera(new CamDefault("CamXimeaDummy", *graph->getGraphData(), StreamIn::CaptureRaw, 512, 512,
-            CV_16UC1, -2, "", "", "./SampleImages"));
+            CV_16UC1, 
+            useCam ? camIndex : -2, 
+            useFile ? dummyPath : "", 
+            useMovie ? dummyPath : "",
+            useDirectory ? dummyPath : "", 
+            true /*dummy*/));
         graph->AddFilter(camera);
 
         return graph;
@@ -119,9 +152,11 @@ private:
 
         CvFilter filter(new openCVGraph::ImageQC("ImageQC", *graph->getGraphData(), StreamIn::CaptureRaw));
         graph->AddFilter(filter);
-
+        
+#if FOCUS_AND_QC_IN_ONE_GRAPH
         CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
         graph->AddFilter(fFocusFFT);
+#endif
 
         return graph;
     }
@@ -131,9 +166,10 @@ private:
         // Create a graph
         GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
 
-        //CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
-        //graph->AddFilter(fFocusFFT);
-
+#if !FOCUS_AND_QC_IN_ONE_GRAPH
+        CvFilter fFocusFFT(new FocusFFT("FocusFFT", *graph->getGraphData(), StreamIn::Corrected, 512, 512));
+        graph->AddFilter(fFocusFFT);
+#endif
         return graph;
     }
 
@@ -141,10 +177,6 @@ private:
     {
         // Create a graph
         GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
-
-        // todo, bugbug fix
-        //CvFilter filter(new Delay("Delay", *graph->getGraphData()));
-        //graph->AddFilter(filter);
 
         CvFilter fmatcher(new Matcher("Matcher", *graph->getGraphData(), openCVGraph::Corrected, 768, 768));
         graph->AddFilter(fmatcher);
@@ -191,7 +223,7 @@ public:
     }
 
     // Startup the Temca graph, with either a real or dummy camera
-    bool init (bool fDummyCamera, StatusCallbackType callback)
+    bool init (bool fDummyCamera, const char * dummyPath, StatusCallbackType callback)
     {
         m_fDummyCamera = fDummyCamera;
 
@@ -199,7 +231,7 @@ public:
         m_PythonCallback = callback;
 
         // Create the single capture graph containing the camera
-        m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy() : CreateGraphCamXimea();
+        m_gmCapture = m_fDummyCamera ? CreateGraphCamXimeaDummy(dummyPath) : CreateGraphCamXimea();
 
         // Create the post processing graph
         // Assume dummy camera images are already upshifted and corrected.
@@ -241,7 +273,9 @@ public:
         m_StepSync = new GraphParallelStep("StepsTemcaSync", list<GraphManager*>() =
         {
             m_gmQC,
-            // m_gmFocus,
+#if !FOCUS_AND_QC_IN_ONE_GRAPH
+            m_gmFocus,
+#endif
             m_gmFileWriter,
 #if ADD_DELAYS
             m_gmDelaySync,
@@ -492,6 +526,12 @@ public:
         return info;
     }
 
+    void setFFTSize(UINT32 dimension, UINT32 startFreq, UINT32 endFreq) {
+        if (m_ITemcaFocus) {
+            m_ITemcaFocus->setFFTSize(dimension, startFreq, endFreq);
+        }
+    }
+
     // ------------------------------------------------
     // ITemcaQC
     // ------------------------------------------------
@@ -499,6 +539,23 @@ public:
         QCInfo info = {0};
         if (m_ITemcaQC) {
             info = m_ITemcaQC->getQCInfo();
+        }
+        return info;
+    }
+
+    // ------------------------------------------------
+    // ITemcaMatcher
+    // ------------------------------------------------
+    void grabMatcherTemplate(int x, int y, int width, int height) {
+        if (m_ITemcaQC) {
+            m_ITemcaMatcher->grabMatcherTemplate(x, y, width, height);
+        }
+    }
+
+    MatcherInfo getMatcherInfo() {
+        MatcherInfo info = { 0 };
+        if (m_ITemcaQC) {
+            info = m_ITemcaMatcher->getMatcherInfo();
         }
         return info;
     }
@@ -548,6 +605,7 @@ private:
     ITemcaCapturePostProcessing* m_ITemcaCapturePostProcessing = NULL;
     ITemcaFocus* m_ITemcaFocus = NULL;
     ITemcaQC* m_ITemcaQC = NULL;
+    ITemcaMatcher* m_ITemcaMatcher = NULL;
 
     // callback to python
     StatusCallbackInfo m_PythonInfo;
@@ -582,6 +640,11 @@ private:
                     if (dynamic_cast<ITemcaQC *> (processor.get()) != nullptr)
                     {
                         m_ITemcaQC = dynamic_cast<ITemcaQC *> (processor.get());
+                        continue;
+                    }
+                    if (dynamic_cast<ITemcaMatcher *> (processor.get()) != nullptr)
+                    {
+                        m_ITemcaMatcher = dynamic_cast<ITemcaMatcher *> (processor.get());
                         continue;
                     }
                 }
@@ -734,11 +797,11 @@ private:
 // The singular global TEMCA object
 Temca * pTemca = NULL;
 
-bool temca_open(bool fDummyCamera, StatusCallbackType callback)
+bool temca_open(bool fDummyCamera, const char * dummyPath, StatusCallbackType callback)
 {
     pTemca = new Temca();
 
-    bool fOK = pTemca->init(fDummyCamera, callback);
+    bool fOK = pTemca->init(fDummyCamera, dummyPath, callback);
     if (fOK) {
         pTemca->StartThread();
     }
@@ -748,7 +811,7 @@ bool temca_open(bool fDummyCamera, StatusCallbackType callback)
 bool temca_close()
 {
     if (pTemca) {
-        pTemca->fini();
+        //pTemca->fini();
         pTemca->JoinThread();
     }
     delete pTemca;
@@ -802,6 +865,12 @@ FocusInfo getFocusInfo() {
     return info;
 }
 
+void setFFTSize(UINT32 dimension, UINT32 startFreq, UINT32 endFreq) {
+    if (pTemca) {
+        return pTemca->setFFTSize(dimension, startFreq, endFreq);
+    }
+}
+
 QCInfo getQCInfo() {
     if (pTemca) {
         return pTemca->getQCInfo();
@@ -834,3 +903,23 @@ void getPreviewFrame(UINT8 * image) {
         pTemca->getPreviewFrame(image);
     }
 }
+
+// ---------------------------------------------------------
+// ITemcaMatcher
+// ---------------------------------------------------------
+void grabMatcherTemplate(int x, int y, int width, int height)
+{
+    if (pTemca) {
+        pTemca->grabMatcherTemplate(x, y, width, height);
+    }
+}
+
+MatcherInfo getMatcherInfo()
+{
+    MatcherInfo mi = { 0 };
+    if (pTemca) {
+        mi = pTemca->getMatcherInfo();
+    }
+    return mi;
+}
+

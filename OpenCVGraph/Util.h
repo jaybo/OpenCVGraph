@@ -14,6 +14,8 @@ using namespace cv;
 
     void createDir(std::string& dir);
 
+    std::string GetFileExtension(const std::string& FileName);
+
     void DrawOverlayText(cv::Mat m, string str, cv::Point p, double scale, CvScalar color = CV_RGB(255, 255, 255));
 
     int getU16Pix(const cv::Mat& img, cv::Point pt);

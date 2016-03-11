@@ -1,4 +1,4 @@
-"""
+﻿"""
 Python wrapper for functionality exposed in the TemcaGraph dll.
 
 @author: jayb
@@ -11,10 +11,10 @@ import time
 import os
 import sys
 import numpy as np
+from pytemca.image.imageproc import fit_sin
 from numpy.ctypeslib import ndpointer
 
-#if sys.flags.debug:
-if False:
+if sys.flags.debug:
     rel = "../x64/Debug/TemcaGraphDLL.dll"
 else:
     rel = "../x64/Release/TemcaGraphDLL.dll"
@@ -58,10 +58,10 @@ class FocusInfo(Structure):
     Information about focus quality.
     '''
     _fields_ = [
-        ("score", c_float),
-        ("astigmatism", c_float),
-        ("angle", c_float),
-        ("astigmatism_profile", c_float * 360),
+        ("focus_score", c_float),
+        ("astig_score", c_float),
+        ("astig_angle", c_float),
+        ("astig_profile", c_float * 360)
         ]
 
 class QCInfo(Structure):
@@ -84,6 +84,19 @@ class ROIInfo(Structure):
         ("gridY", c_int),
         ]
 
+class MatcherInfo(Structure):
+    '''
+    Match parameters from the Matcher.
+    '''
+    _fields_ = [
+        ("dX", c_float),
+        ("dY", c_float),
+        ("distance", c_float),
+        ("rotation", c_float),
+        ("good_matches", c_int),
+        ]
+
+
 class TemcaGraphDLL(object):
     """
     Hooks onto the C++ DLL.  These are all the foreign functions we are going to be using
@@ -92,7 +105,7 @@ class TemcaGraphDLL(object):
     _TemcaGraphDLL = WinDLL(dll_path)
 
     open = _TemcaGraphDLL.temca_open
-    open.argtypes = [c_int, STATUSCALLBACKFUNC]
+    open.argtypes = [c_int, c_char_p, STATUSCALLBACKFUNC]
     open.restype = c_uint32
 
     close = _TemcaGraphDLL.temca_close
@@ -108,6 +121,10 @@ class TemcaGraphDLL(object):
 
     get_focus_info = _TemcaGraphDLL.getFocusInfo
     get_focus_info.restype = FocusInfo
+
+    set_fft_size = _TemcaGraphDLL.setFFTSize
+    set_fft_size.argtypes = [c_int, c_int, c_int]
+    set_fft_size.restype = None
 
     get_qc_info = _TemcaGraphDLL.getQCInfo
     get_qc_info.restype = QCInfo
@@ -136,8 +153,16 @@ class TemcaGraphDLL(object):
     get_status.restype = StatusCallbackInfo
 
     setRoiInfo = _TemcaGraphDLL.setROI
-    setRoiInfo .restype = None
-    setRoiInfo .argtypes = [ POINTER( ROIInfo) ]
+    setRoiInfo.restype = None
+    setRoiInfo.argtypes = [ POINTER( ROIInfo) ]
+
+    grab_matcher_template = _TemcaGraphDLL.grabMatcherTemplate
+    grab_matcher_template.restype = None
+    grab_matcher_template.argtypes = [c_int, c_int, c_int, c_int]
+
+    get_matcher_info = _TemcaGraphDLL.getMatcherInfo
+    get_matcher_info.restype = MatcherInfo
+    get_matcher_info.argtypes = None
 
 class TemcaGraph(object):
     '''
@@ -185,23 +210,33 @@ class TemcaGraph(object):
         event.clear()
         self.threadLock.release()
 
+    def wait_all_capture_events(self):
+        for e in self.eventsAllCaptureLoop:
+            self.wait_graph_event(e)
+
     def wait_start_of_frame(self):
         '''
         Wait for the event which indicates the graph is ready to start a new frame.
         '''
         self.wait_graph_event(self.eventStartNewFrame)
 
-    def open(self, dummyCamera = False, callback=None):
+    def open(self, dummyCamera = False, dummyPath = None, callback=None):
         ''' 
         Open up the Temca C++ DLL.
+        If dummyCamera is True, create a dummy TEMCA image source using...
+        either a real camera, image, directory, or movie according to dummyPath which MUST be specified
+        as no default path is provided.  If dummyPath is an integer string, then an OpenCV camera will be used
+        corresponding to that index.
         '''
         if callback == None:
             callback = self.statusCallback
         # prevent the callback from being garbage collected !!!
         self.callback = STATUSCALLBACKFUNC(callback)
 
+        self.dummyPath = dummyPath
+
         t = time.clock()
-        if not TemcaGraphDLL.open(dummyCamera, self.callback):
+        if not TemcaGraphDLL.open(dummyCamera, self.dummyPath, self.callback):
             raise EnvironmentError('Cannot open TemcaGraphDLL. Possiblities: camera, is offline, not installed, or already in use')
         logging.info("TemcaGraph DLL initialized in %s seconds" % (time.clock() - t))
 
@@ -267,12 +302,45 @@ class TemcaGraph(object):
         return ci
     
     def get_focus_info(self):
+        ''' returns focus and astigmatism values, some calculated in CUDA, some in python '''
+
         info = TemcaGraphDLL.get_focus_info()
-        return {'score': info.score, 'astigmatism': info.astigmatism, 'angle' : info.angle, 'astigmatism_profile':info.astimatism_profile}
-    
+        astig_amp, astig_angle, offset, wave = fit_sin(info.astig_profile)
+        astig_score = astig_amp/np.ptp(info.astig_profile)
+
+        array_type = c_float*len(info.astig_profile)
+        astig_profile_pointer = cast(info.astig_profile, POINTER(array_type))
+        astig_numpy = np.frombuffer(astig_profile_pointer.contents, dtype=np.float32)
+
+        # return the profile?
+        return {'focus_score': info.focus_score, 'astig_score': astig_score, 'astig_angle' : astig_angle,
+                'astig_profile' : astig_numpy,}
+
+    def set_fft_size(self, dimension, start_freq, end_freq):
+        ''' Set the dimension of the FFT (which must be a power of 2) and the start and end frequency for focus/astig measurement.
+            Both start and end frequencies must be less than dimension.
+        '''
+        TemcaGraphDLL.set_fft_size(dimension, start_freq, end_freq);
+
+        
     def get_qc_info(self):
+        ''' Get the min, max, mean, and histogram from the last image acquired. '''
         info = TemcaGraphDLL.get_qc_info()
-        return {'min':info.min_value, 'max': info.max_value, 'mean':info.mean_value, 'histogram':info.histogram}
+
+        array_type = c_int*len(info.histogram)
+        hist_profile_pointer = cast(info.histogram, POINTER(array_type))
+        hist_numpy = np.frombuffer(hist_profile_pointer.contents, dtype=np.int)
+
+        return {'min':info.min_value, 'max': info.max_value, 'mean':info.mean_value, 'histogram':hist_numpy}
+
+    def grab_matcher_template(self, x, y, width, height):
+        ''' Set the ROI to use as the template on the next image acquired. ''' 
+        TemcaGraphDLL.grab_matcher_template(x, y, width, height)
+
+    def get_matcher_info(self):
+        ''' Return Match status from the matcher.  If "good_matches" is 0, then the match operation failed'''
+        info = TemcaGraphDLL.get_matcher_info()
+        return {'dX': info.dX, 'dY': info.dY, 'distance': info.distance, 'rotation': info.rotation, 'good_matches': info.good_matches} 
 
     def get_status(self):
         return TemcaGraphDLL.get_status()
@@ -289,8 +357,7 @@ class TemcaGraph(object):
         '''
         self.wait_start_of_frame()
         self.grab_frame(filename, roiX, roiY) # filename doesn't matter in preview, nor does roi
-        for e in self.eventsAllCaptureLoop:
-            self.wait_graph_event(e)
+        self.wait_all_capture_events()
 
     def allocate_frame(self):
         '''
@@ -322,27 +389,56 @@ class TemcaGraph(object):
 
     def optimize_exposure(self):
         '''
-        Search for optimal exposure value.  Could easily be improved upon...
+        Search for optimal exposure value using binary search.
         '''
+        min_high_value = 61000
+        max_high_value = 63000
+        exposure_step = 100000 #uS
+
         self.set_mode('preview')
         exp = self.get_parameter('exposure')
-        step = 100 # 0.1mS
-        loops = step / 2
-        for j in range(loops):
+
+        def _searchDirection():
+            ''' return 0 = just right, 1 go up, -1 go down '''
             self.grab_frame_wait_completion()
             info = self.get_qc_info()
             m = info['max']
-            print 'exposure: ' + str(exp/1000.0) + ' mS, max: ' + str(m) + ' step: ' + str(step)
-            if m > 62000 and m < 63000:
-                return
-            if m > 64000:
-                exp -= step
-            if m < 60000:
-                exp += step
-            if (exp <= 0):
-                exp = step
+            if m > min_high_value and m < max_high_value:
+                return 0 # just right
+            elif m >= max_high_value:
+                return +1 # too high
+            else:
+                return -1 # too low
+
+        #overshoot top end
+        dir = _searchDirection()
+        while dir < 0:
+            exp = exp + exposure_step
             self.set_parameter('exposure', exp)
-            step -= 1
+            dir = _searchDirection()
+        if dir == 0:
+            return;
+        exp_top = exp
+
+        #overshoot bottom end
+        while dir > 0:
+            exp = exp - exposure_step
+            self.set_parameter('exposure', exp)
+            dir = _searchDirection()
+        if dir == 0:
+            return;
+        exp_bottom = exp
+        
+        # binary search, starting from bottom
+        exposure_step = exp_top - exp_bottom
+        while dir != 0 and exposure_step >= 2:
+            exposure_step = exposure_step / 2
+            if dir < 0:
+                exp += exposure_step
+            else:
+                exp -= exposure_step
+            self.set_parameter('exposure', exp)
+            dir = _searchDirection()
 
     
     def set_roi_info (self, roiInfo):
@@ -409,11 +505,14 @@ if __name__ == '__main__':
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Open the DLL which runs all TEMCA graphs
+    
+    #os.environ["PATH"] += os.pathsep
+    
     temcaGraph = TemcaGraph() 
-    temcaGraph.open(dummyCamera = False) 
+    temcaGraph.open(dummyCamera = True) 
 
-    showRawImage = False
-    showPreviewImage = False
+    showRawImage = True
+    showPreviewImage = True
 
     if showRawImage or showPreviewImage:
         import numpy as np
@@ -481,9 +580,10 @@ if __name__ == '__main__':
                 # wait for Sync ready event (QC and Focus complete)
                 temcaGraph.wait_graph_event(temcaGraph.eventSyncProcessingCompleted)
 
-                #qcInfo = temcaGraph.get_qc_info()
+                qcInfo = temcaGraph.get_qc_info()
                 #histogram = qcInfo['histogram']
-                #focusInfo = temcaGraph.get_focus_info()
+                focusInfo = temcaGraph.get_focus_info()
+                #print qcInfo
 
                 frameCounter += 1
 

@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # wait for graph to complete initialization
     temcaGraph.eventInitCompleted.wait(temcaGraph.wait_time)
 
-    sx, sy = stage._get_pos_2d()
+    sx, sy = stage.get_pos()
     cx = sx
     cy = sy
     dx = dy = .01  # in mm 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
                 temcaGraph.wait_graph_event(temcaGraph.eventCaptureCompleted)
 
                 # move the stage here
-                stage._set_pos_2d(cx, cy)
+                stage.set_pos(cx, cy)
                 
                 # wait for Async ready event (stitching complete for previous frame)
                 if frameCounter > 0:
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                 frameCounter += 1
 
 
-    stage._set_pos_2d(sx, sy)
+    stage.set_pos(sx, sy)
     temcaGraph.close()
     temcaGraph.wait_graph_event(temcaGraph.eventFiniCompleted)
     

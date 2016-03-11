@@ -14,13 +14,14 @@ typedef struct tROIInfo {
 } ROIInfo;
 
 extern "C" {
-    __declspec(dllexport) bool temca_open(bool fDummyCamera, StatusCallbackType callback);
+    __declspec(dllexport) bool temca_open(bool fDummyCamera, const char *dummyPath, StatusCallbackType callback);
     __declspec(dllexport) bool temca_close();
 
     __declspec(dllexport) bool setMode(const char* graphType);
 
     __declspec(dllexport) tCameraInfo getCameraInfo();
     __declspec(dllexport) tFocusInfo getFocusInfo();
+    __declspec(dllexport) void setFFTSize(UINT32 dimension, UINT32 startFreq, UINT32 endFreq);
     __declspec(dllexport) tQCInfo getQCInfo();
 
     __declspec(dllexport) void grabFrame(const char* filename, UINT32 roiX, UINT32 roiY);
@@ -34,6 +35,8 @@ extern "C" {
     __declspec(dllexport) void setParameter(const char* parameter, INT32 value);
     __declspec(dllexport) INT32 getParameter(const char* parameter);
 
+    __declspec(dllexport) void grabMatcherTemplate(int x, int y, int width, int height);
+    __declspec(dllexport) tMatcherInfo getMatcherInfo();
 
 
 

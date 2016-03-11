@@ -6,9 +6,8 @@
     <ProjectGuid>12b2a5c2-d2a2-4776-a3f5-1bc267790809</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>capture_grid.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>test_focus.py</StartupFile>
+    <SearchPath>J:\dev\opencv_graph\pySmarAct</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>TemcaGraphPy</Name>
@@ -20,6 +19,7 @@
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>2.7</InterpreterVersion>
+    <InterpreterArguments>-d</InterpreterArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,7 +30,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="move_stage.py" />
+    <Compile Include="move_stage - Copy.py" />
+    <Compile Include="scope_test.py" />
+    <Compile Include="test_focus.py" />
+    <Compile Include="test_stage.py" />
     <Compile Include="stage_calibrate.py" />
     <Compile Include="capture_grid.py" />
     <Compile Include="stage_test.py" />

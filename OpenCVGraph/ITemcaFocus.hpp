@@ -4,10 +4,10 @@
 #define ASTIGMATISM_SIZE 360
 
 typedef struct tFocusInfo {
-    float score;
-    float astigmatism;
-    float angle;
-    float astigmatism_profile[ASTIGMATISM_SIZE];
+    float focus_score;
+    float astig_score;
+    float astig_angle;
+    float astig_profile[ASTIGMATISM_SIZE];
 } FocusInfo;
 
 //
@@ -18,5 +18,6 @@ class ITemcaFocus
 public:
     virtual ~ITemcaFocus() {}
     virtual FocusInfo getFocusInfo() { return FocusInfo(); }
+    virtual void setFFTSize(int dimension, int startFreq, int endFreq) {}
 };
 

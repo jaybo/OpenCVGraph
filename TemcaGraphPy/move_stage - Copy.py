@@ -1,5 +1,6 @@
 """
-Python wrapper for functionality exposed in the TemcaGraph dll.
+Manually move the stage using arrow keys.
+Measure the dx, dy offsets via the matcher.
 
 @author: jayb
 
@@ -23,10 +24,34 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    #while True:
+    #    print(ord(msvcrt.getch()))r
 
-    stage = SmarActStage()
+    def process_keys(stage, delta):
+        if msvcrt.kbhit():
+            k = ord(msvcrt.getch())
+            if k == 224:
+                x, y = stage.get_pos()
+                k = ord(msvcrt.getch())
+                if k == 72:
+                    # up arrow
+                    stage.set_pos(x, y + delta)
+                elif k == 80:
+                    # down arrow
+                    stage.set_pos(x, y - delta)
+                elif k == 77:
+                    # right arrow
+                    stage.set_pos(x + delta, y)
+                elif k == 75:
+                    # left arrow
+                    stage.set_pos(x - delta, y)
+                return None
+            return k
+        return None
+
     #stage = RadishStage("*", 8000, 8001, "http://10.128.26.51:8090")
     #stage = DummyRadishStage("*", 8000, 8001, "http://localhost:8090")
+    stage = SmarActStage()
 
     # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph() 
@@ -48,30 +73,21 @@ if __name__ == '__main__':
     sx, sy = stage.get_pos()
     cx = sx
     cy = sy
-    dx = dy = .002  # in mm 
+    dx = dy = .003  # in mm 
     angle = 120
 
     #temcaGraph.optimize_exposure()
     #temcaGraph.set_mode('preview')
     #for mode in ['temca', 'preview', 'raw']:
-    temcaGraph.set_mode('temca')
+    temcaGraph.set_mode('preview')
     
     while True:
         # get the template
         temcaGraph.wait_start_of_frame()
         temcaGraph.grab_frame('j:/junk/junk.tif', 0,0) # filename doesn't matter in preview
         temcaGraph.wait_graph_event(temcaGraph.eventAsyncProcessingCompleted)
-        if msvcrt.kbhit() and (msvcrt.getch() == ' '):
-            break  
-
-    stage.set_pos(sx+dx, sy)
-
-    while True:
-        # measure the offset
-        temcaGraph.wait_start_of_frame()
-        temcaGraph.grab_frame('j:/junk/junk.tif', 0,0) # filename doesn't matter in preview
-        temcaGraph.wait_graph_event(temcaGraph.eventAsyncProcessingCompleted)
-        if msvcrt.kbhit() and (msvcrt.getch() == ' '):
+        k = process_keys(stage, dx)
+        if k == 27: # ESC
             break  
 
     stage.set_pos(sx, sy)
@@ -79,6 +95,3 @@ if __name__ == '__main__':
     temcaGraph.wait_graph_event(temcaGraph.eventFiniCompleted)
     
 
-
-
- 

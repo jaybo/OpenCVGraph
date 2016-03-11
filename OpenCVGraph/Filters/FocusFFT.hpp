@@ -33,7 +33,8 @@ namespace openCVGraph
             if (m_Enabled) {
                 if (m_showView) {
                     if (m_showViewControls) {
-                        createTrackbar("omega", m_CombinedName, &m_Omega, m_DFTSize-1);
+                        createTrackbar("FreqStart", m_CombinedName, &m_FreqStart, m_DFTSize - 1);
+                        createTrackbar("FreqEnd", m_CombinedName, &m_FreqEnd, m_DFTSize-1);
                         createTrackbar("view", m_CombinedName, (int*) &m_ImageIndex, PowerSpectrumROI);
                     }
                 }
@@ -43,8 +44,13 @@ namespace openCVGraph
 
         ProcessResult FocusFFT::process(GraphData& graphData) override
         {
+            // prevent change FFT size or min max freq while processing
+            std::lock_guard < std::mutex > lock(m_mutex);
+
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_16UC1, false);
             graphData.EnsureFormatIsAvailable(graphData.m_UseCuda, CV_8UC1, false);
+
+            EnforceFreqLimits();
 
             int w = graphData.m_CommonData->m_imCapture.size().width;
             int h = graphData.m_CommonData->m_imCapture.size().height;
@@ -53,11 +59,13 @@ namespace openCVGraph
              if (graphData.m_UseCuda) {
             //if (false) {
 #ifdef WITH_CUDA
+                cv::cuda::Stream stream;
+
                 cuda::GpuMat IC = cuda::GpuMat(graphData.m_CommonData->m_imCaptureGpu16UC1, rCropped);
 
-                /*Mat I = Mat_<float>(IC);*/
                 cuda::GpuMat I;
                 IC.convertTo(I, CV_32FC1, 1 / 65536.f);
+
                 GpuMat C = GpuMat(I.size(), CV_32F);
                 C.setTo(0);
                 GpuMat planes[] = { I, C };
@@ -99,7 +107,8 @@ namespace openCVGraph
 
                 // adaptive_filter in python
                 cuda::bilateralFilter(magI, tmp, 5, 50, 50);
-#if false
+
+#if USE_FUNCTIONING_NON_GPU_VERSION_OF_POLAR_MAPPING
                 // polar transform
                 Mat tmpCpu;
                 tmp.download(tmpCpu);
@@ -107,48 +116,49 @@ namespace openCVGraph
                 
                 cv::linearPolar(tmpCpu, polar, Point(rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
-                m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
+                m_RoiPowerSpectrum = polar(Range::all(), Range(m_FreqStart, m_FreqEnd));
                 auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
 #else
-                int nX = rCropped.width - m_Omega;
-                if (nX != m_AstigWidth)
+                int nX = m_FreqEnd - m_FreqStart;
+                if (nX != m_AstigWidth || m_RecalcLUTs)
                 {
                     m_AstigWidth = nX;
+                    m_RecalcLUTs = false;
                     // Create a 2D lookup table which basically does the same thing as linearPolar in CPU land
+                    int sx = rCropped.width / 2;
+                    int sy = rCropped.height / 2;
 
                     // X: 0.. m_AstigWidth, Y: 0.. ASTIGMATISM_SIZE
-                    float *rowIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
-                    float *angIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
-                    for (int i = 0; i < ASTIGMATISM_SIZE; i++) {
-                        for (int j = 0; j < m_AstigWidth; j++) {
-                            rowIndex[i * ASTIGMATISM_SIZE + j] = (float)j;
-                            angIndex[i * ASTIGMATISM_SIZE + j] = 360.0f / (i / (float)ASTIGMATISM_SIZE);  // all rows have same angle
+                    float *xIndex = new float [ASTIGMATISM_SIZE *m_AstigWidth];
+                    float *yIndex = new float[ASTIGMATISM_SIZE * m_AstigWidth];
+                    for (int y = 0; y < ASTIGMATISM_SIZE; y++) {
+                        auto a = M_PI * 2 * y / ASTIGMATISM_SIZE;
+                        for (int x = 0; x < m_AstigWidth; x++) {
+                            auto x0 = cos(a) * (x + m_FreqStart) + sx;
+                            auto y0 = sin(a) * (x + m_FreqStart) + sy;
+                            xIndex[y * m_AstigWidth + x] = (float)x0;
+                            yIndex[y * m_AstigWidth + x] = (float)y0;
                         }
                     }
-                    Mat imRowIndex = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, rowIndex);
-                    Mat imAngIndex = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, angIndex);
-                    GpuMat rangeX(imRowIndex);
-                    GpuMat rangeY(imAngIndex);
-                    delete rowIndex;
-                    delete angIndex;
+                    Mat imXMap = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, xIndex);
+                    Mat imYMap = Mat(ASTIGMATISM_SIZE, m_AstigWidth, CV_32F, yIndex);
 
-                    // create the lookup table, 
-                    cuda::polarToCart(rangeX, rangeY, m_outXLUTGPu, m_outYLUTGpu, true);
+                    m_outXLUTGpu.upload(imXMap);
+                    m_outYLUTGpu.upload(imYMap);
 
-                    // DEBUG ONLY bugbug, todo
-                    Mat outX, outY;
-                    m_outXLUTGPu.download(outX);
-                    m_outYLUTGpu.download(outY);
+                    delete xIndex;
+                    delete yIndex;
                 }
                 // Create the polar version via lookup table
-                GpuMat outPolar;
-                cuda::remap(tmp, outPolar, m_outXLUTGPu, m_outYLUTGpu, INTER_NEAREST, BORDER_REFLECT101);
+                cuda::remap(tmp, m_RoiPowerSpectrumGpu, m_outXLUTGpu, m_outYLUTGpu, INTER_NEAREST, BORDER_REFLECT101);
 
-                cuda::reduce(outPolar, m_imOutProfileGpu, 1, CV_REDUCE_AVG);
+                cuda::reduce(m_RoiPowerSpectrumGpu, m_imOutProfileGpu, 1, CV_REDUCE_AVG);
+                cv::Scalar sum = cuda::absSum(m_imOutProfileGpu);
                 m_imOutProfileGpu.download(m_imOutProfile);
-                auto s = cv::mean(m_imOutProfile);
-                m_FocusScore = s[0];
+                //auto s = cv::sum(m_imOutProfile);
+                //m_FocusScore = s[0];
+                m_FocusScore = sum[0];
 
 
 #endif
@@ -216,13 +226,30 @@ namespace openCVGraph
                 Mat polar;
                 cv::linearPolar(tmp, polar, Point (rCropped.width / 2, rCropped.height / 2), rCropped.width / 2, INTER_LINEAR);
 
-                m_RoiPowerSpectrum = polar(Range::all(), Range(1, rCropped.width - m_Omega));
+                m_RoiPowerSpectrum = polar(Range::all(), Range(m_FreqStart, m_FreqEnd));
                 auto s = cv::mean(m_RoiPowerSpectrum);
                 m_FocusScore = s[0];
 
             }
 
             return ProcessResult::OK;  // if you return false, the graph stops
+        }
+
+        // Limit the start and end frequencies to valid ranges (non-overlapping)
+        void FocusFFT::EnforceFreqLimits()
+        {
+            if (m_FreqEnd >= m_DFTSize) {
+                m_FreqEnd = m_DFTSize - 1;
+            }
+            if (m_FreqStart >= m_FreqEnd) {
+                m_FreqStart = m_FreqEnd - 1;
+            }
+            if (m_FreqStart < 0) {
+                m_FreqStart = 0;
+            }
+            if (m_FreqEnd <= m_FreqStart) {
+                m_FreqEnd = m_FreqStart + 1;
+            }
         }
 
         void FocusFFT::processView(GraphData& graphData)  override
@@ -237,6 +264,9 @@ namespace openCVGraph
                 m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             case ImageToView::PowerSpectrumROI:
+                if (graphData.m_UseCuda) {
+                    m_RoiPowerSpectrumGpu.download(m_RoiPowerSpectrum);
+                }
                 m_RoiPowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             }
@@ -247,11 +277,11 @@ namespace openCVGraph
             double scale = 1.0;
 
             str.str("");
-            str << "FFT:  focus   astig  angle";
+            str << "FFT:  focus";
             DrawOverlayText(str.str(), Point(posLeft, 50), scale);
 
             str.str("");
-            str << std::setfill(' ') << std::fixed << std::setprecision(3)  << std::setw(10) << m_FocusScore << std::setw(8) << m_AstigmatismScore << std::setw(8) << m_AstigmatismAngle;
+            str << std::setfill(' ') << std::fixed << std::setprecision(3)  << std::setw(10) << m_FocusScore;
             DrawOverlayText(str.str(), Point(posLeft, 100), scale);
 
             Filter::processView(graphData);
@@ -262,33 +292,44 @@ namespace openCVGraph
             Filter::saveConfig(fs, data);
             cvWriteComment((CvFileStorage *)*fs, "Power of 2 (256, 512, 1024, 2048)", 0);
             fs << "dft_size" << m_DFTSize;
-            fs << "omega" << m_Omega;
-            if (m_Omega >= m_DFTSize) {
-                m_Omega = 0;
-            }
+            fs << "freq_start" << m_FreqStart;
+            fs << "freq_end" << m_FreqEnd;
         }
 
         void  FocusFFT::loadConfig(FileNode& fs, GraphData& data) override
         {
             Filter::loadConfig(fs, data);
             fs["dft_size"] >> m_DFTSize;
-            fs["omega"] >> m_Omega;
+            fs["freq_start"] >> m_FreqStart;
+            fs["freq_end"] >> m_FreqEnd;
+
+            EnforceFreqLimits();
         }
 
         void FocusFFT::DFTSize(int dftSize) {
             m_DFTSize = dftSize;
+            m_RecalcLUTs = true;
+        }
+
+        void setFFTSize(int dimension, int startFreq, int endFreq) {
+            std::lock_guard < std::mutex > lock(m_mutex);
+
+            DFTSize(dimension);
+            m_FreqStart = startFreq;
+            m_FreqEnd = endFreq;
         }
 
         FocusInfo getFocusInfo() { 
             FocusInfo fi; 
-            fi.score = (float) m_FocusScore;
-            fi.astigmatism = 0.0;       // calculated in Python world 
-            fi.angle = 0.0;             // calculated in Python world
-            memcpy(fi.astigmatism_profile, m_imOutProfile.data, sizeof(float) * ASTIGMATISM_SIZE);
+            fi.focus_score = (float) m_FocusScore;
+            fi.astig_score = 0.0;   // calculated in Python world for now
+            fi.astig_angle = 0.0;   // calculated in Python world for now
+            memcpy(fi.astig_profile, m_imOutProfile.data, sizeof(float) * ASTIGMATISM_SIZE);
             return fi;
         }
 
     private:
+        std::mutex m_mutex;
 
         enum ImageToView {
             PowerSpectrum,
@@ -297,13 +338,16 @@ namespace openCVGraph
 
         ImageToView m_ImageIndex;           // which image to view
         int m_DFTSize = 256;
-        int m_Omega = 50;           // number of high frequency components to consider
+        // Focus will use all DFT components between m_FreqStart and m_FreqEnd
+        int m_FreqStart = 50;
+        int m_FreqEnd = m_DFTSize - 5;           
+
         double m_FocusScore;
         double m_AstigmatismScore;
         double m_AstigmatismAngle;
 #ifdef WITH_CUDA
         cv::Ptr<cv::cuda::Filter> m_cudaFilter;
-        cuda::GpuMat m_outXLUTGPu, m_outYLUTGpu;
+        cuda::GpuMat m_outXLUTGpu, m_outYLUTGpu;
         cuda::GpuMat m_imOutProfileGpu; 
         cuda::GpuMat m_PowerSpectrumGpu;
         cuda::GpuMat m_RoiPowerSpectrumGpu;
@@ -312,5 +356,6 @@ namespace openCVGraph
         Mat m_PowerSpectrum;
         Mat m_RoiPowerSpectrum;
         int m_AstigWidth = -1;
+        bool m_RecalcLUTs = true;
     };
 }

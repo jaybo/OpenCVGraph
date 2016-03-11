@@ -54,14 +54,29 @@ namespace openCVGraph
                     src16 = graphData.m_CommonData->m_imCaptureGpu16UC1;
                     src8 = graphData.m_CommonData->m_imCaptureGpu8UC1;
                 }
-                cv::cuda::minMax(src16, &m_dCapMin, &m_dCapMax);
-                cv::cuda::calcHist(src8, m_histogramGpu);
-                
+                cv::cuda::Stream stream;
+
+                cuda::GpuMat gpuOutMinMax, gpuOutSum;
+                cv::cuda::findMinMax(src16, gpuOutMinMax, noArray(), stream);
+                cv::cuda::calcHist(src8, m_histogramGpu, stream);
+                cv::cuda::calcSum(src16, gpuOutSum, noArray(), stream);
+                m_histogramGpu.download(m_histogram, stream);
+                stream.waitForCompletion();
+
+                Mat cpuOutMinMax, cpuOutSum;
+                gpuOutMinMax.download(cpuOutMinMax);
+                m_dCapMin = cpuOutMinMax.at<int>(0);
+                m_dCapMax = cpuOutMinMax.at<int>(1);
+
+                auto nPoints = src16.size().area();
+                gpuOutSum.download(cpuOutSum);
+                m_Mean = (int) (cpuOutSum.at<double>(0) / nPoints);
+
                 // This version fails!!!
                 // cv::cuda::histEven(graphData.m_CommonData->m_imCaptureGpu16UC1, m_histogramGpu, 256, 0, UINT16_MAX);
 
-                auto nPoints = src16.size().area();
-                m_Mean = (int) (cv::cuda::sum(src16)[0] / nPoints);
+                //auto nPoints = src16.size().area();
+                //m_Mean = (int) (cv::cuda::sum(src16)[0] / nPoints);
 #endif
             }
             else {
@@ -107,7 +122,7 @@ namespace openCVGraph
             if (m_UseCuda) {
 #ifdef WITH_CUDA
                 if (!m_histogramGpu.empty()) {
-                    m_histogramGpu.download(m_histogram); 
+                  //  m_histogramGpu.download(m_histogram); 
                 }
 #endif
             }
@@ -135,6 +150,9 @@ namespace openCVGraph
         Mat m_histogram;
         double m_dCapMax, m_dCapMin;
         bool m_UseCuda;
+#ifdef WITH_CUDA
+
+#endif
 
         void ImageQC::processView(GraphData& graphData)
         {

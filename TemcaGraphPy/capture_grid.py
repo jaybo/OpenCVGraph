@@ -16,15 +16,16 @@ import math
 import numpy as np
 from temca_graph import *
 from pytemca.stage.stage import RadishStage, DummyRadishStage
+from pytemca.stage.smarAct.smaract_stage import SmarActStage
 
 if __name__ == '__main__':
 
     # user changable parameters
-    nm_per_pix = 3.6363636363636363636363636363636
+    nm_per_pix = 3.63
     rotation_angle = -180 + 96.3    # degrees
-    overlap = 0.50         # overlap on EACH side (0.1 = 10% on each side)
-    grid_x = 3            # size of grid to create
-    grid_y = 3
+    overlap = 0.10         # overlap on EACH side (0.1 = 10% on each side)
+    grid_x = 6            # size of grid to create
+    grid_y = 6
     base_path = r'j:\temcaRaw'
     # end user changable parameters
 
@@ -39,12 +40,14 @@ if __name__ == '__main__':
         os.mkdir(image_dir)
     meta_file = open(os.path.join(base_path, timestr, 'meta.txt'), 'w')
 
-    stage = RadishStage("*", 8000, 8001, "http://10.128.26.122:8090")
+    
+    #stage = RadishStage("*", 8000, 8001, "http://10.128.26.51:8090")
     #stage = DummyRadishStage("*", 8000, 8001, "http://localhost:8090")
+    stage = SmarActStage()
 
     # Open the DLL which runs all TEMCA graphs
     temcaGraph = TemcaGraph() 
-    temcaGraph.open(dummyCamera = False) 
+    temcaGraph.open(dummyCamera = False, dummyPath=r"J:\temcaRaw\20160211-144213") 
 
     showRawImage = False
     showPreviewImage = False
@@ -68,7 +71,7 @@ if __name__ == '__main__':
         temp_point = temp_point[0] + centerPoint[0] , temp_point[1] + centerPoint[1]
         return temp_point
 
-    sx, sy = stage._get_pos_2d()
+    sx, sy = stage.get_pos()
     cx = sx
     cy = sy
         
@@ -90,7 +93,6 @@ if __name__ == '__main__':
     pix_y = 0
 
     #temcaGraph.optimize_exposure()
-    stage.set_pos(0,0)
     time.sleep(0.5)
     
     temcaGraph.set_mode('temca')
@@ -117,11 +119,12 @@ if __name__ == '__main__':
             pX, pY = (x * dx_x_move + y * dx_y_move, y * dy_y_move + x * dy_x_move)
             print y, x, pY, pX
 
-            move = (x, y, pX, pY, pix_x, pix_y, image_path, image_file)
+            move = (x, y, sx + pX, sy + pY, pix_x, pix_y, image_path, image_file)
             moves.append(move)
 
     move0 = moves[0]
-    stage.set_pos(move0[2], move0[3])   
+    if sx != move0[2] or sy != move0[3]:
+        stage.set_pos(move0[2], move0[3])   
 
     for i, move in enumerate(moves):
         if temcaGraph.aborting:
@@ -136,14 +139,14 @@ if __name__ == '__main__':
         temcaGraph.wait_graph_event(temcaGraph.eventCaptureCompleted)
             
         # move the stage here
-        #stage._set_pos_2d(cx, cy)
+        #stage.set_pos(cx, cy)
         #pX, pY = (x * dx_x_move + y * dx_y_move, y * dy_y_move + x * dy_x_move)
         #print y, x, pY, pX
         if i != grid_x * grid_y - 1:
             next_move = moves[i+1]
             pX_next, pY_next = (next_move[2], next_move[3])
             stage.set_pos(pX_next, pY_next)
-        time.sleep(0.5)
+        time.sleep(0.05)
 
         # wait for Async ready event (stitching complete for previous
         # frame)
@@ -175,7 +178,7 @@ if __name__ == '__main__':
         frameCounter += 1
 
 
-    stage._set_pos_2d(sx, sy)
+    stage.set_pos(sx, sy)
     temcaGraph.close()
     temcaGraph.wait_graph_event(temcaGraph.eventFiniCompleted)
     meta_file.close()

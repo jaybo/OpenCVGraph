@@ -76,7 +76,10 @@ namespace openCVGraph
                     fullName = m_Directory + '/' + s.substr(s.find_last_of("\\/"), s.npos);
                 }
                 else {
-                    if (!graphData.m_CommonData->m_DestinationFileName.empty()) {
+                    if (graphData.m_CommonData->m_DestinationFileName == "None") {
+                        return ProcessResult::OK;   // don't write if filename == "None"
+                    }
+                    else if (!graphData.m_CommonData->m_DestinationFileName.empty()) {
                         fullName = graphData.m_CommonData->m_DestinationFileName;
                     }
                     else {

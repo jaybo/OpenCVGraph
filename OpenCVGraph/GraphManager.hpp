@@ -160,6 +160,8 @@ namespace openCVGraph
 
             // main processing loop
             while (fOK && !m_Aborting) {
+                
+                m_GraphData.m_CommonData->PerformWaitKey();
 
                 if (m_GraphData.m_AbortOnESC && (m_GraphData.m_CommonData->m_LastKey == 27)) {  // ESCAPE key
                     fOK = false;
