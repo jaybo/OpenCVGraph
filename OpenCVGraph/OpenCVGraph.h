@@ -1,7 +1,7 @@
 #pragma once
 
 // Comment out the following to disable all CUDA processing
-#define WITH_CUDA
+// #define WITH_CUDA
 
 #include <cstring>
 #include <sstream>
@@ -68,13 +68,13 @@
 #include "Filters/ImageStatistics.hpp"
 #include "Filters/FileWriter.hpp"
 
-//#ifdef WITH_CUDA
 #include "Filters/FocusSobel.hpp"
 #include "Filters/FocusLaplace.hpp"
 #include "Filters/FocusFFT.hpp"
 #include "Filters/CapturePostProcessing.hpp"
+#ifdef WITH_CUDA
 #include "Filters/Matcher.hpp"
-//#endif
+#endif
 
 // Camera specific includes
 #include "Capture/CameraSDKs/Ximea/API/xiApi.h"

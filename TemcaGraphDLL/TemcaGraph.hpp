@@ -177,10 +177,10 @@ private:
     {
         // Create a graph
         GraphManager *graph = new GraphManager(graphName, true, graphCallback, m_graphCommonData, true);
-
+#ifdef WITH_CUDA
         CvFilter fmatcher(new Matcher("Matcher", *graph->getGraphData(), openCVGraph::Corrected, 768, 768));
         graph->AddFilter(fmatcher);
-
+#endif
         return graph;
     }
 

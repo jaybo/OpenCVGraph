@@ -258,15 +258,19 @@ namespace openCVGraph
 
             switch (m_ImageIndex) {
             case ImageToView::PowerSpectrum:
+#ifdef WITH_CUDA
                 if (graphData.m_UseCuda) {
                     m_PowerSpectrumGpu.download(m_PowerSpectrum);
                 }
+#endif
                 m_PowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             case ImageToView::PowerSpectrumROI:
+#ifdef WITH_CUDA
                 if (graphData.m_UseCuda) {
                     m_RoiPowerSpectrumGpu.download(m_RoiPowerSpectrum);
                 }
+#endif
                 m_RoiPowerSpectrum.convertTo(m_imView, CV_8UC1, 255.0);
                 break;
             }
@@ -351,8 +355,8 @@ namespace openCVGraph
         cuda::GpuMat m_imOutProfileGpu; 
         cuda::GpuMat m_PowerSpectrumGpu;
         cuda::GpuMat m_RoiPowerSpectrumGpu;
-        Mat m_imOutProfile;
 #endif
+        Mat m_imOutProfile;
         Mat m_PowerSpectrum;
         Mat m_RoiPowerSpectrum;
         int m_AstigWidth = -1;

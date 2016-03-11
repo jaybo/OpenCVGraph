@@ -128,7 +128,7 @@ namespace openCVGraph
 
 	class  GraphData {
     private:
-        std::mutex m_mutex;
+        std::recursive_mutex m_mutex;
     public:
 		std::string m_GraphName;			// Name of the loop processor running this graph
 		bool m_AbortOnESC;                  // Exit the graph thread if ESC is hit?
@@ -210,7 +210,7 @@ namespace openCVGraph
 
         void EnsureFormatIsAvailable(bool cuda, int needFormat, bool corrected)
         {
-            std::lock_guard<std::mutex> lock(m_mutex);
+            std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
             int nChannels = m_CommonData->m_imCapture.channels();
             int nDepth = m_CommonData->m_imCapture.depth();
