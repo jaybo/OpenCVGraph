@@ -244,10 +244,12 @@ class TemcaGraph(object):
 
         # get info about frame dimensions
         fi = self.get_camera_info()
-        self.image_width = fi.width
-        self.image_height = fi.height
-        self.pixel_depth = fi.pixel_depth
-        self.camera_id = fi.camera_id
+        self.image_width = fi['width']
+        self.image_height = fi['height']
+        self.pixel_depth = fi['pixel_depth']    # 16 ALWAYS
+        self.camera_bpp = fi['camera_bpp']      # 12 for Ximea (upshift to full 16 bpp)
+        self.camera_model = fi['camera_model']
+        self.camera_id = fi['camera_id']
 
         # if this is changed dynamically, reallocate preview frames
         self.set_parameter('preview_decimation_factor', self.preview_decimation_factor)
@@ -296,10 +298,12 @@ class TemcaGraph(object):
     
     def get_camera_info(self):
         ''' 
-        Fills CameraInfo structure with details of the capture format including width, height, bytes per pixel, and the camera model and serial number.
+        Returns a dictionary with details of the capture format including width, height, bytes per pixel, and the camera model and serial number.
         '''
-        ci = TemcaGraphDLL.get_camera_info()
-        return ci
+        info = TemcaGraphDLL.get_camera_info()
+        return {'width' : info.width, 'height' : info.height, 
+                'pixel_depth' : info.pixel_depth, 'camera_bpp' : info.camera_bpp, 
+                'camera_model' : info.camera_model, 'camera_id' : info.camera_id}
     
     def get_focus_info(self):
         ''' returns focus and astigmatism values, some calculated in CUDA, some in python '''
@@ -329,7 +333,7 @@ class TemcaGraph(object):
 
         array_type = c_int*len(info.histogram)
         hist_profile_pointer = cast(info.histogram, POINTER(array_type))
-        hist_numpy = np.frombuffer(hist_profile_pointer.contents, dtype=np.int)
+        hist_numpy = np.frombuffer(hist_profile_pointer.contents, dtype=np.int32)
 
         return {'min':info.min_value, 'max': info.max_value, 'mean':info.mean_value, 'histogram':hist_numpy}
 

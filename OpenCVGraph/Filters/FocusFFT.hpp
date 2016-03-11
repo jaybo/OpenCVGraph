@@ -323,12 +323,14 @@ namespace openCVGraph
             m_FreqEnd = endFreq;
         }
 
-        FocusInfo getFocusInfo() { 
-            FocusInfo fi; 
-            fi.focus_score = (float) m_FocusScore;
-            fi.astig_score = 0.0;   // calculated in Python world for now
-            fi.astig_angle = 0.0;   // calculated in Python world for now
-            memcpy(fi.astig_profile, m_imOutProfile.data, sizeof(float) * ASTIGMATISM_SIZE);
+        FocusInfo getFocusInfo() {
+            FocusInfo fi = { 0 };
+            if (!m_imOutProfile.empty()) {
+                fi.focus_score = (float)m_FocusScore;
+                fi.astig_score = 0.0;   // calculated in Python world for now
+                fi.astig_angle = 0.0;   // calculated in Python world for now
+                memcpy(fi.astig_profile, m_imOutProfile.data, sizeof(float) * ASTIGMATISM_SIZE);
+            }
             return fi;
         }
 

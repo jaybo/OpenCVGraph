@@ -60,8 +60,9 @@ namespace openCVGraph
                 cv::cuda::findMinMax(src16, gpuOutMinMax, noArray(), stream);
                 cv::cuda::calcHist(src8, m_histogramGpu, stream);
                 cv::cuda::calcSum(src16, gpuOutSum, noArray(), stream);
-                m_histogramGpu.download(m_histogram, stream);
                 stream.waitForCompletion();
+                m_histogramGpu.download(m_histogram, stream);
+
 
                 Mat cpuOutMinMax, cpuOutSum;
                 gpuOutMinMax.download(cpuOutMinMax);
@@ -119,15 +120,8 @@ namespace openCVGraph
         // ITemcaQC
         QCInfo ImageQC::getQCInfo() {
             QCInfo info;
-            if (m_UseCuda) {
-#ifdef WITH_CUDA
-                if (!m_histogramGpu.empty()) {
-                  //  m_histogramGpu.download(m_histogram); 
-                }
-#endif
-            }
             if (!m_histogram.empty()) {
-                const int32_t * p = m_histogram.ptr<int32_t>(0);
+                const int * p = m_histogram.ptr<int>(0);
 
                 for (int i = 0; i < m_histogram.cols; i++) {
                     info.histogram[i] = p[i];

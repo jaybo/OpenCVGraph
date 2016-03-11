@@ -138,7 +138,7 @@ namespace openCVGraph
                     // FSCK!!! BFMatcher will cause later segfaults if matches is not preallocated!!!   FSCK!!!
                     m_DMatches.resize(int(maxSize));
                     m_matcherBF->match(scn.DescriptorsGpu, obj.DescriptorsGpu, m_DMatches);
-#if 1
+
                     //-- Quick calculation of max and min distances between keypoints
                     double max_dist = 0; double min_dist = 100000;
 
@@ -186,7 +186,6 @@ namespace openCVGraph
                         mi.rotation = atan2f(mi.dY, mi.dX);
                         mi.good_matches = (int)md.GoodMatches.size();
                     }
-#endif
                 }
                 matcherInfos.push_back(mi);
             }
@@ -253,6 +252,7 @@ namespace openCVGraph
                 case 1: // real world units displayed
                     for (int i = 0; i < m_MatcherInfos.size(); i++) {
                         if ((m_MatcherInfos[i].good_matches > 0) && (m_ScnTemplateInfos[i].GoodKeypointsCpu.size() > 0)) {
+
                             drawKeypoints(graphData.m_CommonData->m_imCorrected8UC1, 
                                 m_ScnTemplateInfos[i].GoodKeypointsCpu, m_imView, Scalar(255, 0, 0),
                                 DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
@@ -310,12 +310,16 @@ namespace openCVGraph
 
                     str.str("");
                     str << "dist: " << fixed << left << setprecision(2) << setw(14) << m_MatcherInfos[0].distance * units_per_pixel;
-                    DrawOverlayText(str.str(), Point(posLeft, 400), scale);
+                    DrawOverlayText(str.str(), Point(posLeft, 380), scale);
 
                     str.str("");
                     auto rotDegrees = RAD2DEG(m_MatcherInfos[0].rotation);
                     str << "ang: " << fixed << left << setprecision(2) << setw(14) << ((m_FieldToView == 0) ? m_MatcherInfos[0].rotation : rotDegrees);
-                    DrawOverlayText(str.str(), Point(posLeft, 440), scale);
+                    DrawOverlayText(str.str(), Point(posLeft, 420), scale);
+
+                    str.str("");
+                    str << "good_matches: " << fixed << left << setw(14) << m_MatcherInfos[0].good_matches;
+                    DrawOverlayText(str.str(), Point(posLeft, 460), scale);
 
                     str.str("");
                     str << "'N' to grab new template";

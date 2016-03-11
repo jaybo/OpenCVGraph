@@ -350,7 +350,7 @@ public:
         }
         else if (sGraphType == "preview") {
             m_gmFileWriter->Enable(false);
-            m_gmStitching->Enable(false);
+            m_gmStitching->Enable(true);
         }
         else if (sGraphType == "delay") {
         }
@@ -547,14 +547,14 @@ public:
     // ITemcaMatcher
     // ------------------------------------------------
     void grabMatcherTemplate(int x, int y, int width, int height) {
-        if (m_ITemcaQC) {
+        if (m_ITemcaMatcher) {
             m_ITemcaMatcher->grabMatcherTemplate(x, y, width, height);
         }
     }
 
     MatcherInfo getMatcherInfo() {
         MatcherInfo info = { 0 };
-        if (m_ITemcaQC) {
+        if (m_ITemcaMatcher) {
             info = m_ITemcaMatcher->getMatcherInfo();
         }
         return info;
